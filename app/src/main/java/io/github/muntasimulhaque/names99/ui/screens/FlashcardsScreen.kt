@@ -33,11 +33,13 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -51,7 +53,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import io.github.muntasimulhaque.names99.R
-import io.github.muntasimulhaque.names99.data.Name
 import io.github.muntasimulhaque.names99.data.NamesRepository
 import io.github.muntasimulhaque.names99.data.Prefs
 import kotlinx.coroutines.flow.first
@@ -63,21 +64,26 @@ fun FlashcardsScreen(navController: NavController, prefs: Prefs) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
-    var deck by remember { mutableStateOf<List<Name>>(emptyList()) }
-    var index by remember { mutableIntStateOf(0) }
-    var flipped by remember { mutableStateOf(false) }
+    // The deck is stored as name numbers so it survives configuration changes.
+    var deckNumbers by rememberSaveable { mutableStateOf(listOf<Int>()) }
+    var index by rememberSaveable { mutableIntStateOf(0) }
+    var flipped by rememberSaveable { mutableStateOf(false) }
     var loaded by remember { mutableStateOf(false) }
+
+    val deck = remember(deckNumbers) {
+        deckNumbers.mapNotNull { NamesRepository.byNumber(context, it) }
+    }
 
     fun buildDeck(learnedSet: Set<Int>) {
         val all = NamesRepository.load(context)
         val (known, unknown) = all.partition { it.number in learnedSet }
-        deck = unknown.shuffled() + known.shuffled()
+        deckNumbers = (unknown.shuffled() + known.shuffled()).map { it.number }
         index = 0
         flipped = false
     }
 
-    androidx.compose.runtime.LaunchedEffect(Unit) {
-        buildDeck(prefs.learned.first())
+    LaunchedEffect(Unit) {
+        if (deckNumbers.isEmpty()) buildDeck(prefs.learned.first())
         loaded = true
     }
 
@@ -92,7 +98,7 @@ fun FlashcardsScreen(navController: NavController, prefs: Prefs) {
                 },
                 actions = {
                     IconButton(onClick = { scope.launch { buildDeck(prefs.learned.first()) } }) {
-                        Icon(Icons.Default.Refresh, contentDescription = "Reshuffle")
+                        Icon(Icons.Default.Refresh, contentDescription = stringResource(R.string.reshuffle))
                     }
                 }
             )
@@ -109,12 +115,12 @@ fun FlashcardsScreen(navController: NavController, prefs: Prefs) {
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                Text("You went through the whole deck.", style = MaterialTheme.typography.titleLarge, textAlign = TextAlign.Center)
+                Text(stringResource(R.string.deck_done), style = MaterialTheme.typography.titleLarge, textAlign = TextAlign.Center)
                 Spacer(Modifier.height(16.dp))
                 Button(onClick = { scope.launch { buildDeck(prefs.learned.first()) } }) {
                     Icon(Icons.Default.Replay, contentDescription = null)
                     Spacer(Modifier.width(8.dp))
-                    Text("Start again")
+                    Text(stringResource(R.string.start_again))
                 }
             }
             return@Scaffold

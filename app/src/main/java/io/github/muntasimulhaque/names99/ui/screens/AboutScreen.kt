@@ -74,7 +74,7 @@ fun AboutScreen(navController: NavController, prefs: Prefs) {
         ) {
             Spacer(Modifier.height(16.dp))
             Text(
-                text = "بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ",
+                text = stringResource(R.string.basmala),
                 fontSize = (24 * textScale).sp,
                 color = MaterialTheme.colorScheme.primary,
                 textAlign = TextAlign.Center
@@ -114,8 +114,7 @@ fun AboutScreen(navController: NavController, prefs: Prefs) {
             }
             HorizontalDivider(Modifier.padding(vertical = 8.dp))
             Text(
-                text = "May Allah make us among those who learn, memorize, understand, " +
-                    "and act upon His beautiful names, and enter us into His paradise.",
+                text = stringResource(R.string.about_dua),
                 style = MaterialTheme.typography.bodyLarge,
                 fontStyle = FontStyle.Italic,
                 textAlign = TextAlign.Center,
@@ -126,15 +125,14 @@ fun AboutScreen(navController: NavController, prefs: Prefs) {
             HorizontalDivider()
             Spacer(Modifier.height(16.dp))
             Text(
-                text = "Based on the lecture of Sheikh Ibn Uthaymeen (Rahimahullah), as presented in " +
-                    "“The Ninety Nine Names of Allah: A Memorisation Tool with Transliteration and Meanings”.",
+                text = stringResource(R.string.about_attribution),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center
             )
-            TextButton(onClick = { context.openUrl(SOURCE_PDF_URL) }) { Text("Source document (PDF)") }
-            TextButton(onClick = { context.openUrl(BLOG_URL) }) { Text("Read on the blog") }
-            TextButton(onClick = { context.openUrl(REPO_URL) }) { Text("Free & open source — no ads, no tracking") }
+            TextButton(onClick = { context.openUrl(SOURCE_PDF_URL) }) { Text(stringResource(R.string.source_pdf)) }
+            TextButton(onClick = { context.openUrl(BLOG_URL) }) { Text(stringResource(R.string.read_blog)) }
+            TextButton(onClick = { context.openUrl(REPO_URL) }) { Text(stringResource(R.string.foss_line)) }
             Spacer(Modifier.height(32.dp))
         }
     }

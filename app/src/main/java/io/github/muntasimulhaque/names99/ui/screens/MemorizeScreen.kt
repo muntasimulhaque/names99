@@ -75,14 +75,14 @@ fun MemorizeScreen(navController: NavController, prefs: Prefs) {
             Spacer(Modifier.height(32.dp))
             ModeCard(
                 title = stringResource(R.string.flashcards),
-                subtitle = "See the name, recall the meaning, flip to check.",
+                subtitle = stringResource(R.string.flashcards_subtitle),
                 icon = { Icon(Icons.Default.Style, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
                 onClick = { navController.navigate("flashcards") }
             )
             Spacer(Modifier.height(16.dp))
             ModeCard(
                 title = stringResource(R.string.quiz),
-                subtitle = "Ten questions. Match each name to its meaning.",
+                subtitle = stringResource(R.string.quiz_subtitle),
                 icon = { Icon(Icons.Default.Quiz, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
                 onClick = { navController.navigate("quiz") }
             )

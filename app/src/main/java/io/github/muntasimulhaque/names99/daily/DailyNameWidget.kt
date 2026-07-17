@@ -8,6 +8,8 @@ import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.GlanceAppWidgetReceiver
+import androidx.glance.action.ActionParameters
+import androidx.glance.action.actionParametersOf
 import androidx.glance.action.actionStartActivity
 import androidx.glance.appwidget.cornerRadius
 import androidx.glance.appwidget.provideContent
@@ -36,7 +38,13 @@ class DailyNameWidget : GlanceAppWidget() {
                     .background(ColorProvider(Color(0xFF1F4E42)))
                     .cornerRadius(20.dp)
                     .padding(16.dp)
-                    .clickable(actionStartActivity<MainActivity>()),
+                    .clickable(
+                        actionStartActivity<MainActivity>(
+                            actionParametersOf(
+                                ActionParameters.Key<Int>(MainActivity.EXTRA_NAME_NUMBER) to name.number
+                            )
+                        )
+                    ),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {

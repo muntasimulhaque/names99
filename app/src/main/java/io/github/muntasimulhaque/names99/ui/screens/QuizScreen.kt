@@ -29,6 +29,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -45,26 +46,39 @@ import io.github.muntasimulhaque.names99.data.NamesRepository
 
 private data class Question(val name: Name, val options: List<String>)
 
-private fun buildQuiz(all: List<Name>, count: Int = 10): List<Question> =
-    all.shuffled().take(count).map { name ->
-        val distractors = all.filter { it.number != name.number }
-            .shuffled().take(3).map { it.title }
-        Question(name, (distractors + name.title).shuffled())
-    }
+/**
+ * Each question is encoded as [numberString, option1..option4] so the quiz can be
+ * kept in rememberSaveable (survives rotation). distinct() guards against any
+ * future locale where two names share a title.
+ */
+private fun buildQuiz(all: List<Name>, count: Int = 10): ArrayList<ArrayList<String>> =
+    ArrayList(
+        all.shuffled().take(count).map { name ->
+            val distractors = all.map { it.title }.distinct()
+                .filter { it != name.title }
+                .shuffled().take(3)
+            ArrayList(listOf(name.number.toString()) + (distractors + name.title).shuffled())
+        }
+    )
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun QuizScreen(navController: NavController) {
     val context = LocalContext.current
     val all = remember { NamesRepository.load(context) }
-    var quiz by remember { mutableStateOf(buildQuiz(all)) }
-    var index by remember { mutableIntStateOf(0) }
-    var score by remember { mutableIntStateOf(0) }
-    var selected by remember { mutableStateOf<String?>(null) }
-    var finished by remember { mutableStateOf(false) }
+    var quizData by rememberSaveable { mutableStateOf(buildQuiz(all)) }
+    val quiz = remember(quizData) {
+        quizData.mapNotNull { q ->
+            NamesRepository.byNumber(context, q[0].toInt())?.let { Question(it, q.drop(1)) }
+        }
+    }
+    var index by rememberSaveable { mutableIntStateOf(0) }
+    var score by rememberSaveable { mutableIntStateOf(0) }
+    var selected by rememberSaveable { mutableStateOf("") } // "" = nothing selected yet
+    var finished by rememberSaveable { mutableStateOf(false) }
 
     fun restart() {
-        quiz = buildQuiz(all); index = 0; score = 0; selected = null; finished = false
+        quizData = buildQuiz(all); index = 0; score = 0; selected = ""; finished = false
     }
 
     Scaffold(
@@ -95,11 +109,13 @@ fun QuizScreen(navController: NavController) {
                 )
                 Spacer(Modifier.height(8.dp))
                 Text(
-                    when {
-                        score == quiz.size -> "Masha'Allah — a perfect round."
-                        score >= quiz.size / 2 -> "Well done. Keep going."
-                        else -> "Keep at it — the flashcards will help."
-                    },
+                    stringResource(
+                        when {
+                            score == quiz.size -> R.string.quiz_perfect
+                            score >= quiz.size / 2 -> R.string.quiz_good
+                            else -> R.string.quiz_keep_trying
+                        }
+                    ),
                     style = MaterialTheme.typography.titleMedium,
                     textAlign = TextAlign.Center
                 )
@@ -107,7 +123,7 @@ fun QuizScreen(navController: NavController) {
                 Button(onClick = { restart() }) {
                     Icon(Icons.Default.Replay, contentDescription = null)
                     Spacer(Modifier.width(8.dp))
-                    Text("Try another round")
+                    Text(stringResource(R.string.try_another_round))
                 }
             }
             return@Scaffold
@@ -129,7 +145,7 @@ fun QuizScreen(navController: NavController) {
             )
             Spacer(Modifier.height(4.dp))
             Text(
-                "Question ${index + 1} of ${quiz.size}",
+                stringResource(R.string.question_x_of_y, index + 1, quiz.size),
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -148,7 +164,7 @@ fun QuizScreen(navController: NavController) {
 
             q.options.forEach { option ->
                 val isCorrect = option == q.name.title
-                val revealed = selected != null
+                val revealed = selected.isNotEmpty()
                 val colors = when {
                     revealed && isCorrect -> MaterialTheme.colorScheme.primary
                     revealed && option == selected -> MaterialTheme.colorScheme.error
@@ -156,7 +172,7 @@ fun QuizScreen(navController: NavController) {
                 }
                 OutlinedButton(
                     onClick = {
-                        if (selected == null) {
+                        if (selected.isEmpty()) {
                             selected = option
                             if (isCorrect) score++
                         }
@@ -182,14 +198,14 @@ fun QuizScreen(navController: NavController) {
             Button(
                 onClick = {
                     if (index + 1 >= quiz.size) finished = true
-                    else { index++; selected = null }
+                    else { index++; selected = "" }
                 },
-                enabled = selected != null,
+                enabled = selected.isNotEmpty(),
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(bottom = 24.dp)
             ) {
-                Text(if (index + 1 >= quiz.size) "See result" else "Next")
+                Text(stringResource(if (index + 1 >= quiz.size) R.string.see_result else R.string.next))
             }
         }
     }

@@ -38,14 +38,21 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         DailyScheduler.ensureScheduled(applicationContext)
-        startNumber.value = intent.getIntExtra(EXTRA_NAME_NUMBER, -1)
+        startNumber.value = consumeNameNumber(intent)
         setContent { App(startNumber) }
     }
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
-        startNumber.value = intent.getIntExtra(EXTRA_NAME_NUMBER, -1)
+        startNumber.value = consumeNameNumber(intent)
+    }
+
+    /** Reads the extra, then removes it so a configuration change can't replay the navigation. */
+    private fun consumeNameNumber(intent: Intent): Int {
+        val number = intent.getIntExtra(EXTRA_NAME_NUMBER, -1)
+        intent.removeExtra(EXTRA_NAME_NUMBER)
+        return number
     }
 
     companion object {

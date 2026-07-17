@@ -36,6 +36,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -140,11 +141,15 @@ fun SettingsScreen(navController: NavController, prefs: Prefs) {
             HorizontalDivider(Modifier.padding(vertical = 16.dp))
 
             SectionLabel(stringResource(R.string.text_size))
+            // Local state while dragging; persisted once on release so DataStore
+            // isn't written on every drag tick.
+            var sliderValue by remember(textScale) { mutableFloatStateOf(textScale) }
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text("A", style = MaterialTheme.typography.bodySmall)
                 Slider(
-                    value = textScale,
-                    onValueChange = { scope.launch { prefs.setTextScale(it) } },
+                    value = sliderValue,
+                    onValueChange = { sliderValue = it },
+                    onValueChangeFinished = { scope.launch { prefs.setTextScale(sliderValue) } },
                     valueRange = 0.85f..1.4f,
                     steps = 10,
                     modifier = Modifier
@@ -220,15 +225,15 @@ fun SettingsScreen(navController: NavController, prefs: Prefs) {
         AlertDialog(
             onDismissRequest = { showResetDialog = false },
             title = { Text(stringResource(R.string.reset_progress)) },
-            text = { Text("This clears all names marked as learned. It cannot be undone.") },
+            text = { Text(stringResource(R.string.reset_dialog_text)) },
             confirmButton = {
                 TextButton(onClick = {
                     scope.launch { prefs.resetLearned() }
                     showResetDialog = false
-                }) { Text("Reset") }
+                }) { Text(stringResource(R.string.reset)) }
             },
             dismissButton = {
-                TextButton(onClick = { showResetDialog = false }) { Text("Cancel") }
+                TextButton(onClick = { showResetDialog = false }) { Text(stringResource(R.string.cancel)) }
             }
         )
     }

@@ -29,6 +29,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -40,7 +41,7 @@ import io.github.muntasimulhaque.names99.data.Prefs
 private const val BLOG_URL = "https://muntasimulhaque.bearblog.dev/99-names/"
 private const val SOURCE_PDF_URL =
     "https://bear-images.sfo2.cdn.digitaloceanspaces.com/muntasimulhaque/ninety-nine-names-1_compressed.pdf"
-private const val REPO_URL = "https://github.com/muntasimulhaque"
+private const val REPO_URL = "https://github.com/muntasimulhaque/99-names-app"
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -80,6 +81,19 @@ fun AboutScreen(navController: NavController, prefs: Prefs) {
             )
             Spacer(Modifier.height(20.dp))
             intro.split("\n\n").forEach { para ->
+                if (para.startsWith("##")) {
+                    Text(
+                        text = para.trimStart('#').trim(),
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontFamily = FontFamily.Serif,
+                        color = MaterialTheme.colorScheme.primary,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 8.dp, bottom = 16.dp)
+                    )
+                    return@forEach
+                }
                 val isQuote = para.startsWith("> ")
                 Text(
                     text = para.removePrefix("> ").trim('"').let {

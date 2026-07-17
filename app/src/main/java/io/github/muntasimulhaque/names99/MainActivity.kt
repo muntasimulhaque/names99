@@ -1,13 +1,16 @@
 package io.github.muntasimulhaque.names99
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavType
@@ -29,12 +32,20 @@ import io.github.muntasimulhaque.names99.ui.theme.Names99Theme
 
 class MainActivity : ComponentActivity() {
 
+    private val startNumber = mutableStateOf(-1)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         DailyScheduler.ensureScheduled(applicationContext)
-        val startNumber = intent.getIntExtra(EXTRA_NAME_NUMBER, -1)
+        startNumber.value = intent.getIntExtra(EXTRA_NAME_NUMBER, -1)
         setContent { App(startNumber) }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        startNumber.value = intent.getIntExtra(EXTRA_NAME_NUMBER, -1)
     }
 
     companion object {
@@ -43,7 +54,7 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-private fun App(startNumber: Int) {
+private fun App(startNumber: MutableState<Int>) {
     val context = LocalContext.current
     val prefs = remember { Prefs(context.applicationContext) }
     val themeMode by prefs.themeMode.collectAsState(initial = ThemeMode.SYSTEM)
@@ -51,8 +62,12 @@ private fun App(startNumber: Int) {
     Names99Theme(mode = themeMode) {
         val navController = rememberNavController()
 
-        LaunchedEffect(startNumber) {
-            if (startNumber in 1..99) navController.navigate("detail/$startNumber")
+        LaunchedEffect(startNumber.value) {
+            val number = startNumber.value
+            if (number in 1..99) {
+                navController.navigate("detail/$number")
+                startNumber.value = -1
+            }
         }
 
         NavHost(navController = navController, startDestination = "home") {

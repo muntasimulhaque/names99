@@ -35,6 +35,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -50,6 +51,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavController
 import io.github.muntasimulhaque.names99.R
 import io.github.muntasimulhaque.names99.data.Name
@@ -61,8 +65,19 @@ import io.github.muntasimulhaque.names99.data.Prefs
 fun HomeScreen(navController: NavController, prefs: Prefs) {
     val context = LocalContext.current
     val names = remember { NamesRepository.load(context) }
-    val daily = remember { NamesRepository.dailyName(context) }
     val learned by prefs.learned.collectAsState(initial = emptySet())
+
+    // Recomputed on every resume so the card rolls over at midnight even if the
+    // app was sitting in recents.
+    var daily by remember { mutableStateOf(NamesRepository.dailyName(context)) }
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) daily = NamesRepository.dailyName(context)
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
 
     var searching by rememberSaveable { mutableStateOf(false) }
     var query by rememberSaveable { mutableStateOf("") }

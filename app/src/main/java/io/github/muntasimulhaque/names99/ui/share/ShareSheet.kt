@@ -128,8 +128,8 @@ private fun ShareCard(name: Name, modifier: Modifier = Modifier) {
         ) {
             ArabicText(
                 text = stringResource(R.string.basmala),
-                fontSize = 20.sp,
-                color = HeroGold,
+                fontSize = 15.sp,
+                color = HeroSubtext,
                 textAlign = TextAlign.Center,
             )
             Spacer(Modifier.height(22.dp))

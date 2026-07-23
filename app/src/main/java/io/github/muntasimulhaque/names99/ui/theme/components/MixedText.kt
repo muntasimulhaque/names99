@@ -11,13 +11,13 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import io.github.muntasimulhaque.names99.ui.theme.AmiriFamily
+import io.github.muntasimulhaque.names99.ui.theme.ArabicFamily
 
 private val ARABIC_RUN = Regex(
     "[\\u0600-\\u06FF\\u0750-\\u077F\\u08A0-\\u08FF\\uFB50-\\uFDFF\\uFE70-\\uFEFF]+"
 )
 
-/** Latin text where embedded Arabic runs are switched to the Amiri typeface. */
+/** Latin text where embedded Arabic runs are switched to the bundled Arabic typeface. */
 @Composable
 fun MixedText(
     text: String,
@@ -32,7 +32,7 @@ fun MixedText(
         buildAnnotatedString {
             append(text)
             ARABIC_RUN.findAll(text).forEach { match ->
-                addStyle(SpanStyle(fontFamily = AmiriFamily), match.range.first, match.range.last + 1)
+                addStyle(SpanStyle(fontFamily = ArabicFamily), match.range.first, match.range.last + 1)
             }
         }
     }

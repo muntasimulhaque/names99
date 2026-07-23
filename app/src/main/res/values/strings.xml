@@ -98,5 +98,5 @@
     <string name="source_pdf">Source document (PDF)</string>
     <string name="read_blog">Read on the blog</string>
     <string name="foss_line">Free &amp; open source — no ads, no tracking</string>
-    <string name="about_fonts">Arabic set in Amiri, Latin in Spectral — both under the SIL Open Font License.</string>
+    <string name="about_fonts">Arabic set in Noto Naskh Arabic, Latin in Spectral — both under the SIL Open Font License.</string>
 </resources>

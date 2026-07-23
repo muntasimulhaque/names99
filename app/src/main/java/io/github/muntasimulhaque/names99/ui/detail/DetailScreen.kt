@@ -1,9 +1,11 @@
 package io.github.muntasimulhaque.names99.ui.detail
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -158,116 +160,119 @@ private fun NamePage(
 ) {
     val scope = rememberCoroutineScope()
 
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        // Scrollable content takes whatever height is left; the controls below
-        // stay pinned at the same spot on every page, just above the system bar.
+    // Single scrollable page: the controls scroll with the content, but a
+    // weighted spacer pushes them to just above the system bar whenever the
+    // content is shorter than the screen.
+    BoxWithConstraints(Modifier.fillMaxSize()) {
+        val minPageHeight = maxHeight
         Column(
             modifier = Modifier
-                .weight(1f)
+                .fillMaxSize()
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 28.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Spacer(Modifier.height(32.dp))
-            ArabicText(
-                text = name.arabic,
-                fontSize = 64.sp,
-                color = MaterialTheme.colorScheme.primary,
-                textAlign = TextAlign.Center,
-            )
-            Spacer(Modifier.height(12.dp))
-            Text(
-                text = name.transliteration,
-                style = MaterialTheme.typography.headlineSmall,
-                color = MaterialTheme.colorScheme.onSurface,
-                textAlign = TextAlign.Center,
-            )
-            Spacer(Modifier.height(6.dp))
-            Text(
-                text = name.title,
-                style = MaterialTheme.typography.titleMedium,
-                fontStyle = FontStyle.Italic,
-                color = MaterialTheme.colorScheme.secondary,
-                textAlign = TextAlign.Center,
-            )
-            Spacer(Modifier.height(22.dp))
-            Text(
-                text = name.meaning,
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurface,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.widthIn(max = 560.dp),
-            )
-            if (name.note != null) {
-                Spacer(Modifier.height(20.dp))
-                Card(
+            Column(
+                modifier = Modifier.defaultMinSize(minHeight = minPageHeight),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Spacer(Modifier.height(32.dp))
+                ArabicText(
+                    text = name.arabic,
+                    fontSize = 64.sp,
+                    color = MaterialTheme.colorScheme.primary,
+                    textAlign = TextAlign.Center,
+                )
+                Spacer(Modifier.height(12.dp))
+                Text(
+                    text = name.transliteration,
+                    style = MaterialTheme.typography.headlineSmall,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    textAlign = TextAlign.Center,
+                )
+                Spacer(Modifier.height(6.dp))
+                Text(
+                    text = name.title,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontStyle = FontStyle.Italic,
+                    color = MaterialTheme.colorScheme.secondary,
+                    textAlign = TextAlign.Center,
+                )
+                Spacer(Modifier.height(22.dp))
+                Text(
+                    text = name.meaning,
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    textAlign = TextAlign.Center,
                     modifier = Modifier.widthIn(max = 560.dp),
-                    shape = MaterialTheme.shapes.medium,
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant
-                    ),
-                ) {
-                    Column(Modifier.padding(18.dp)) {
-                        Text(
-                            text = stringResource(R.string.note_label),
-                            style = MaterialTheme.typography.labelLarge,
-                            color = MaterialTheme.colorScheme.secondary,
-                        )
-                        Spacer(Modifier.height(6.dp))
-                        MixedText(
-                            text = name.note,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
+                )
+                if (name.note != null) {
+                    Spacer(Modifier.height(20.dp))
+                    Card(
+                        modifier = Modifier.widthIn(max = 560.dp),
+                        shape = MaterialTheme.shapes.medium,
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceVariant
+                        ),
+                    ) {
+                        Column(Modifier.padding(18.dp)) {
+                            Text(
+                                text = stringResource(R.string.note_label),
+                                style = MaterialTheme.typography.labelLarge,
+                                color = MaterialTheme.colorScheme.secondary,
+                            )
+                            Spacer(Modifier.height(6.dp))
+                            MixedText(
+                                text = name.note,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
                     }
                 }
+                Spacer(Modifier.weight(1f))
+                Spacer(Modifier.height(24.dp))
+                FilterChip(
+                    selected = learned,
+                    onClick = onToggleLearned,
+                    label = {
+                        Text(stringResource(if (learned) R.string.learned else R.string.mark_learned))
+                    },
+                    leadingIcon = if (learned) {
+                        {
+                            Icon(
+                                Icons.Filled.Check,
+                                contentDescription = null,
+                                modifier = Modifier.padding(start = 4.dp),
+                            )
+                        }
+                    } else null,
+                )
+                Spacer(Modifier.height(8.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    if (previousLabel != null) {
+                        TextButton(onClick = { scope.launch { pagerState.animateScrollToPage(page - 1) } }) {
+                            Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, contentDescription = null)
+                            Text(previousLabel, fontStyle = FontStyle.Italic)
+                        }
+                    } else {
+                        Spacer(Modifier.widthIn(min = 48.dp))
+                    }
+                    if (nextLabel != null) {
+                        TextButton(onClick = { scope.launch { pagerState.animateScrollToPage(page + 1) } }) {
+                            Text(nextLabel, fontStyle = FontStyle.Italic)
+                            Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null)
+                        }
+                    } else {
+                        Spacer(Modifier.widthIn(min = 48.dp))
+                    }
+                }
+                Spacer(Modifier.height(16.dp))
             }
-            Spacer(Modifier.height(24.dp))
         }
-        FilterChip(
-            selected = learned,
-            onClick = onToggleLearned,
-            label = {
-                Text(stringResource(if (learned) R.string.learned else R.string.mark_learned))
-            },
-            leadingIcon = if (learned) {
-                {
-                    Icon(
-                        Icons.Filled.Check,
-                        contentDescription = null,
-                        modifier = Modifier.padding(start = 4.dp),
-                    )
-                }
-            } else null,
-        )
-        Spacer(Modifier.height(8.dp))
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 28.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            if (previousLabel != null) {
-                TextButton(onClick = { scope.launch { pagerState.animateScrollToPage(page - 1) } }) {
-                    Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, contentDescription = null)
-                    Text(previousLabel, fontStyle = FontStyle.Italic)
-                }
-            } else {
-                Spacer(Modifier.widthIn(min = 48.dp))
-            }
-            if (nextLabel != null) {
-                TextButton(onClick = { scope.launch { pagerState.animateScrollToPage(page + 1) } }) {
-                    Text(nextLabel, fontStyle = FontStyle.Italic)
-                    Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null)
-                }
-            } else {
-                Spacer(Modifier.widthIn(min = 48.dp))
-            }
-        }
-        Spacer(Modifier.height(16.dp))
     }
 }

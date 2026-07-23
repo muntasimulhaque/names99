@@ -9,10 +9,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import io.github.muntasimulhaque.names99.R
 
-/** Arabic everywhere in the app (SIL Open Font License). */
-val AmiriFamily = FontFamily(
-    Font(R.font.amiri_regular, FontWeight.Normal),
-    Font(R.font.amiri_bold, FontWeight.Bold),
+/** Arabic everywhere in the app: Noto Naskh Arabic (SIL Open Font License). */
+val ArabicFamily = FontFamily(
+    Font(R.font.notonaskharabic_regular, FontWeight.Normal),
+    Font(R.font.notonaskharabic_bold, FontWeight.Bold),
 )
 
 /** Latin text identity (SIL Open Font License). */

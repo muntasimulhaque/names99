@@ -1,6 +1,12 @@
 <resources>
     <style name="Theme.Names99" parent="android:Theme.Material.NoActionBar">
-        <item name="android:windowBackground">#FF14120F</item>
+        <item name="android:windowBackground">@color/night_paper</item>
         <item name="android:statusBarColor">@android:color/transparent</item>
+    </style>
+
+    <style name="Theme.Names99.Starting" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/night_paper</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_splash_mark</item>
+        <item name="postSplashScreenTheme">@style/Theme.Names99</item>
     </style>
 </resources>

@@ -3,22 +3,56 @@
     <string name="launcher_name">99 Names</string>
     <string name="widget_label">Name of the Day</string>
     <string name="basmala" translatable="false">بِسْمِ اللهِ الرَّحْمَنِ الرَّحِيمِ</string>
-    <string name="search_hint">Search name or meaning…</string>
+
+    <!-- Navigation -->
+    <string name="nav_names">Names</string>
     <string name="memorize">Memorize</string>
+    <string name="settings">Settings</string>
+    <string name="about">About</string>
+    <string name="cd_back">Back</string>
+
+    <!-- Home -->
+    <string name="search_hint">Search name or meaning…</string>
+    <string name="cd_search">Search</string>
+    <string name="cd_close_search">Close search</string>
+    <string name="cd_view_grid">Show as grid</string>
+    <string name="cd_view_list">Show as list</string>
+
+    <!-- Detail -->
+    <string name="detail_counter">%1$d of 99</string>
+    <string name="learned">Learned</string>
+    <string name="mark_learned">Mark as learned</string>
+    <string name="note_label">Note</string>
+
+    <!-- Share -->
+    <string name="cd_share">Share this name</string>
+    <string name="share_title">Share this name</string>
+    <string name="share_image">Share image</string>
+    <string name="share_card_footer">99 Names of Allah</string>
+
+    <!-- Memorize -->
     <string name="flashcards">Flashcards</string>
     <string name="flashcards_subtitle">See the name, recall the meaning, flip to check.</string>
     <string name="quiz">Quiz</string>
     <string name="quiz_subtitle">Ten questions. Match each name to its meaning.</string>
-    <string name="about">About</string>
-    <string name="settings">Settings</string>
-    <string name="learned">Learned</string>
-    <string name="mark_learned">Mark as learned</string>
+    <string name="progress_of">%1$d of 99 learned</string>
+    <string name="remaining_count">%1$d still to learn</string>
+    <string name="quiz_best">Best quiz score: %1$d of 10</string>
+    <string name="all_learned_title">All 99 names learned</string>
+    <string name="all_learned_text">Masha\'Allah — you have marked every name as learned. Keep reviewing to keep them fresh.</string>
+    <string name="review_learned">Review learned names</string>
+
+    <!-- Flashcards -->
     <string name="i_know_it">I know it</string>
     <string name="still_learning">Still learning</string>
     <string name="tap_to_flip">Tap the card to reveal the meaning</string>
     <string name="reshuffle">Reshuffle</string>
     <string name="deck_done">You went through the whole deck.</string>
     <string name="start_again">Start again</string>
+    <string name="include_learned">Include learned</string>
+    <string name="card_x_of_y">%1$d of %2$d</string>
+
+    <!-- Quiz -->
     <string name="quiz_perfect">Masha\'Allah — a perfect round.</string>
     <string name="quiz_good">Well done. Keep going.</string>
     <string name="quiz_keep_trying">Keep at it — the flashcards will help.</string>
@@ -26,26 +60,43 @@
     <string name="question_x_of_y">Question %1$d of %2$d</string>
     <string name="next">Next</string>
     <string name="see_result">See result</string>
+    <string name="quiz_score_format">%1$d / %2$d</string>
+    <string name="cd_correct">Correct answer</string>
+    <string name="cd_wrong">Wrong answer</string>
+
+    <!-- Search -->
+    <string name="no_results">No names match your search.</string>
+
+    <!-- Daily name -->
     <string name="daily_notification_channel">Name of the Day</string>
     <string name="notification_title">Name of the Day</string>
     <string name="notification_tap_hint">%1$s. Tap to read the full meaning.</string>
+
+    <!-- Settings -->
+    <string name="appearance">Appearance</string>
     <string name="theme">Theme</string>
     <string name="theme_system">System</string>
     <string name="theme_light">Light</string>
     <string name="theme_dark">Dark</string>
     <string name="theme_black">Black (AMOLED)</string>
     <string name="text_size">Text size</string>
+    <string name="text_size_preview" translatable="false">الْعَلِيم — Al-Aleem</string>
+    <string name="daily_section">Daily name</string>
     <string name="daily_reminder">Daily name notification</string>
     <string name="reminder_time">Notification time</string>
+    <string name="memorization_section">Memorization</string>
     <string name="reset_progress">Reset memorization progress</string>
-    <string name="reset_dialog_text">This clears all names marked as learned. It cannot be undone.</string>
+    <string name="reset_dialog_text">This clears all names marked as learned and your best quiz score. It cannot be undone.</string>
     <string name="reset">Reset</string>
     <string name="cancel">Cancel</string>
-    <string name="note_label">Note</string>
-    <string name="progress_of">%1$d of 99 learned</string>
+    <string name="about_section">About</string>
+    <string name="version">Version %1$s</string>
+
+    <!-- About -->
     <string name="about_dua">May Allah make us among those who learn, memorize, understand, and act upon His beautiful names, and enter us into His paradise.</string>
     <string name="about_attribution">Based on the lecture of Sheikh Ibn Uthaymeen (Rahimahullah), as presented in “The Ninety Nine Names of Allah: A Memorisation Tool with Transliteration and Meanings”.</string>
     <string name="source_pdf">Source document (PDF)</string>
     <string name="read_blog">Read on the blog</string>
     <string name="foss_line">Free &amp; open source — no ads, no tracking</string>
+    <string name="about_fonts">Arabic set in Amiri, Latin in Spectral — both under the SIL Open Font License.</string>
 </resources>

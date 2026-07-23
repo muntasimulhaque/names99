@@ -3,12 +3,12 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <!-- crescent: evenOdd cutout so the adaptive/monochrome icon shows a true crescent -->
+    <!-- Gold crescent + star on transparent; works on any splash background.
+         evenOdd cutout keeps the crescent a true crescent everywhere. -->
     <path
         android:fillColor="#D4B45A"
         android:fillType="evenOdd"
         android:pathData="M54,30 a24,24 0 1,0 0,48 a24,24 0 1,0 0,-48 z M62,33.5 a20.5,20.5 0 1,0 0,41 a20.5,20.5 0 1,0 0,-41 z" />
-    <!-- eight-pointed star, upper right -->
     <path
         android:fillColor="#D4B45A"
         android:pathData="M72,38 l1.8,4.2 4.2,1.8 -4.2,1.8 -1.8,4.2 -1.8,-4.2 -4.2,-1.8 4.2,-1.8 z" />

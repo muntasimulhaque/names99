@@ -22,13 +22,15 @@ import androidx.glance.layout.Alignment
 import androidx.glance.layout.Column
 import androidx.glance.layout.fillMaxSize
 import androidx.glance.layout.padding
+import androidx.glance.color.ColorProvider
+import androidx.glance.text.FontFamily
 import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextAlign
 import androidx.glance.text.TextStyle
-import androidx.glance.unit.ColorProvider
 import io.github.muntasimulhaque.names99.MainActivity
 import io.github.muntasimulhaque.names99.data.NamesRepository
+import io.github.muntasimulhaque.names99.util.DailyName
 
 class DailyNameWidget : GlanceAppWidget() {
 
@@ -43,15 +45,23 @@ class DailyNameWidget : GlanceAppWidget() {
     override val sizeMode: SizeMode = SizeMode.Responsive(setOf(COMPACT, MEDIUM, TALL))
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
-        val name = NamesRepository.dailyName(context)
+        val names = NamesRepository.load(context)
+        val name = names.firstOrNull { it.number == DailyName.numberFor(System.currentTimeMillis()) }
+            ?: return
         provideContent {
             val height = LocalSize.current.height
             val showTransliteration = height >= MEDIUM.height
             val showTitle = height >= TALL.height
+
+            val background = ColorProvider(day = Color(0xFF1F4E42), night = Color(0xFF191611))
+            val arabicColor = ColorProvider(day = Color(0xFFD4B45A), night = Color(0xFFD4B45A))
+            val textColor = ColorProvider(day = Color(0xFFF2EDE2), night = Color(0xFFEAE2D1))
+            val subtextColor = ColorProvider(day = Color(0xFFBFD5CB), night = Color(0xFFA79B86))
+
             Column(
                 modifier = GlanceModifier
                     .fillMaxSize()
-                    .background(ColorProvider(Color(0xFF1F4E42)))
+                    .background(background)
                     .cornerRadius(20.dp)
                     .padding(horizontal = 16.dp, vertical = 8.dp)
                     .clickable(
@@ -66,18 +76,21 @@ class DailyNameWidget : GlanceAppWidget() {
             ) {
                 Text(
                     text = name.arabic,
+                    maxLines = 1,
                     style = TextStyle(
-                        color = ColorProvider(Color(0xFFD4B45A)),
+                        color = arabicColor,
                         fontSize = if (showTransliteration) 26.sp else 22.sp,
                         fontWeight = FontWeight.Medium,
+                        fontFamily = FontFamily("serif"),
                         textAlign = TextAlign.Center
                     )
                 )
                 if (showTransliteration) {
                     Text(
                         text = name.transliteration,
+                        maxLines = 1,
                         style = TextStyle(
-                            color = ColorProvider(Color(0xFFF2EDE2)),
+                            color = textColor,
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Medium,
                             textAlign = TextAlign.Center
@@ -88,8 +101,9 @@ class DailyNameWidget : GlanceAppWidget() {
                 if (showTitle) {
                     Text(
                         text = name.title,
+                        maxLines = 1,
                         style = TextStyle(
-                            color = ColorProvider(Color(0xFFBFD5CB)),
+                            color = subtextColor,
                             fontSize = 12.sp,
                             textAlign = TextAlign.Center
                         ),

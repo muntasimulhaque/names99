@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
@@ -24,6 +23,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ViewList
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.filled.Search
@@ -51,7 +51,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextAlign
@@ -256,16 +255,13 @@ private fun DailyHeroCard(name: Name, onClick: () -> Unit) {
                 .padding(horizontal = 24.dp, vertical = 22.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                HeroStar()
-                Text(
-                    text = stringResource(R.string.notification_title),
-                    style = MaterialTheme.typography.labelMedium,
-                    color = HeroSubtext,
-                    modifier = Modifier.padding(horizontal = 10.dp),
-                )
-                HeroStar()
-            }
+            Text(
+                text = stringResource(R.string.notification_title).uppercase(),
+                style = MaterialTheme.typography.labelMedium,
+                letterSpacing = 2.sp,
+                color = HeroGold,
+                textAlign = TextAlign.Center,
+            )
             Spacer(Modifier.height(10.dp))
             ArabicText(
                 text = name.arabic,
@@ -291,16 +287,6 @@ private fun DailyHeroCard(name: Name, onClick: () -> Unit) {
             )
         }
     }
-}
-
-@Composable
-private fun HeroStar() {
-    Icon(
-        painter = painterResource(R.drawable.ic_ornament_star),
-        contentDescription = null,
-        tint = HeroGold,
-        modifier = Modifier.size(10.dp),
-    )
 }
 
 @Composable
@@ -350,13 +336,13 @@ private fun NameGridCell(
             }
             if (learned) {
                 Icon(
-                    painter = painterResource(R.drawable.ic_ornament_star),
+                    imageVector = Icons.Filled.CheckCircle,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.secondary,
                     modifier = Modifier
                         .align(Alignment.TopEnd)
                         .padding(8.dp)
-                        .size(10.dp),
+                        .size(14.dp),
                 )
             }
         }

@@ -34,7 +34,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.github.muntasimulhaque.names99.R
 import io.github.muntasimulhaque.names99.ui.theme.components.ArabicText
-import io.github.muntasimulhaque.names99.ui.theme.components.OrnamentDivider
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -113,17 +112,15 @@ fun AboutScreen(onBack: () -> Unit) {
                         .padding(bottom = 16.dp),
                 )
             }
-            OrnamentDivider(Modifier.padding(vertical = 12.dp))
+            Spacer(Modifier.height(4.dp))
             Text(
                 text = stringResource(R.string.about_dua),
-                style = MaterialTheme.typography.bodyLarge,
+                style = MaterialTheme.typography.titleMedium,
                 fontStyle = FontStyle.Italic,
-                color = MaterialTheme.colorScheme.onSurface,
+                color = MaterialTheme.colorScheme.primary,
                 textAlign = TextAlign.Center,
             )
-            Spacer(Modifier.height(20.dp))
-            OrnamentDivider()
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(28.dp))
             Text(
                 text = stringResource(R.string.about_attribution),
                 style = MaterialTheme.typography.bodyMedium,

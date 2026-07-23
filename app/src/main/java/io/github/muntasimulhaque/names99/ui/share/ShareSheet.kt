@@ -47,7 +47,6 @@ import io.github.muntasimulhaque.names99.ui.theme.HeroGold
 import io.github.muntasimulhaque.names99.ui.theme.HeroSubtext
 import io.github.muntasimulhaque.names99.ui.theme.HeroText
 import io.github.muntasimulhaque.names99.ui.theme.components.ArabicText
-import io.github.muntasimulhaque.names99.ui.theme.components.OrnamentDivider
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -133,9 +132,7 @@ private fun ShareCard(name: Name, modifier: Modifier = Modifier) {
                 color = HeroGold,
                 textAlign = TextAlign.Center,
             )
-            Spacer(Modifier.height(14.dp))
-            OrnamentDivider(color = HeroGold)
-            Spacer(Modifier.height(18.dp))
+            Spacer(Modifier.height(22.dp))
             ArabicText(
                 text = name.arabic,
                 fontSize = 54.sp,
@@ -165,9 +162,7 @@ private fun ShareCard(name: Name, modifier: Modifier = Modifier) {
                 maxLines = 6,
                 overflow = TextOverflow.Ellipsis,
             )
-            Spacer(Modifier.height(18.dp))
-            OrnamentDivider(color = HeroGold)
-            Spacer(Modifier.height(10.dp))
+            Spacer(Modifier.height(22.dp))
             Text(
                 text = stringResource(R.string.share_card_footer).uppercase(),
                 style = MaterialTheme.typography.labelMedium,

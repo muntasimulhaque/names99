@@ -44,6 +44,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -245,14 +246,14 @@ private fun FlipCard(
             ) {
                 ArabicText(
                     text = name.arabic,
-                    fontSize = 48.sp,
+                    fontSize = 46.sp,
                     color = MaterialTheme.colorScheme.onPrimaryContainer,
                     textAlign = TextAlign.Center,
                 )
                 Spacer(Modifier.height(12.dp))
                 Text(
                     text = name.transliteration,
-                    style = MaterialTheme.typography.titleLarge,
+                    style = MaterialTheme.typography.displaySmall,
                     color = MaterialTheme.colorScheme.onPrimaryContainer,
                     textAlign = TextAlign.Center,
                 )
@@ -278,6 +279,7 @@ private fun FlipCard(
                 Text(
                     text = name.title,
                     style = MaterialTheme.typography.titleLarge,
+                    fontStyle = FontStyle.Italic,
                     color = MaterialTheme.colorScheme.secondary,
                     textAlign = TextAlign.Center,
                 )

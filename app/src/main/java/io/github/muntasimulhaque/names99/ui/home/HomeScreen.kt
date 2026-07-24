@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
@@ -125,7 +124,10 @@ fun HomeScreen(
                         )
                         LaunchedEffect(Unit) { focusRequester.requestFocus() }
                     } else {
-                        Text(stringResource(R.string.launcher_name))
+                        Text(
+                            text = stringResource(R.string.launcher_name),
+                            style = MaterialTheme.typography.headlineSmall,
+                        )
                     }
                 },
                 navigationIcon = {
@@ -229,7 +231,7 @@ fun HomeScreen(
                         onClick = { onNameClick(name.number) },
                     )
                     HorizontalDivider(
-                        modifier = Modifier.padding(start = 72.dp, end = 20.dp),
+                        modifier = Modifier.padding(start = 66.dp, end = 20.dp),
                         thickness = 0.5.dp,
                         color = MaterialTheme.colorScheme.outlineVariant,
                     )
@@ -252,34 +254,34 @@ private fun DailyHeroCard(name: Name, onClick: () -> Unit) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 24.dp, vertical = 22.dp),
+                .padding(horizontal = 24.dp, vertical = 26.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Text(
                 text = stringResource(R.string.notification_title).uppercase(),
                 style = MaterialTheme.typography.labelMedium,
-                letterSpacing = 2.sp,
                 color = HeroGold,
                 textAlign = TextAlign.Center,
             )
-            Spacer(Modifier.height(10.dp))
+            Spacer(Modifier.height(14.dp))
             ArabicText(
                 text = name.arabic,
-                fontSize = 44.sp,
+                fontSize = 42.sp,
                 color = HeroGold,
                 textAlign = TextAlign.Center,
             )
-            Spacer(Modifier.height(4.dp))
+            Spacer(Modifier.height(6.dp))
             Text(
                 text = name.transliteration,
-                style = MaterialTheme.typography.titleLarge,
-                fontStyle = FontStyle.Italic,
+                style = MaterialTheme.typography.displaySmall,
                 color = HeroText,
                 textAlign = TextAlign.Center,
             )
+            Spacer(Modifier.height(2.dp))
             Text(
                 text = name.title,
-                style = MaterialTheme.typography.bodyMedium,
+                style = MaterialTheme.typography.titleSmall,
+                fontStyle = FontStyle.Italic,
                 color = HeroSubtext,
                 textAlign = TextAlign.Center,
                 maxLines = 1,
@@ -314,20 +316,20 @@ private fun NameGridCell(
             ) {
                 Text(
                     text = name.number.toString(),
-                    style = MaterialTheme.typography.labelMedium,
+                    style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 Spacer(Modifier.height(6.dp))
                 ArabicText(
                     text = name.arabic,
-                    fontSize = 26.sp,
+                    fontSize = 24.sp,
                     color = MaterialTheme.colorScheme.primary,
                     textAlign = TextAlign.Center,
                 )
                 Spacer(Modifier.height(4.dp))
                 Text(
                     text = name.transliteration,
-                    style = MaterialTheme.typography.labelMedium,
+                    style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center,
                     maxLines = 1,
@@ -360,6 +362,7 @@ private fun NoResults() {
         Text(
             text = stringResource(R.string.no_results),
             style = MaterialTheme.typography.bodyMedium,
+            fontStyle = FontStyle.Italic,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
         )

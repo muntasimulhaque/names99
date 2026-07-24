@@ -1,5 +1,7 @@
 package io.github.muntasimulhaque.names99.ui.detail
 
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -22,8 +24,6 @@ import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Share
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -35,6 +35,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -42,6 +43,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextAlign
@@ -99,10 +101,25 @@ fun DetailScreen(
         ShareSheet(name = current, onDismiss = { showShare = false })
     }
 
+    // A single calm fade as the page settles in.
+    var entered by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) { entered = true }
+    val enterAlpha by animateFloatAsState(
+        targetValue = if (entered) 1f else 0f,
+        animationSpec = tween(450),
+        label = "detailEnter",
+    )
+
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text(stringResource(R.string.detail_counter, current.number)) },
+                title = {
+                    Text(
+                        text = stringResource(R.string.detail_counter, current.number).uppercase(),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                },
                 navigationIcon = { BackButton(onBack) },
                 actions = {
                     IconButton(onClick = { showShare = true }) {
@@ -119,7 +136,8 @@ fun DetailScreen(
             state = pagerState,
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding),
+                .padding(padding)
+                .graphicsLayer { alpha = enterAlpha },
         ) { page ->
             NamePage(
                 name = names[page],
@@ -176,58 +194,53 @@ private fun NamePage(
                 modifier = Modifier.defaultMinSize(minHeight = minPageHeight),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                Spacer(Modifier.height(32.dp))
+                Spacer(Modifier.height(36.dp))
                 ArabicText(
                     text = name.arabic,
-                    fontSize = 64.sp,
+                    fontSize = 72.sp,
                     color = MaterialTheme.colorScheme.primary,
                     textAlign = TextAlign.Center,
                 )
-                Spacer(Modifier.height(12.dp))
+                Spacer(Modifier.height(16.dp))
                 Text(
                     text = name.transliteration,
-                    style = MaterialTheme.typography.headlineSmall,
+                    style = MaterialTheme.typography.displayLarge,
                     color = MaterialTheme.colorScheme.onSurface,
                     textAlign = TextAlign.Center,
                 )
-                Spacer(Modifier.height(6.dp))
+                Spacer(Modifier.height(8.dp))
                 Text(
                     text = name.title,
-                    style = MaterialTheme.typography.titleMedium,
+                    style = MaterialTheme.typography.titleLarge,
                     fontStyle = FontStyle.Italic,
                     color = MaterialTheme.colorScheme.secondary,
                     textAlign = TextAlign.Center,
                 )
-                Spacer(Modifier.height(22.dp))
+                Spacer(Modifier.height(28.dp))
                 Text(
                     text = name.meaning,
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurface,
-                    textAlign = TextAlign.Center,
+                    textAlign = TextAlign.Start,
                     modifier = Modifier.widthIn(max = 560.dp),
                 )
                 if (name.note != null) {
-                    Spacer(Modifier.height(20.dp))
-                    Card(
+                    Spacer(Modifier.height(26.dp))
+                    Column(
                         modifier = Modifier.widthIn(max = 560.dp),
-                        shape = MaterialTheme.shapes.medium,
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceVariant
-                        ),
+                        horizontalAlignment = Alignment.Start,
                     ) {
-                        Column(Modifier.padding(18.dp)) {
-                            Text(
-                                text = stringResource(R.string.note_label),
-                                style = MaterialTheme.typography.labelLarge,
-                                color = MaterialTheme.colorScheme.secondary,
-                            )
-                            Spacer(Modifier.height(6.dp))
-                            MixedText(
-                                text = name.note,
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                        }
+                        Text(
+                            text = stringResource(R.string.note_label).uppercase(),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.secondary,
+                        )
+                        Spacer(Modifier.height(8.dp))
+                        MixedText(
+                            text = name.note,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
                     }
                 }
                 Spacer(Modifier.weight(1f))

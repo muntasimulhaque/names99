@@ -187,14 +187,14 @@ private fun QuizQuestionContent(
             ) {
                 ArabicText(
                     text = name.arabic,
-                    fontSize = 44.sp,
+                    fontSize = 42.sp,
                     color = MaterialTheme.colorScheme.onPrimaryContainer,
                     textAlign = TextAlign.Center,
                 )
                 Spacer(Modifier.height(6.dp))
                 Text(
                     text = name.transliteration,
-                    style = MaterialTheme.typography.titleLarge,
+                    style = MaterialTheme.typography.displaySmall,
                     color = MaterialTheme.colorScheme.onPrimaryContainer,
                     textAlign = TextAlign.Center,
                 )
@@ -314,7 +314,7 @@ private fun QuizResultContent(
     ) {
         Text(
             text = stringResource(R.string.quiz_score_format, score, total),
-            style = MaterialTheme.typography.displayMedium,
+            style = MaterialTheme.typography.displayLarge,
             color = MaterialTheme.colorScheme.primary,
         )
         Spacer(Modifier.height(12.dp))

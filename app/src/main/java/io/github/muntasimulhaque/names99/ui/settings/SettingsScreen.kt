@@ -80,7 +80,14 @@ fun SettingsScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text(stringResource(R.string.settings)) })
+            TopAppBar(
+                title = {
+                    Text(
+                        text = stringResource(R.string.settings),
+                        style = MaterialTheme.typography.headlineSmall,
+                    )
+                },
+            )
         },
     ) { padding ->
         Column(
@@ -266,10 +273,10 @@ fun SettingsScreen(
 @Composable
 private fun SectionLabel(text: String) {
     Text(
-        text = text,
-        style = MaterialTheme.typography.labelLarge,
+        text = text.uppercase(),
+        style = MaterialTheme.typography.labelMedium,
         color = MaterialTheme.colorScheme.secondary,
-        modifier = Modifier.padding(top = 8.dp, bottom = 8.dp),
+        modifier = Modifier.padding(top = 8.dp, bottom = 10.dp),
     )
 }
 

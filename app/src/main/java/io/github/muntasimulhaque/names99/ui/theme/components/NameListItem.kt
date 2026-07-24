@@ -1,5 +1,6 @@
 package io.github.muntasimulhaque.names99.ui.theme.components
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -17,12 +18,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.github.muntasimulhaque.names99.data.Name
 
-/** One row in the names list: number badge, transliteration + title, learned tick, Arabic. */
+/** One row in the names list: folio number, transliteration + title, learned tick, Arabic. */
 @Composable
 fun NameListItem(
     name: Name,
@@ -41,8 +44,19 @@ fun NameListItem(
                 .padding(horizontal = 20.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            NumberBadge(name.number)
-            Spacer(Modifier.width(14.dp))
+            // A quiet folio number instead of a badge — typography, not chrome.
+            Box(
+                modifier = Modifier.width(30.dp),
+                contentAlignment = Alignment.CenterEnd,
+            ) {
+                Text(
+                    text = name.number.toString(),
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.End,
+                )
+            }
+            Spacer(Modifier.width(16.dp))
             Column(Modifier.weight(1f)) {
                 Text(
                     text = name.transliteration,
@@ -54,6 +68,7 @@ fun NameListItem(
                 Text(
                     text = name.title,
                     style = MaterialTheme.typography.bodyMedium,
+                    fontStyle = FontStyle.Italic,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
@@ -72,7 +87,7 @@ fun NameListItem(
             }
             ArabicText(
                 text = name.arabic,
-                fontSize = 24.sp,
+                fontSize = 22.sp,
                 color = MaterialTheme.colorScheme.primary,
             )
         }

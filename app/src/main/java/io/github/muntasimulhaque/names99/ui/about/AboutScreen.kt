@@ -22,7 +22,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -34,6 +33,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -45,6 +46,9 @@ import io.github.muntasimulhaque.names99.R
 import io.github.muntasimulhaque.names99.ui.theme.Motion
 import io.github.muntasimulhaque.names99.ui.theme.components.ArabicText
 import io.github.muntasimulhaque.names99.ui.theme.components.MixedText
+import io.github.muntasimulhaque.names99.ui.theme.components.NavRow
+import io.github.muntasimulhaque.names99.ui.theme.components.PageRule
+import io.github.muntasimulhaque.names99.ui.theme.components.SectionLabel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -52,6 +56,12 @@ private const val BLOG_URL = "https://muntasimulhaque.bearblog.dev/99-names/"
 private const val SOURCE_PDF_URL =
     "https://bear-images.sfo2.cdn.digitaloceanspaces.com/muntasimulhaque/ninety-nine-names-1_compressed.pdf"
 private const val REPO_URL = "https://github.com/muntasimulhaque/99-names-app"
+
+/** A quote's source sits in a trailing parenthesis: "…paradise." (Muslim) */
+private val CITATION = Regex("\\s*\\(([^()]{1,40})\\)\\s*$")
+
+/** The measure — prose stops widening here, however large the screen. */
+private val MEASURE = 560.dp
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -61,6 +71,13 @@ fun AboutScreen(onBack: () -> Unit) {
         value = withContext(Dispatchers.IO) {
             context.assets.open("intro.txt").bufferedReader().use { it.readText() }
         }
+    }
+    // intro.txt may be checked out with CRLF endings; normalize before splitting.
+    val paragraphs = remember(intro) {
+        intro.replace("\r\n", "\n")
+            .split("\n\n")
+            .map { it.trim() }
+            .filter { it.isNotEmpty() }
     }
 
     var entered by remember { mutableStateOf(false) }
@@ -98,90 +115,167 @@ fun AboutScreen(onBack: () -> Unit) {
                 .graphicsLayer { alpha = enterAlpha },
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Spacer(Modifier.height(24.dp))
-            ArabicText(
-                text = stringResource(R.string.basmala),
-                fontSize = 30.sp,
-                color = MaterialTheme.colorScheme.primary,
-                textAlign = TextAlign.Center,
-            )
-            Spacer(Modifier.height(28.dp))
-            // intro.txt may be checked out with CRLF endings; normalize before splitting.
-            intro.replace("\r\n", "\n").split("\n\n").forEach { rawPara ->
-                val para = rawPara.trim()
-                when {
-                    para.startsWith("##") -> MixedText(
-                        text = para.trimStart('#').trim(),
-                        style = MaterialTheme.typography.headlineLarge,
-                        color = MaterialTheme.colorScheme.primary,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier
-                            .widthIn(max = 560.dp)
-                            .fillMaxWidth()
-                            .padding(top = 12.dp, bottom = 18.dp),
-                    )
-                    para.startsWith(">") -> Text(
-                        text = para.removePrefix(">").trim(),
-                        style = MaterialTheme.typography.titleLarge,
-                        fontStyle = FontStyle.Italic,
-                        color = MaterialTheme.colorScheme.primary,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier
-                            .widthIn(max = 560.dp)
-                            .fillMaxWidth()
-                            .padding(vertical = 6.dp, horizontal = 8.dp)
-                            .padding(bottom = 18.dp),
-                    )
-                    else -> Text(
-                        text = para,
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onBackground,
-                        textAlign = TextAlign.Start,
-                        modifier = Modifier
-                            .widthIn(max = 560.dp)
-                            .fillMaxWidth()
-                            .padding(bottom = 18.dp),
-                    )
+            Column(
+                modifier = Modifier.widthIn(max = MEASURE).fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Spacer(Modifier.height(28.dp))
+                ArabicText(
+                    text = stringResource(R.string.basmala),
+                    fontSize = 30.sp,
+                    color = MaterialTheme.colorScheme.primary,
+                    textAlign = TextAlign.Center,
+                )
+                Spacer(Modifier.height(36.dp))
+
+                paragraphs.forEachIndexed { index, para ->
+                    when {
+                        para.startsWith("##") -> ChapterHeading(para.trimStart('#').trim())
+                        para.startsWith(">") -> Quote(para.removePrefix(">").trim())
+                        else -> Text(
+                            text = para,
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onBackground,
+                            textAlign = TextAlign.Start,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                // A line that introduces a quote stays close to it.
+                                .padding(
+                                    bottom = if (paragraphs.getOrNull(index + 1)
+                                            ?.startsWith(">") == true
+                                    ) 12.dp else 20.dp
+                                ),
+                        )
+                    }
                 }
+
+                // The closing prayer, set apart as an envoi.
+                Spacer(Modifier.height(16.dp))
+                PageRule(Modifier.fillMaxWidth())
+                Spacer(Modifier.height(34.dp))
+                Text(
+                    text = stringResource(R.string.about_dua),
+                    style = MaterialTheme.typography.titleLarge,
+                    fontStyle = FontStyle.Italic,
+                    color = MaterialTheme.colorScheme.secondary,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                Spacer(Modifier.height(44.dp))
+
+                Colophon(context)
+                Spacer(Modifier.height(40.dp))
             }
-            Spacer(Modifier.height(8.dp))
-            Text(
-                text = stringResource(R.string.about_dua),
-                style = MaterialTheme.typography.titleMedium,
-                fontStyle = FontStyle.Italic,
-                color = MaterialTheme.colorScheme.secondary,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.widthIn(max = 560.dp).fillMaxWidth(),
-            )
-            Spacer(Modifier.height(32.dp))
-            Text(
-                text = stringResource(R.string.about_attribution),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.widthIn(max = 560.dp).fillMaxWidth(),
-            )
-            Spacer(Modifier.height(16.dp))
-            TextButton(onClick = { context.openUrl(SOURCE_PDF_URL) }) {
-                Text(stringResource(R.string.source_pdf))
-            }
-            TextButton(onClick = { context.openUrl(BLOG_URL) }) {
-                Text(stringResource(R.string.read_blog))
-            }
-            TextButton(onClick = { context.openUrl(REPO_URL) }) {
-                Text(stringResource(R.string.foss_line))
-            }
-            Spacer(Modifier.height(16.dp))
-            Text(
-                text = stringResource(R.string.about_fonts),
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.widthIn(max = 560.dp).fillMaxWidth(),
-            )
-            Spacer(Modifier.height(36.dp))
         }
     }
+}
+
+/** The document's one section break: a rule, then the name itself. */
+@Composable
+private fun ChapterHeading(text: String) {
+    Spacer(Modifier.height(14.dp))
+    PageRule(Modifier.fillMaxWidth())
+    Spacer(Modifier.height(30.dp))
+    MixedText(
+        text = text,
+        style = MaterialTheme.typography.headlineLarge,
+        color = MaterialTheme.colorScheme.primary,
+        textAlign = TextAlign.Center,
+        modifier = Modifier.fillMaxWidth(),
+    )
+    Spacer(Modifier.height(26.dp))
+}
+
+/**
+ * Quoted matter, marked the way a book marks it: a hairline down the margin
+ * and the text set to a fixed left edge, with the source lifted out below.
+ */
+@Composable
+private fun Quote(raw: String) {
+    val found = CITATION.find(raw)
+    val body = found?.let { raw.removeRange(it.range).trim() } ?: raw
+    val citation = found?.groupValues?.get(1)
+
+    val rule = MaterialTheme.colorScheme.secondary
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(bottom = 22.dp)
+            .drawBehind {
+                drawLine(
+                    color = rule,
+                    start = Offset(0f, 0f),
+                    end = Offset(0f, size.height),
+                    strokeWidth = 1.dp.toPx(),
+                )
+            }
+            .padding(start = 20.dp),
+    ) {
+        Text(
+            text = body,
+            style = MaterialTheme.typography.titleLarge,
+            fontStyle = FontStyle.Italic,
+            color = MaterialTheme.colorScheme.primary,
+            textAlign = TextAlign.Start,
+        )
+        if (citation != null) {
+            Spacer(Modifier.height(12.dp))
+            SectionLabel(citation)
+        }
+    }
+}
+
+/** Where the text came from, what it is set in, and what the app is. */
+@Composable
+private fun Colophon(context: Context) {
+    PageRule(Modifier.fillMaxWidth())
+    Spacer(Modifier.height(26.dp))
+    SectionLabel(stringResource(R.string.about_source_label), Modifier.fillMaxWidth())
+    Spacer(Modifier.height(14.dp))
+    Text(
+        text = stringResource(R.string.about_attribution),
+        style = MaterialTheme.typography.bodyMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        textAlign = TextAlign.Start,
+        modifier = Modifier.fillMaxWidth(),
+    )
+    Spacer(Modifier.height(22.dp))
+
+    PageRule(Modifier.fillMaxWidth())
+    LinkRow(R.string.source_pdf) { context.openUrl(SOURCE_PDF_URL) }
+    PageRule(Modifier.fillMaxWidth())
+    LinkRow(R.string.read_blog) { context.openUrl(BLOG_URL) }
+    PageRule(Modifier.fillMaxWidth())
+    LinkRow(R.string.source_code) { context.openUrl(REPO_URL) }
+    PageRule(Modifier.fillMaxWidth())
+
+    Spacer(Modifier.height(34.dp))
+    SectionLabel(stringResource(R.string.about_typefaces_label), Modifier.fillMaxWidth())
+    Spacer(Modifier.height(14.dp))
+    Text(
+        text = stringResource(R.string.about_fonts),
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        textAlign = TextAlign.Start,
+        modifier = Modifier.fillMaxWidth(),
+    )
+    Spacer(Modifier.height(32.dp))
+    Text(
+        text = stringResource(R.string.foss_line),
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        textAlign = TextAlign.Center,
+        modifier = Modifier.fillMaxWidth(),
+    )
+}
+
+@Composable
+private fun LinkRow(labelRes: Int, onClick: () -> Unit) {
+    NavRow(
+        title = stringResource(labelRes),
+        onClick = onClick,
+        titleStyle = MaterialTheme.typography.titleMedium,
+    )
 }
 
 private fun Context.openUrl(url: String) {

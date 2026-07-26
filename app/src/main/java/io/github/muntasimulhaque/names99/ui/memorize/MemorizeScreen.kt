@@ -1,21 +1,15 @@
 package io.github.muntasimulhaque.names99.ui.memorize
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -31,6 +25,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.muntasimulhaque.names99.R
 import io.github.muntasimulhaque.names99.ui.NamesViewModel
 import io.github.muntasimulhaque.names99.ui.theme.components.HairlineProgress
+import io.github.muntasimulhaque.names99.ui.theme.components.NavRow
+import io.github.muntasimulhaque.names99.ui.theme.components.PageRule
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -96,24 +92,18 @@ fun MemorizeScreen(
 
             Spacer(Modifier.height(36.dp))
             // A small table of contents, set like a book's.
-            TocRow(
+            NavRow(
                 title = stringResource(R.string.flashcards),
                 subtitle = stringResource(R.string.flashcards_subtitle),
                 onClick = onFlashcards,
             )
-            HorizontalDivider(
-                thickness = 0.5.dp,
-                color = MaterialTheme.colorScheme.outlineVariant,
-            )
-            TocRow(
+            PageRule()
+            NavRow(
                 title = stringResource(R.string.quiz),
                 subtitle = stringResource(R.string.quiz_subtitle),
                 onClick = onQuiz,
             )
-            HorizontalDivider(
-                thickness = 0.5.dp,
-                color = MaterialTheme.colorScheme.outlineVariant,
-            )
+            PageRule()
             if (quizBest >= 0) {
                 Spacer(Modifier.height(24.dp))
                 Text(
@@ -127,36 +117,3 @@ fun MemorizeScreen(
     }
 }
 
-@Composable
-private fun TocRow(
-    title: String,
-    subtitle: String,
-    onClick: () -> Unit,
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .padding(vertical = 20.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Column(Modifier.weight(1f)) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleLarge,
-                color = MaterialTheme.colorScheme.onSurface,
-            )
-            Spacer(Modifier.height(3.dp))
-            Text(
-                text = subtitle,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-        Icon(
-            Icons.AutoMirrored.Filled.KeyboardArrowRight,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.secondary,
-        )
-    }
-}

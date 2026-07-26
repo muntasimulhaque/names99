@@ -5,7 +5,16 @@ import android.os.Build
 import android.text.format.DateFormat
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -13,22 +22,20 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -45,19 +52,29 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.muntasimulhaque.names99.R
 import io.github.muntasimulhaque.names99.data.ThemeMode
 import io.github.muntasimulhaque.names99.ui.NamesViewModel
+import io.github.muntasimulhaque.names99.ui.theme.Motion
 import io.github.muntasimulhaque.names99.ui.theme.components.MixedText
+import io.github.muntasimulhaque.names99.ui.theme.components.NavRow
+import io.github.muntasimulhaque.names99.ui.theme.components.PageRule
+import io.github.muntasimulhaque.names99.ui.theme.components.SectionLabel
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
+
+private const val SCALE_MIN = 0.85f
+private const val SCALE_MAX = 1.4f
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -103,50 +120,42 @@ fun SettingsScreen(
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 20.dp),
         ) {
-            SectionLabel(stringResource(R.string.appearance))
+            Spacer(Modifier.height(10.dp))
+            SectionLabel(stringResource(R.string.theme_section))
+            Spacer(Modifier.height(10.dp))
             Column(Modifier.selectableGroup()) {
                 ThemeOption(ThemeMode.SYSTEM, R.string.theme_system, themeMode, viewModel::setThemeMode)
                 ThemeOption(ThemeMode.LIGHT, R.string.theme_light, themeMode, viewModel::setThemeMode)
                 ThemeOption(ThemeMode.DARK, R.string.theme_dark, themeMode, viewModel::setThemeMode)
                 ThemeOption(ThemeMode.BLACK, R.string.theme_black, themeMode, viewModel::setThemeMode)
             }
-            Spacer(Modifier.height(16.dp))
-            Text(
-                text = stringResource(R.string.text_size),
-                style = MaterialTheme.typography.titleMedium,
+
+            SectionBreak()
+            SectionLabel(stringResource(R.string.text_size))
+            Spacer(Modifier.height(22.dp))
+            // The specimen itself is the preview — no box around it.
+            MixedText(
+                text = stringResource(R.string.text_size_preview),
+                style = MaterialTheme.typography.headlineMedium,
                 color = MaterialTheme.colorScheme.onSurface,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth(),
             )
-            Surface(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 10.dp),
-                shape = MaterialTheme.shapes.medium,
-                color = MaterialTheme.colorScheme.surfaceVariant,
-            ) {
-                MixedText(
-                    text = stringResource(R.string.text_size_preview),
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 14.dp),
-                )
-            }
-            Slider(
+            Spacer(Modifier.height(22.dp))
+            HairlineSlider(
                 value = sliderValue,
                 onValueChange = { sliderValue = it },
                 onValueChangeFinished = { viewModel.setTextScale(sliderValue) },
-                valueRange = 0.85f..1.4f,
-                steps = 10,
             )
 
-            SettingsDivider()
+            // The slider's own touch target already leaves air beneath the track.
+            SectionBreak(top = 6.dp)
             SectionLabel(stringResource(R.string.daily_section))
+            Spacer(Modifier.height(4.dp))
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 6.dp),
+                    .padding(vertical = 10.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
@@ -170,12 +179,16 @@ fun SettingsScreen(
                     },
                 )
             }
-            if (dailyEnabled) {
+            AnimatedVisibility(
+                visible = dailyEnabled,
+                enter = fadeIn(tween(Motion.GENTLE)) + expandVertically(tween(Motion.GENTLE)),
+                exit = fadeOut(tween(Motion.QUICK)) + shrinkVertically(tween(Motion.QUICK)),
+            ) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clickable { showTimePicker = true }
-                        .padding(vertical = 10.dp),
+                        .padding(vertical = 14.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
@@ -186,51 +199,40 @@ fun SettingsScreen(
                     )
                     Text(
                         text = formatTime(context, dailyTime.first, dailyTime.second),
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.primary,
+                        style = MaterialTheme.typography.titleLarge,
+                        color = MaterialTheme.colorScheme.secondary,
                     )
                 }
             }
 
-            SettingsDivider()
+            SectionBreak()
             SectionLabel(stringResource(R.string.memorization_section))
-            TextButton(
-                onClick = { showResetDialog = true },
-                modifier = Modifier.padding(vertical = 4.dp),
+            Spacer(Modifier.height(4.dp))
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { showResetDialog = true }
+                    .padding(vertical = 16.dp),
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
                     text = stringResource(R.string.reset_progress),
+                    style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.error,
                 )
             }
 
-            SettingsDivider()
-            SectionLabel(stringResource(R.string.about_section))
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable(onClick = onAbout)
-                    .padding(vertical = 12.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(
-                    text = stringResource(R.string.about),
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.weight(1f),
-                )
-                Icon(
-                    Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.secondary,
-                )
-            }
-            Text(
-                text = stringResource(R.string.version, appVersion(context)),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(bottom = 24.dp),
+            // The About row brings its own padding — no space needed under the rule.
+            SectionBreak(bottom = 0.dp)
+            NavRow(
+                title = stringResource(R.string.about),
+                subtitle = stringResource(R.string.about_row_subtitle),
+                onClick = onAbout,
             )
+            PageRule()
+            Spacer(Modifier.height(22.dp))
+            SectionLabel(stringResource(R.string.version, appVersion(context)))
+            Spacer(Modifier.height(28.dp))
         }
     }
 
@@ -288,25 +290,21 @@ fun SettingsScreen(
     }
 }
 
+/**
+ * The space and rule that separate one group of choices from the next.
+ * Controls that carry their own touch padding pass a smaller [top].
+ */
 @Composable
-private fun SectionLabel(text: String) {
-    Text(
-        text = text.uppercase(),
-        style = MaterialTheme.typography.labelMedium,
-        color = MaterialTheme.colorScheme.secondary,
-        modifier = Modifier.padding(top = 8.dp, bottom = 10.dp),
-    )
+private fun SectionBreak(top: Dp = 30.dp, bottom: Dp = 30.dp) {
+    Spacer(Modifier.height(top))
+    PageRule()
+    Spacer(Modifier.height(bottom))
 }
 
-@Composable
-private fun SettingsDivider() {
-    HorizontalDivider(
-        modifier = Modifier.padding(vertical = 14.dp),
-        thickness = 0.5.dp,
-        color = MaterialTheme.colorScheme.outlineVariant,
-    )
-}
-
+/**
+ * One theme, chosen typographically: the current one steps up in weight and
+ * ink and takes a gold check. No radio, no container.
+ */
 @Composable
 private fun ThemeOption(
     mode: ThemeMode,
@@ -314,31 +312,89 @@ private fun ThemeOption(
     current: ThemeMode,
     onSelect: (ThemeMode) -> Unit,
 ) {
+    val selected = current == mode
+    // Fading the check keeps the row from shifting as the choice moves.
+    val checkAlpha by animateFloatAsState(
+        targetValue = if (selected) 1f else 0f,
+        animationSpec = tween(Motion.QUICK),
+        label = "themeCheck",
+    )
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .selectable(
-                selected = current == mode,
+                selected = selected,
                 onClick = { onSelect(mode) },
                 role = Role.RadioButton,
             )
-            .padding(vertical = 6.dp),
+            .padding(vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        RadioButton(selected = current == mode, onClick = null)
-        Spacer(Modifier.width(8.dp))
         Text(
             text = stringResource(labelRes),
             style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurface,
+            fontWeight = if (selected) FontWeight.Medium else FontWeight.Normal,
+            color = if (selected) MaterialTheme.colorScheme.onSurface
+            else MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.weight(1f),
+        )
+        Icon(
+            Icons.Filled.Check,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.secondary,
+            modifier = Modifier
+                .size(18.dp)
+                .graphicsLayer { alpha = checkAlpha },
         )
     }
+}
+
+/** A gold bead on a hairline — the Material slider stripped to the app's line. */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun HairlineSlider(
+    value: Float,
+    onValueChange: (Float) -> Unit,
+    onValueChangeFinished: () -> Unit,
+) {
+    val gold = MaterialTheme.colorScheme.secondary
+    val track = MaterialTheme.colorScheme.outlineVariant
+    val fraction = ((value - SCALE_MIN) / (SCALE_MAX - SCALE_MIN)).coerceIn(0f, 1f)
+    Slider(
+        value = value,
+        onValueChange = onValueChange,
+        onValueChangeFinished = onValueChangeFinished,
+        valueRange = SCALE_MIN..SCALE_MAX,
+        thumb = {
+            Box(
+                Modifier
+                    .size(14.dp)
+                    .background(gold, CircleShape)
+            )
+        },
+        track = { _ ->
+            Box(Modifier.fillMaxWidth().height(1.dp)) {
+                Box(
+                    Modifier
+                        .fillMaxWidth()
+                        .height(1.dp)
+                        .background(track)
+                )
+                Box(
+                    Modifier
+                        .fillMaxWidth(fraction)
+                        .height(1.dp)
+                        .background(gold)
+                )
+            }
+        },
+    )
 }
 
 private fun appVersion(context: android.content.Context): String =
     runCatching {
         context.packageManager.getPackageInfo(context.packageName, 0).versionName
-    }.getOrNull() ?: "1.4"
+    }.getOrNull() ?: "1.9"
 
 private fun formatTime(context: android.content.Context, hour: Int, minute: Int): String {
     val calendar = Calendar.getInstance().apply {

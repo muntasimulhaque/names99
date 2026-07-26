@@ -394,7 +394,7 @@ private fun HairlineSlider(
 private fun appVersion(context: android.content.Context): String =
     runCatching {
         context.packageManager.getPackageInfo(context.packageName, 0).versionName
-    }.getOrNull() ?: "1.9"
+    }.getOrNull() ?: "2.0"
 
 private fun formatTime(context: android.content.Context, hour: Int, minute: Int): String {
     val calendar = Calendar.getInstance().apply {

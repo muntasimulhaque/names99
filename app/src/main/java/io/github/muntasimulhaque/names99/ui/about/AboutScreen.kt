@@ -48,6 +48,7 @@ import io.github.muntasimulhaque.names99.ui.theme.components.ArabicText
 import io.github.muntasimulhaque.names99.ui.theme.components.MixedText
 import io.github.muntasimulhaque.names99.ui.theme.components.NavRow
 import io.github.muntasimulhaque.names99.ui.theme.components.PageRule
+import io.github.muntasimulhaque.names99.ui.theme.components.ScreenLabel
 import io.github.muntasimulhaque.names99.ui.theme.components.SectionLabel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -94,7 +95,7 @@ fun AboutScreen(onBack: () -> Unit) {
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.background,
                 ),
-                title = { Text(stringResource(R.string.about)) },
+                title = { ScreenLabel(stringResource(R.string.about)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(

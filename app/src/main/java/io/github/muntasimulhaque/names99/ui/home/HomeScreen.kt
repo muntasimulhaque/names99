@@ -384,7 +384,9 @@ private fun NameGridCell(
             if (learned) {
                 Icon(
                     imageVector = Icons.Filled.CheckCircle,
-                    contentDescription = null,
+                    // Named, so a screen reader announces the state the gold
+                    // tick carries visually.
+                    contentDescription = stringResource(R.string.learned),
                     tint = MaterialTheme.colorScheme.secondary,
                     modifier = Modifier
                         .align(Alignment.TopEnd)

@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.material.icons.Icons
@@ -262,7 +263,7 @@ private fun QuietBottomBar(navController: NavHostController, currentRoute: Strin
                             item.icon,
                             contentDescription = null,
                             tint = tint,
-                            modifier = Modifier.height(22.dp),
+                            modifier = Modifier.size(22.dp),
                         )
                         Spacer(Modifier.height(4.dp))
                         Text(

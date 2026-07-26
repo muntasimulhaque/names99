@@ -61,6 +61,7 @@ import io.github.muntasimulhaque.names99.ui.theme.Motion
 import io.github.muntasimulhaque.names99.ui.theme.components.ArabicText
 import io.github.muntasimulhaque.names99.ui.theme.components.LearnedButton
 import io.github.muntasimulhaque.names99.ui.theme.components.MixedText
+import io.github.muntasimulhaque.names99.ui.theme.components.ScreenLabel
 import io.github.muntasimulhaque.names99.ui.theme.rememberHaptics
 import kotlin.math.absoluteValue
 import kotlinx.coroutines.launch
@@ -133,11 +134,7 @@ fun DetailScreen(
                     containerColor = MaterialTheme.colorScheme.background,
                 ),
                 title = {
-                    Text(
-                        text = stringResource(R.string.detail_counter, current.number).uppercase(),
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
+                    ScreenLabel(stringResource(R.string.detail_counter, current.number))
                 },
                 navigationIcon = { BackButton(onBack) },
                 actions = {

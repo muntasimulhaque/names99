@@ -8,9 +8,11 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.scaleIn
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -60,6 +62,7 @@ import io.github.muntasimulhaque.names99.ui.theme.HeroText
 import io.github.muntasimulhaque.names99.ui.theme.Motion
 import io.github.muntasimulhaque.names99.ui.theme.components.ArabicText
 import io.github.muntasimulhaque.names99.ui.theme.components.HairlineProgress
+import io.github.muntasimulhaque.names99.ui.theme.components.ScreenLabel
 import io.github.muntasimulhaque.names99.ui.theme.rememberHaptics
 import io.github.muntasimulhaque.names99.util.QuizBuilder
 import io.github.muntasimulhaque.names99.util.QuizQuestion
@@ -128,17 +131,17 @@ fun QuizScreen(
                     containerColor = MaterialTheme.colorScheme.background,
                 ),
                 title = {
-                    if (!quiz.finished && quiz.questions.isNotEmpty()) {
-                        Text(
+                    ScreenLabel(
+                        if (!quiz.finished && quiz.questions.isNotEmpty()) {
                             stringResource(
                                 R.string.question_x_of_y,
                                 quiz.index + 1,
                                 quiz.questions.size,
                             )
-                        )
-                    } else {
-                        Text(stringResource(R.string.quiz))
-                    }
+                        } else {
+                            stringResource(R.string.quiz)
+                        }
+                    )
                 },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
@@ -185,79 +188,90 @@ private fun QuizQuestionContent(
     val name = names.firstOrNull { it.number == question.number } ?: return
     val haptics = rememberHaptics()
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState()),
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        HairlineProgress(
-            progress = (quiz.index + 1) / quiz.questions.size.toFloat(),
-        )
-        Spacer(Modifier.height(20.dp))
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = MaterialTheme.shapes.large,
-            colors = CardDefaults.cardColors(containerColor = HeroContainer),
+    // Same footer pattern as a name page: the answer button anchors just above
+    // the system bar when the question is short, and scrolls when it is not.
+    BoxWithConstraints(Modifier.fillMaxSize()) {
+        val minPageHeight = maxHeight
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState()),
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 28.dp, horizontal = 20.dp),
+                modifier = Modifier.defaultMinSize(minHeight = minPageHeight),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                ArabicText(
-                    text = name.arabic,
-                    fontSize = 40.sp,
-                    color = HeroGold,
-                    textAlign = TextAlign.Center,
+                HairlineProgress(
+                    progress = (quiz.index + 1) / quiz.questions.size.toFloat(),
                 )
-                Spacer(Modifier.height(6.dp))
-                Text(
-                    text = name.transliteration,
-                    style = MaterialTheme.typography.displaySmall,
-                    color = HeroText,
-                    textAlign = TextAlign.Center,
-                )
+                Spacer(Modifier.height(20.dp))
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = MaterialTheme.shapes.large,
+                    colors = CardDefaults.cardColors(containerColor = HeroContainer),
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 28.dp, horizontal = 20.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
+                        ArabicText(
+                            text = name.arabic,
+                            fontSize = 40.sp,
+                            color = HeroGold,
+                            textAlign = TextAlign.Center,
+                        )
+                        Spacer(Modifier.height(6.dp))
+                        Text(
+                            text = name.transliteration,
+                            style = MaterialTheme.typography.displaySmall,
+                            color = HeroText,
+                            textAlign = TextAlign.Center,
+                        )
+                    }
+                }
+                Spacer(Modifier.height(20.dp))
+                question.options.forEachIndexed { optionIndex, option ->
+                    OptionButton(
+                        text = option,
+                        state = when {
+                            quiz.selected == -1 -> OptionState.IDLE
+                            optionIndex == question.answerIndex -> OptionState.CORRECT
+                            optionIndex == quiz.selected -> OptionState.WRONG
+                            else -> OptionState.DIMMED
+                        },
+                        enabled = quiz.selected == -1,
+                        onClick = {
+                            val wasUnanswered = quiz.selected == -1
+                            val correct = quiz.select(optionIndex)
+                            if (wasUnanswered) {
+                                if (correct) haptics.confirm() else haptics.reject()
+                            }
+                        },
+                    )
+                    Spacer(Modifier.height(10.dp))
+                }
+                Spacer(Modifier.weight(1f))
+                Spacer(Modifier.height(14.dp))
+                Button(
+                    onClick = quiz::next,
+                    enabled = quiz.selected != -1,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(52.dp),
+                ) {
+                    Text(
+                        stringResource(
+                            if (quiz.index == quiz.questions.lastIndex) R.string.see_result
+                            else R.string.next
+                        )
+                    )
+                }
+                Spacer(Modifier.height(24.dp))
             }
         }
-        Spacer(Modifier.height(20.dp))
-        question.options.forEachIndexed { optionIndex, option ->
-            OptionButton(
-                text = option,
-                state = when {
-                    quiz.selected == -1 -> OptionState.IDLE
-                    optionIndex == question.answerIndex -> OptionState.CORRECT
-                    optionIndex == quiz.selected -> OptionState.WRONG
-                    else -> OptionState.DIMMED
-                },
-                enabled = quiz.selected == -1,
-                onClick = {
-                    val wasUnanswered = quiz.selected == -1
-                    val correct = quiz.select(optionIndex)
-                    if (wasUnanswered) {
-                        if (correct) haptics.confirm() else haptics.reject()
-                    }
-                },
-            )
-            Spacer(Modifier.height(10.dp))
-        }
-        Spacer(Modifier.height(10.dp))
-        Button(
-            onClick = quiz::next,
-            enabled = quiz.selected != -1,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(52.dp),
-        ) {
-            Text(
-                stringResource(
-                    if (quiz.index == quiz.questions.lastIndex) R.string.see_result
-                    else R.string.next
-                )
-            )
-        }
-        Spacer(Modifier.height(24.dp))
     }
 }
 
@@ -389,7 +403,7 @@ private fun QuizResultContent(
             Text(stringResource(R.string.try_another_round))
         }
         TextButton(onClick = onBack) {
-            Text(stringResource(R.string.cd_back))
+            Text(stringResource(R.string.back_to_memorize))
         }
     }
 }

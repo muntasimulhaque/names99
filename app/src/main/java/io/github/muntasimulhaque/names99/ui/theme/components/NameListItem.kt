@@ -18,11 +18,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import io.github.muntasimulhaque.names99.R
 import io.github.muntasimulhaque.names99.data.Name
 
 /** One row in the names list: folio number, transliteration + title, learned tick, Arabic. */
@@ -77,7 +79,9 @@ fun NameListItem(
             if (learned) {
                 Icon(
                     imageVector = Icons.Filled.CheckCircle,
-                    contentDescription = null,
+                    // Named, so a screen reader announces the state the gold
+                    // tick carries visually.
+                    contentDescription = stringResource(R.string.learned),
                     tint = MaterialTheme.colorScheme.secondary,
                     modifier = Modifier.size(18.dp),
                 )

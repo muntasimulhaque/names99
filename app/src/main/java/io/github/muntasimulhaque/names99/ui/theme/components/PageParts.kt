@@ -37,6 +37,20 @@ fun SectionLabel(text: String, modifier: Modifier = Modifier) {
     )
 }
 
+/**
+ * The title of a pushed screen. Same tracked small caps as a section label but
+ * in quiet ink, so being one level down reads the same everywhere.
+ */
+@Composable
+fun ScreenLabel(text: String, modifier: Modifier = Modifier) {
+    Text(
+        text = text.uppercase(),
+        style = MaterialTheme.typography.labelMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = modifier,
+    )
+}
+
 /** The thinnest rule the screen can draw — separates matter, never decorates. */
 @Composable
 fun PageRule(modifier: Modifier = Modifier) {

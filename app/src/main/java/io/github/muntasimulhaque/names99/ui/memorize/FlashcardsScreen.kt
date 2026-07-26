@@ -6,23 +6,28 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Shuffle
-import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -66,6 +71,7 @@ import io.github.muntasimulhaque.names99.ui.theme.HeroText
 import io.github.muntasimulhaque.names99.ui.theme.Motion
 import io.github.muntasimulhaque.names99.ui.theme.components.ArabicText
 import io.github.muntasimulhaque.names99.ui.theme.components.HairlineProgress
+import io.github.muntasimulhaque.names99.ui.theme.components.ScreenLabel
 import io.github.muntasimulhaque.names99.ui.theme.rememberHaptics
 import io.github.muntasimulhaque.names99.util.DeckBuilder
 import kotlinx.coroutines.launch
@@ -127,17 +133,17 @@ fun FlashcardsScreen(
                     containerColor = MaterialTheme.colorScheme.background,
                 ),
                 title = {
-                    if (session.deck.isNotEmpty() && !session.done) {
-                        Text(
+                    ScreenLabel(
+                        if (session.deck.isNotEmpty() && !session.done) {
                             stringResource(
                                 R.string.card_x_of_y,
                                 session.index + 1,
                                 session.deck.size,
                             )
-                        )
-                    } else {
-                        Text(stringResource(R.string.flashcards))
-                    }
+                        } else {
+                            stringResource(R.string.flashcards)
+                        }
+                    )
                 },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
@@ -148,21 +154,15 @@ fun FlashcardsScreen(
                     }
                 },
                 actions = {
-                    IconButton(onClick = { viewModel.setIncludeLearned(!includeLearned) }) {
-                        Icon(
-                            if (includeLearned) Icons.Filled.CheckCircle
-                            else Icons.Outlined.CheckCircle,
-                            contentDescription = stringResource(R.string.include_learned),
-                            tint = if (includeLearned) MaterialTheme.colorScheme.secondary
-                            else MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                    IconButton(onClick = { session.restart(names, learned, includeLearned) }) {
-                        Icon(
-                            Icons.Filled.Shuffle,
-                            contentDescription = stringResource(R.string.reshuffle),
-                        )
-                    }
+                    // A named menu, not two mute icons: the deck options say what
+                    // they do, and "include learned" can show that it is on.
+                    DeckMenu(
+                        includeLearned = includeLearned,
+                        onToggleIncludeLearned = {
+                            viewModel.setIncludeLearned(!includeLearned)
+                        },
+                        onReshuffle = { session.restart(names, learned, includeLearned) },
+                    )
                 },
             )
         },
@@ -213,25 +213,34 @@ fun FlashcardsScreen(
                     HairlineProgress(
                         progress = (session.index + 1) / session.deck.size.toFloat(),
                     )
-                    Spacer(Modifier.height(20.dp))
-                    SwipeFlipCard(
-                        name = name,
-                        flipped = session.flipped,
-                        onFlip = {
-                            haptics.tick()
-                            session.flip()
-                        },
-                        offsetX = offsetX,
-                        onDragCommit = ::commit,
+                    // The card keeps card proportions instead of stretching into
+                    // a full-height plane; it sits centred in whatever is left.
+                    Box(
                         modifier = Modifier
                             .weight(1f)
                             .fillMaxWidth()
-                            .onSizeChanged { cardWidth = it.width.toFloat() },
-                    )
-                    Spacer(Modifier.height(12.dp))
+                            .padding(vertical = 20.dp),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        SwipeFlipCard(
+                            name = name,
+                            flipped = session.flipped,
+                            onFlip = {
+                                haptics.tick()
+                                session.flip()
+                            },
+                            offsetX = offsetX,
+                            onDragCommit = ::commit,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .heightIn(max = 460.dp)
+                                .fillMaxHeight()
+                                .onSizeChanged { cardWidth = it.width.toFloat() },
+                        )
+                    }
                     Text(
                         text = if (session.index == 0) stringResource(R.string.swipe_hint) else "",
-                        style = MaterialTheme.typography.labelSmall,
+                        style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         textAlign = TextAlign.Center,
                     )
@@ -260,6 +269,57 @@ fun FlashcardsScreen(
                     Spacer(Modifier.height(24.dp))
                 }
             }
+        }
+    }
+}
+
+/** Deck options, named: what each one does, and whether it is already on. */
+@Composable
+private fun DeckMenu(
+    includeLearned: Boolean,
+    onToggleIncludeLearned: () -> Unit,
+    onReshuffle: () -> Unit,
+) {
+    var open by remember { mutableStateOf(false) }
+    Box {
+        IconButton(onClick = { open = true }) {
+            Icon(
+                Icons.Filled.MoreVert,
+                contentDescription = stringResource(R.string.cd_more),
+            )
+        }
+        DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.include_learned)) },
+                onClick = {
+                    onToggleIncludeLearned()
+                    open = false
+                },
+                leadingIcon = {
+                    Icon(
+                        Icons.Filled.Check,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.secondary,
+                        modifier = Modifier.graphicsLayer {
+                            alpha = if (includeLearned) 1f else 0f
+                        },
+                    )
+                },
+            )
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.reshuffle)) },
+                onClick = {
+                    onReshuffle()
+                    open = false
+                },
+                leadingIcon = {
+                    Icon(
+                        Icons.Filled.Shuffle,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                },
+            )
         }
     }
 }
@@ -353,7 +413,7 @@ private fun SwipeFlipCard(
                 Spacer(Modifier.height(24.dp))
                 Text(
                     text = stringResource(R.string.tap_to_flip),
-                    style = MaterialTheme.typography.labelMedium,
+                    style = MaterialTheme.typography.bodySmall,
                     color = HeroSubtext,
                     textAlign = TextAlign.Center,
                 )
@@ -423,7 +483,7 @@ private fun AllLearnedContent(
             Text(stringResource(R.string.review_learned))
         }
         TextButton(onClick = onBack) {
-            Text(stringResource(R.string.cd_back))
+            Text(stringResource(R.string.back_to_memorize))
         }
     }
 }

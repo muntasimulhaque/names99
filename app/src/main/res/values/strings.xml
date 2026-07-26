@@ -10,6 +10,8 @@
     <string name="settings">Settings</string>
     <string name="about">About</string>
     <string name="cd_back">Back</string>
+    <string name="cd_more">More options</string>
+    <string name="back_to_memorize">Back to Memorize</string>
 
     <!-- Home -->
     <string name="search_hint">Search name or meaning…</string>
@@ -49,7 +51,7 @@
     <string name="reshuffle">Reshuffle</string>
     <string name="deck_done">You went through the whole deck.</string>
     <string name="start_again">Start again</string>
-    <string name="include_learned">Include learned</string>
+    <string name="include_learned">Include learned names</string>
     <string name="card_x_of_y">%1$d of %2$d</string>
     <string name="swipe_hint">Swipe right if you know it — left to keep practicing</string>
 
@@ -75,7 +77,6 @@
 
     <!-- Settings -->
     <string name="theme_section">Theme</string>
-    <string name="theme">Theme</string>
     <string name="theme_system">System</string>
     <string name="theme_light">Light</string>
     <string name="theme_dark">Dark</string>

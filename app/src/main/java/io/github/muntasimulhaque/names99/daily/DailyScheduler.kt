@@ -29,17 +29,28 @@ object DailyScheduler {
 
     private const val WIDGET_WORK = "daily_widget_update"
     private const val NOTIFY_WORK = "daily_notification"
-    const val CHANNEL_ID = "name_of_the_day"
+
+    /**
+     * A channel's importance can't be lowered once the system has it, so this
+     * id replaces the original `name_of_the_day`, which was created at
+     * IMPORTANCE_DEFAULT and therefore made a sound every morning.
+     */
+    const val CHANNEL_ID = "daily_name"
+    private const val OLD_CHANNEL_ID = "name_of_the_day"
 
     /** Creates the notification channel once at app start so users can find it in system settings. */
     fun createNotificationChannel(context: Context) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            manager.deleteNotificationChannel(OLD_CHANNEL_ID)
             manager.createNotificationChannel(
                 NotificationChannel(
                     CHANNEL_ID,
                     context.getString(R.string.daily_notification_channel),
-                    NotificationManager.IMPORTANCE_DEFAULT,
+                    // A daily invitation to reflect, not an alert: it waits in
+                    // the shade rather than making a sound. Anyone who wants
+                    // one can raise the channel in system settings.
+                    NotificationManager.IMPORTANCE_LOW,
                 )
             )
         }
@@ -162,6 +173,9 @@ class NotificationWorker(context: Context, params: WorkerParameters) :
             )
             .setContentIntent(pending)
             .setAutoCancel(true)
+            // Channels only exist from API 26; on 24–25 the priority is what
+            // decides whether this makes a sound.
+            .setPriority(NotificationCompat.PRIORITY_LOW)
             .build()
 
         // Permission checked above; the channel is created in NamesApp.onCreate.

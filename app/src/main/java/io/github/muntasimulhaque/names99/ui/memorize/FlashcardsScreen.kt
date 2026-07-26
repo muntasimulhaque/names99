@@ -67,6 +67,7 @@ import io.github.muntasimulhaque.names99.ui.theme.Motion
 import io.github.muntasimulhaque.names99.ui.theme.components.ArabicText
 import io.github.muntasimulhaque.names99.ui.theme.components.HairlineProgress
 import io.github.muntasimulhaque.names99.ui.theme.rememberHaptics
+import io.github.muntasimulhaque.names99.util.DeckBuilder
 import kotlinx.coroutines.launch
 
 /** Session state for one flashcard run; survives rotation with the ViewModel. */
@@ -81,9 +82,7 @@ class FlashcardsViewModel(application: Application) : AndroidViewModel(applicati
     fun ensureDeck(names: List<Name>, learned: Set<Int>, includeLearned: Boolean) {
         if (names.isEmpty()) return
         if (deck.isNotEmpty() && lastInclude == includeLearned) return
-        val (unknown, known) = names.partition { it.number !in learned }
-        deck = unknown.shuffled().map { it.number } +
-            if (includeLearned) known.shuffled().map { it.number } else emptyList()
+        deck = DeckBuilder.build(names, learned, includeLearned)
         lastInclude = includeLearned
         index = 0
         flipped = false

@@ -3,15 +3,18 @@ package io.github.muntasimulhaque.names99.ui.share
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Share
@@ -38,6 +41,7 @@ import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.rememberGraphicsLayer
 import androidx.compose.ui.graphics.layer.drawLayer
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextAlign
@@ -184,12 +188,21 @@ private fun ShareCard(name: Name, modifier: Modifier = Modifier) {
                     textAlign = TextAlign.Center,
                 )
                 Spacer(Modifier.height(20.dp))
-                Text(
-                    text = stringResource(R.string.share_card_footer).uppercase(),
-                    style = MaterialTheme.typography.labelMedium,
-                    color = HeroSubtext,
-                    textAlign = TextAlign.Center,
-                )
+                // Maker's mark: the app's gold ٩٩ beside the footer line.
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Image(
+                        painter = painterResource(R.drawable.ic_mark_99),
+                        contentDescription = null,
+                        modifier = Modifier.height(15.dp),
+                    )
+                    Spacer(Modifier.width(7.dp))
+                    Text(
+                        text = stringResource(R.string.share_card_footer).uppercase(),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = HeroSubtext,
+                        textAlign = TextAlign.Center,
+                    )
+                }
             }
         }
     }

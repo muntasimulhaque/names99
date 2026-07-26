@@ -5,6 +5,7 @@ import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,7 +17,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -53,6 +56,11 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.toggleableState
+import androidx.compose.ui.state.ToggleableState
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -295,16 +303,7 @@ private fun DeckMenu(
                     onToggleIncludeLearned()
                     open = false
                 },
-                leadingIcon = {
-                    Icon(
-                        Icons.Filled.Check,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.secondary,
-                        modifier = Modifier.graphicsLayer {
-                            alpha = if (includeLearned) 1f else 0f
-                        },
-                    )
-                },
+                leadingIcon = { OptionCheck(checked = includeLearned) },
             )
             DropdownMenuItem(
                 text = { Text(stringResource(R.string.reshuffle)) },
@@ -319,6 +318,37 @@ private fun DeckMenu(
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 },
+            )
+        }
+    }
+}
+
+/**
+ * An empty box in the same ink as the menu's icons, so the option reads as
+ * something you can turn on even while it is off; the tick alone is gold.
+ */
+@Composable
+private fun OptionCheck(checked: Boolean) {
+    Box(
+        modifier = Modifier
+            .size(18.dp)
+            .border(
+                width = 1.5.dp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                shape = RoundedCornerShape(4.dp),
+            )
+            .semantics {
+                role = Role.Checkbox
+                toggleableState = if (checked) ToggleableState.On else ToggleableState.Off
+            },
+        contentAlignment = Alignment.Center,
+    ) {
+        if (checked) {
+            Icon(
+                Icons.Filled.Check,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.secondary,
+                modifier = Modifier.size(13.dp),
             )
         }
     }

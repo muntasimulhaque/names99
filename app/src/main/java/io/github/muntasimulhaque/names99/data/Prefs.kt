@@ -15,8 +15,6 @@ val Context.dataStore by preferencesDataStore(name = "settings")
 
 enum class ThemeMode { SYSTEM, LIGHT, DARK, BLACK }
 
-enum class ViewMode { LIST, GRID }
-
 class Prefs(private val context: Context) {
 
     private object Keys {
@@ -26,7 +24,6 @@ class Prefs(private val context: Context) {
         val DAILY_ENABLED = booleanPreferencesKey("daily_enabled")
         val DAILY_HOUR = intPreferencesKey("daily_hour")
         val DAILY_MINUTE = intPreferencesKey("daily_minute")
-        val VIEW_MODE = stringPreferencesKey("view_mode")
         val QUIZ_BEST = intPreferencesKey("quiz_best")
         val INCLUDE_LEARNED = booleanPreferencesKey("include_learned")
     }
@@ -45,9 +42,6 @@ class Prefs(private val context: Context) {
 
     val dailyTime: Flow<Pair<Int, Int>> = context.dataStore.data
         .map { p -> (p[Keys.DAILY_HOUR] ?: 8) to (p[Keys.DAILY_MINUTE] ?: 0) }
-
-    val viewMode: Flow<ViewMode> = context.dataStore.data
-        .map { p -> runCatching { ViewMode.valueOf(p[Keys.VIEW_MODE] ?: "LIST") }.getOrDefault(ViewMode.LIST) }
 
     /** Best quiz score so far, or -1 when no round has been finished. */
     val quizBest: Flow<Int> = context.dataStore.data
@@ -80,7 +74,6 @@ class Prefs(private val context: Context) {
         it[Keys.DAILY_MINUTE] = minute
     }
 
-    suspend fun setViewMode(mode: ViewMode) = context.dataStore.edit { it[Keys.VIEW_MODE] = mode.name }
 
     /** Keeps the running maximum; lower scores are ignored. */
     suspend fun setQuizBest(score: Int) = context.dataStore.edit {

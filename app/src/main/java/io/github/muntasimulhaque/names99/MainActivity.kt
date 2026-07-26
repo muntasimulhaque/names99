@@ -15,11 +15,12 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
@@ -42,9 +43,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.glance.appwidget.updateAll
+import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
@@ -54,6 +59,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import io.github.muntasimulhaque.names99.daily.DailyNameWidget
 import io.github.muntasimulhaque.names99.ui.NamesViewModel
 import io.github.muntasimulhaque.names99.ui.about.AboutScreen
 import io.github.muntasimulhaque.names99.ui.detail.DetailScreen
@@ -64,6 +70,7 @@ import io.github.muntasimulhaque.names99.ui.memorize.QuizScreen
 import io.github.muntasimulhaque.names99.ui.settings.SettingsScreen
 import io.github.muntasimulhaque.names99.ui.theme.Motion
 import io.github.muntasimulhaque.names99.ui.theme.Names99Theme
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
 
@@ -81,6 +88,16 @@ class MainActivity : ComponentActivity() {
         super.onNewIntent(intent)
         setIntent(intent)
         startNumber = consumeNameNumber(intent)
+    }
+
+    /**
+     * The home screen recomputes the daily name on every resume; the widget
+     * only refreshes when its worker runs. Nudging it here keeps the two
+     * surfaces from showing different names after midnight.
+     */
+    override fun onResume() {
+        super.onResume()
+        lifecycleScope.launch { DailyNameWidget().updateAll(this@MainActivity) }
     }
 
     /** Reads the extra, then removes it so a configuration change can't replay the navigation. */
@@ -225,10 +242,14 @@ private fun QuietBottomBar(navController: NavHostController, currentRoute: Strin
                 color = MaterialTheme.colorScheme.outlineVariant,
             )
             Row(
+                // The bar takes its height from the tabs rather than fixing it,
+                // so a large font grows the bar instead of clipping the labels.
+                // The minimum lives on each tab: an unweighted child of a
+                // Column is measured against all the remaining space, so a
+                // heightIn here would let fillMaxHeight swallow the screen.
                 modifier = Modifier
                     .fillMaxWidth()
                     .navigationBarsPadding()
-                    .height(60.dp)
                     .selectableGroup(),
             ) {
                 topLevelRoutes.forEach { item ->
@@ -242,7 +263,7 @@ private fun QuietBottomBar(navController: NavHostController, currentRoute: Strin
                     Column(
                         modifier = Modifier
                             .weight(1f)
-                            .fillMaxHeight()
+                            .heightIn(min = 60.dp)
                             .selectable(
                                 selected = selected,
                                 role = Role.Tab,
@@ -266,10 +287,19 @@ private fun QuietBottomBar(navController: NavHostController, currentRoute: Strin
                             modifier = Modifier.size(22.dp),
                         )
                         Spacer(Modifier.height(4.dp))
+                        // Chrome, not reading matter: the bar keeps its own
+                        // size so a large reading scale can't clip the labels
+                        // mid-word. System font scaling still applies.
                         Text(
                             text = stringResource(item.labelRes).uppercase(),
-                            style = MaterialTheme.typography.labelSmall,
+                            style = MaterialTheme.typography.labelSmall.copy(
+                                fontSize = 10.sp,
+                                letterSpacing = 1.2.sp,
+                            ),
                             color = tint,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.padding(horizontal = 2.dp),
                         )
                     }
                 }

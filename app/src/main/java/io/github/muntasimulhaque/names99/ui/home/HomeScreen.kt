@@ -1,7 +1,6 @@
 package io.github.muntasimulhaque.names99.ui.home
 
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
@@ -9,25 +8,17 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.GridItemSpan
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items as gridItems
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.ViewList
-import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -70,7 +61,6 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.muntasimulhaque.names99.R
 import io.github.muntasimulhaque.names99.data.Name
-import io.github.muntasimulhaque.names99.data.ViewMode
 import io.github.muntasimulhaque.names99.ui.NamesViewModel
 import io.github.muntasimulhaque.names99.ui.theme.HeroContainer
 import io.github.muntasimulhaque.names99.ui.theme.HeroGold
@@ -89,7 +79,6 @@ fun HomeScreen(
 ) {
     val names by viewModel.names.collectAsStateWithLifecycle()
     val learned by viewModel.learned.collectAsStateWithLifecycle()
-    val viewMode by viewModel.viewMode.collectAsStateWithLifecycle()
     val query by viewModel.searchQuery.collectAsStateWithLifecycle()
 
     var searching by rememberSaveable { mutableStateOf(false) }
@@ -192,20 +181,6 @@ fun HomeScreen(
                                 contentDescription = stringResource(R.string.cd_search),
                             )
                         }
-                        IconButton(onClick = {
-                            viewModel.setViewMode(
-                                if (viewMode == ViewMode.LIST) ViewMode.GRID else ViewMode.LIST
-                            )
-                        }) {
-                            Icon(
-                                if (viewMode == ViewMode.LIST) Icons.Filled.GridView
-                                else Icons.AutoMirrored.Filled.ViewList,
-                                contentDescription = stringResource(
-                                    if (viewMode == ViewMode.LIST) R.string.cd_view_grid
-                                    else R.string.cd_view_list
-                                ),
-                            )
-                        }
                     }
                 },
             )
@@ -217,57 +192,29 @@ fun HomeScreen(
             top = padding.calculateTopPadding(),
             bottom = padding.calculateBottomPadding() + 16.dp,
         )
-        if (viewMode == ViewMode.GRID) {
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(3),
-                contentPadding = contentPadding,
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
-                verticalArrangement = Arrangement.spacedBy(4.dp),
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 12.dp),
-            ) {
-                if (query.isBlank() && dailyName != null) {
-                    item(span = { GridItemSpan(maxLineSpan) }) {
-                        DailyHeroCard(dailyName!!, onClick = { onNameClick(dailyName!!.number) })
-                    }
-                }
-                if (filtered.isEmpty() && names.isNotEmpty()) {
-                    item(span = { GridItemSpan(maxLineSpan) }) { NoResults() }
-                }
-                gridItems(filtered, key = { it.number }) { name ->
-                    NameGridCell(
-                        name = name,
-                        learned = name.number in learned,
-                        onClick = { onNameClick(name.number) },
-                    )
+        LazyColumn(
+            contentPadding = contentPadding,
+            modifier = Modifier.fillMaxSize(),
+        ) {
+            if (query.isBlank() && dailyName != null) {
+                item {
+                    DailyHeroCard(dailyName!!, onClick = { onNameClick(dailyName!!.number) })
                 }
             }
-        } else {
-            LazyColumn(
-                contentPadding = contentPadding,
-                modifier = Modifier.fillMaxSize(),
-            ) {
-                if (query.isBlank() && dailyName != null) {
-                    item {
-                        DailyHeroCard(dailyName!!, onClick = { onNameClick(dailyName!!.number) })
-                    }
-                }
-                if (filtered.isEmpty() && names.isNotEmpty()) {
-                    item { NoResults() }
-                }
-                items(filtered, key = { it.number }) { name ->
-                    NameListItem(
-                        name = name,
-                        learned = name.number in learned,
-                        onClick = { onNameClick(name.number) },
-                    )
-                    HorizontalDivider(
-                        modifier = Modifier.padding(start = 66.dp, end = 20.dp),
-                        thickness = 0.5.dp,
-                        color = MaterialTheme.colorScheme.outlineVariant,
-                    )
-                }
+            if (filtered.isEmpty() && names.isNotEmpty()) {
+                item { NoResults() }
+            }
+            items(filtered, key = { it.number }) { name ->
+                NameListItem(
+                    name = name,
+                    learned = name.number in learned,
+                    onClick = { onNameClick(name.number) },
+                )
+                HorizontalDivider(
+                    modifier = Modifier.padding(start = 66.dp, end = 20.dp),
+                    thickness = 0.5.dp,
+                    color = MaterialTheme.colorScheme.outlineVariant,
+                )
             }
         }
     }
@@ -332,68 +279,6 @@ private fun DailyHeroCard(name: Name, onClick: () -> Unit) {
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
-        }
-    }
-}
-
-@Composable
-private fun NameGridCell(
-    name: Name,
-    learned: Boolean,
-    onClick: () -> Unit,
-) {
-    Card(
-        onClick = onClick,
-        modifier = Modifier
-            .padding(2.dp)
-            .aspectRatio(0.85f),
-        shape = MaterialTheme.shapes.medium,
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
-    ) {
-        Box(Modifier.fillMaxSize()) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(8.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center,
-            ) {
-                Text(
-                    text = name.number.toString(),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                Spacer(Modifier.height(6.dp))
-                ArabicText(
-                    text = name.arabic,
-                    fontSize = 23.sp,
-                    color = MaterialTheme.colorScheme.primary,
-                    textAlign = TextAlign.Center,
-                )
-                Spacer(Modifier.height(4.dp))
-                Text(
-                    text = name.transliteration,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Center,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            }
-            if (learned) {
-                Icon(
-                    imageVector = Icons.Filled.CheckCircle,
-                    // Named, so a screen reader announces the state the gold
-                    // tick carries visually.
-                    contentDescription = stringResource(R.string.learned),
-                    tint = MaterialTheme.colorScheme.secondary,
-                    modifier = Modifier
-                        .align(Alignment.TopEnd)
-                        .padding(8.dp)
-                        .size(14.dp),
-                )
-            }
         }
     }
 }

@@ -21,11 +21,13 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -56,6 +58,9 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
@@ -72,6 +77,7 @@ import io.github.muntasimulhaque.names99.ui.theme.components.SectionLabel
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
+import kotlin.math.roundToInt
 
 private const val SCALE_MIN = 0.85f
 private const val SCALE_MAX = 1.4f
@@ -152,9 +158,22 @@ fun SettingsScreen(
             SectionBreak(top = 6.dp)
             SectionLabel(stringResource(R.string.daily_section))
             Spacer(Modifier.height(4.dp))
+            // Toggling lives on the row, not the Switch: a bare Switch has no
+            // accessible name of its own, because its label is a sibling.
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .toggleable(
+                        value = dailyEnabled,
+                        role = Role.Switch,
+                        onValueChange = { enable ->
+                            if (enable && Build.VERSION.SDK_INT >= 33) {
+                                notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
+                            } else {
+                                viewModel.setDailyEnabled(enable)
+                            }
+                        },
+                    )
                     .padding(vertical = 10.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
@@ -164,20 +183,7 @@ fun SettingsScreen(
                     color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.weight(1f),
                 )
-                Switch(
-                    checked = dailyEnabled,
-                    onCheckedChange = { enable ->
-                        if (enable) {
-                            if (Build.VERSION.SDK_INT >= 33) {
-                                notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
-                            } else {
-                                viewModel.setDailyEnabled(true)
-                            }
-                        } else {
-                            viewModel.setDailyEnabled(false)
-                        }
-                    },
-                )
+                Switch(checked = dailyEnabled, onCheckedChange = null)
             }
             AnimatedVisibility(
                 visible = dailyEnabled,
@@ -360,11 +366,21 @@ private fun HairlineSlider(
     val gold = MaterialTheme.colorScheme.secondary
     val track = MaterialTheme.colorScheme.outlineVariant
     val fraction = ((value - SCALE_MIN) / (SCALE_MAX - SCALE_MIN)).coerceIn(0f, 1f)
+    val label = stringResource(R.string.text_size)
+    val percent = stringResource(R.string.percent, (value * 100).roundToInt())
     Slider(
         value = value,
         onValueChange = onValueChange,
         onValueChangeFinished = onValueChangeFinished,
         valueRange = SCALE_MIN..SCALE_MAX,
+        // A bare Slider announces "seek control, 27 percent" with no subject
+        // and no unit; the hairline also leaves only a 16dp focus rectangle.
+        modifier = Modifier
+            .heightIn(min = 48.dp)
+            .semantics {
+                contentDescription = label
+                stateDescription = percent
+            },
         thumb = {
             Box(
                 Modifier
@@ -394,7 +410,7 @@ private fun HairlineSlider(
 private fun appVersion(context: android.content.Context): String =
     runCatching {
         context.packageManager.getPackageInfo(context.packageName, 0).versionName
-    }.getOrNull() ?: "2.1"
+    }.getOrNull() ?: "2.2"
 
 private fun formatTime(context: android.content.Context, hour: Int, minute: Int): String {
     val calendar = Calendar.getInstance().apply {

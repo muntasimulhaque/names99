@@ -1,5 +1,4 @@
 <resources>
-    <string name="app_name">99 Names of Allah</string>
     <string name="launcher_name">99 Names</string>
     <string name="widget_label">Name of the Day</string>
     <string name="basmala" translatable="false">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</string>
@@ -17,8 +16,6 @@
     <string name="search_hint">Search name or meaning…</string>
     <string name="cd_search">Search</string>
     <string name="cd_close_search">Close search</string>
-    <string name="cd_view_grid">Show as grid</string>
-    <string name="cd_view_list">Show as list</string>
 
     <!-- Detail -->
     <string name="detail_counter">%1$d of 99</string>
@@ -82,6 +79,7 @@
     <string name="theme_dark">Dark</string>
     <string name="theme_black">Black (AMOLED)</string>
     <string name="text_size">Text size</string>
+    <string name="percent">%1$d%%</string>
     <string name="text_size_preview" translatable="false">الْعَلِيم — Al-Aleem</string>
     <string name="daily_section">Daily name</string>
     <string name="daily_reminder">Daily name notification</string>

@@ -8,7 +8,6 @@ import io.github.muntasimulhaque.names99.data.Name
 import io.github.muntasimulhaque.names99.data.NamesRepository
 import io.github.muntasimulhaque.names99.data.Prefs
 import io.github.muntasimulhaque.names99.data.ThemeMode
-import io.github.muntasimulhaque.names99.data.ViewMode
 import io.github.muntasimulhaque.names99.util.DailyName
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -33,9 +32,6 @@ class NamesViewModel(application: Application) : AndroidViewModel(application) {
 
     val textScale: StateFlow<Float> = prefs.textScale
         .stateIn(viewModelScope, SharingStarted.Eagerly, 1f)
-
-    val viewMode: StateFlow<ViewMode> = prefs.viewMode
-        .stateIn(viewModelScope, SharingStarted.Eagerly, ViewMode.LIST)
 
     val quizBest: StateFlow<Int> = prefs.quizBest
         .stateIn(viewModelScope, SharingStarted.Eagerly, -1)
@@ -82,10 +78,6 @@ class NamesViewModel(application: Application) : AndroidViewModel(application) {
     fun setDailyTime(hour: Int, minute: Int) = viewModelScope.launch {
         prefs.setDailyTime(hour, minute)
         DailyScheduler.rescheduleNotification(getApplication())
-    }
-
-    fun setViewMode(mode: ViewMode) = viewModelScope.launch {
-        prefs.setViewMode(mode)
     }
 
     fun setQuizBest(score: Int) = viewModelScope.launch {

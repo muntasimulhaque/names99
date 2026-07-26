@@ -9,7 +9,9 @@ val LightColors = lightColorScheme(
     onPrimary = Color(0xFFFFFFFF),
     primaryContainer = Color(0xFFDAE9E0),
     onPrimaryContainer = Color(0xFF0E2E24),
-    secondary = Color(0xFFA07C24),
+    // Deep enough to clear WCAG AA on paper (4.61:1) — this gold carries the
+    // epithets and every tracked section label, not just ornament.
+    secondary = Color(0xFF8C6A1B),
     onSecondary = Color(0xFFFFFFFF),
     secondaryContainer = Color(0xFFF3E7C3),
     onSecondaryContainer = Color(0xFF3D2F05),

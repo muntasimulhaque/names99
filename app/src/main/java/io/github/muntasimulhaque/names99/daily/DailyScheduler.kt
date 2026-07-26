@@ -45,25 +45,33 @@ object DailyScheduler {
         }
     }
 
-    /** Called on app start: keeps the widget fresh. */
+    /**
+     * Called on app start: keeps the widget fresh. UPDATE re-anchors the
+     * schedule to the next midnight rather than leaving a drifted one in place.
+     */
     fun ensureScheduled(context: Context) {
         val widgetRequest = PeriodicWorkRequestBuilder<WidgetUpdateWorker>(1, TimeUnit.DAYS)
             .setInitialDelay(minutesUntil(0, 5), TimeUnit.MINUTES)
             .build()
         WorkManager.getInstance(context).enqueueUniquePeriodicWork(
-            WIDGET_WORK, ExistingPeriodicWorkPolicy.KEEP, widgetRequest
+            WIDGET_WORK, ExistingPeriodicWorkPolicy.UPDATE, widgetRequest
         )
     }
 
     /**
      * Re-arms the daily notification at app start if the user has it enabled.
-     * KEEP makes this a no-op when the work already exists.
+     *
+     * Deliberately REPLACE, not KEEP: WorkManager schedules each period from
+     * when the previous one actually ran, so every Doze deferral pushes the
+     * notification a little later and the error accumulates with nothing to
+     * correct it. Re-anchoring on launch pins it back to the chosen time, and
+     * fixes a timezone or DST change at the same time.
      */
     suspend fun ensureNotificationScheduled(context: Context) {
         val prefs = Prefs(context.applicationContext)
         if (!prefs.dailyEnabled.first()) return
         val (hour, minute) = prefs.dailyTime.first()
-        enqueueNotification(context, hour, minute, ExistingPeriodicWorkPolicy.KEEP)
+        enqueueNotification(context, hour, minute, ExistingPeriodicWorkPolicy.REPLACE)
     }
 
     /** Applies the user's current enabled/time settings, replacing any previous schedule. */
@@ -132,8 +140,10 @@ class NotificationWorker(context: Context, params: WorkerParameters) :
         val name = names.firstOrNull { it.number == DailyName.numberFor(System.currentTimeMillis()) }
             ?: return Result.success()
 
+        // NEW_TASK only: the activity is singleTop and consumes the extra, so
+        // this lands on the name without tearing down whatever was open.
         val intent = Intent(context, MainActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK
             putExtra(MainActivity.EXTRA_NAME_NUMBER, name.number)
         }
         val pending = PendingIntent.getActivity(
@@ -155,7 +165,6 @@ class NotificationWorker(context: Context, params: WorkerParameters) :
             .build()
 
         // Permission checked above; the channel is created in NamesApp.onCreate.
-        @Suppress("MissingPermission")
         val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         manager.notify(1, notification)
         return Result.success()

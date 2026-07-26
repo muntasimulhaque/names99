@@ -155,10 +155,6 @@ fun DetailScreen(
                 .padding(padding)
                 .graphicsLayer { alpha = enterAlpha },
         ) { page ->
-            // Pages dim slightly while in motion, then settle to full presence.
-            val pageOffset =
-                ((pagerState.currentPage - page) + pagerState.currentPageOffsetFraction)
-                    .absoluteValue.coerceIn(0f, 1f)
             NamePage(
                 name = names[page],
                 learned = names[page].number in learned,
@@ -170,7 +166,15 @@ fun DetailScreen(
                 page = page,
                 previousLabel = names.getOrNull(page - 1)?.transliteration,
                 nextLabel = names.getOrNull(page + 1)?.transliteration,
-                modifier = Modifier.graphicsLayer { alpha = 1f - pageOffset * 0.3f },
+                // Pages dim slightly while in motion, then settle to full
+                // presence. Read inside the layer block so a swipe redraws
+                // rather than recomposing every visible page each frame.
+                modifier = Modifier.graphicsLayer {
+                    val offset =
+                        ((pagerState.currentPage - page) + pagerState.currentPageOffsetFraction)
+                            .absoluteValue.coerceIn(0f, 1f)
+                    alpha = 1f - offset * 0.3f
+                },
             )
         }
     }

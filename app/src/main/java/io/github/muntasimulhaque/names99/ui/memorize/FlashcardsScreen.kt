@@ -208,11 +208,10 @@ fun FlashcardsScreen(
                             haptics.confirm()
                             val target = (if (know) 1.3f else -1.3f) * cardWidth
                             offsetX.animateTo(target, tween(240))
+                            // A review pass only ever adds. "Still learning" must
+                            // not quietly delete a tick the reader already earned.
                             if (know && name.number !in learned) {
                                 viewModel.setLearned(name.number, true)
-                            }
-                            if (!know && name.number in learned) {
-                                viewModel.setLearned(name.number, false)
                             }
                             session.advance()
                         }
@@ -261,7 +260,7 @@ fun FlashcardsScreen(
                             onClick = { commit(false) },
                             modifier = Modifier
                                 .weight(1f)
-                                .height(52.dp),
+                                .heightIn(min = 52.dp),
                         ) {
                             Text(stringResource(R.string.still_learning))
                         }
@@ -269,7 +268,7 @@ fun FlashcardsScreen(
                             onClick = { commit(true) },
                             modifier = Modifier
                                 .weight(1f)
-                                .height(52.dp),
+                                .heightIn(min = 52.dp),
                         ) {
                             Text(stringResource(R.string.i_know_it))
                         }
@@ -303,6 +302,13 @@ private fun DeckMenu(
                     onToggleIncludeLearned()
                     open = false
                 },
+                // The state belongs on the row itself: it is the focusable
+                // node, so semantics on the tick box never reach a reader.
+                modifier = Modifier.semantics {
+                    role = Role.Checkbox
+                    toggleableState =
+                        if (includeLearned) ToggleableState.On else ToggleableState.Off
+                },
                 leadingIcon = { OptionCheck(checked = includeLearned) },
             )
             DropdownMenuItem(
@@ -326,6 +332,7 @@ private fun DeckMenu(
 /**
  * An empty box in the same ink as the menu's icons, so the option reads as
  * something you can turn on even while it is off; the tick alone is gold.
+ * Purely visual — the row above carries the state for screen readers.
  */
 @Composable
 private fun OptionCheck(checked: Boolean) {
@@ -336,11 +343,7 @@ private fun OptionCheck(checked: Boolean) {
                 width = 1.5.dp,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 shape = RoundedCornerShape(4.dp),
-            )
-            .semantics {
-                role = Role.Checkbox
-                toggleableState = if (checked) ToggleableState.On else ToggleableState.Off
-            },
+            ),
         contentAlignment = Alignment.Center,
     ) {
         if (checked) {

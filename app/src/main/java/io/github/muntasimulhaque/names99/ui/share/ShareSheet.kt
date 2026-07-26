@@ -14,7 +14,9 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Share
@@ -134,6 +136,9 @@ fun ShareSheet(name: Name, onDismiss: () -> Unit) {
  */
 @Composable
 private fun ShareCard(name: Name, modifier: Modifier = Modifier) {
+    // One hairline gold rule serves the whole plate: the frame around the card
+    // and the seal around the mark are drawn with the identical stroke.
+    val frameGold = HeroGold.copy(alpha = 0.4f)
     Card(
         modifier = modifier,
         shape = MaterialTheme.shapes.large,
@@ -145,7 +150,7 @@ private fun ShareCard(name: Name, modifier: Modifier = Modifier) {
                     .fillMaxWidth()
                     .border(
                         width = 1.dp,
-                        color = HeroGold.copy(alpha = 0.4f),
+                        color = frameGold,
                         shape = RoundedCornerShape(20.dp),
                     )
                     .padding(horizontal = 22.dp, vertical = 24.dp),
@@ -188,14 +193,22 @@ private fun ShareCard(name: Name, modifier: Modifier = Modifier) {
                     textAlign = TextAlign.Center,
                 )
                 Spacer(Modifier.height(20.dp))
-                // Maker's mark: the app's gold ٩٩ beside the footer line.
+                // Maker's mark: the app's gold ٩٩ struck as a seal — the circle
+                // reads it as the logo rather than a second "99" in the line.
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Image(
-                        painter = painterResource(R.drawable.ic_mark_99),
-                        contentDescription = null,
-                        modifier = Modifier.height(15.dp),
-                    )
-                    Spacer(Modifier.width(7.dp))
+                    Box(
+                        modifier = Modifier
+                            .size(26.dp)
+                            .border(width = 1.dp, color = frameGold, shape = CircleShape),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Image(
+                            painter = painterResource(R.drawable.ic_mark_99),
+                            contentDescription = null,
+                            modifier = Modifier.height(12.dp),
+                        )
+                    }
+                    Spacer(Modifier.width(9.dp))
                     Text(
                         text = stringResource(R.string.share_card_footer).uppercase(),
                         style = MaterialTheme.typography.labelMedium,

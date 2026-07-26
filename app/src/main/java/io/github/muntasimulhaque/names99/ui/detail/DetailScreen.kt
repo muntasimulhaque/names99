@@ -227,9 +227,11 @@ private fun NamePage(
                     textAlign = TextAlign.Center,
                 )
                 Spacer(Modifier.height(14.dp))
+                // Kept a clear step below the Arabic — the same proportion the
+                // share card and the widget hold (roughly half the Arabic size).
                 Text(
                     text = name.transliteration,
-                    style = MaterialTheme.typography.displayMedium,
+                    style = MaterialTheme.typography.displaySmall,
                     color = MaterialTheme.colorScheme.onSurface,
                     textAlign = TextAlign.Center,
                 )

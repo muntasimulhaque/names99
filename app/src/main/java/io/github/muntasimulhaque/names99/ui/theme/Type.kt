@@ -9,10 +9,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import io.github.muntasimulhaque.names99.R
 
-/** Arabic everywhere in the app: Noto Naskh Arabic (SIL Open Font License). */
+/**
+ * Arabic everywhere in the app: KFGQPC Uthmanic Script HAFS — the typeface of
+ * the Madinah Mushaf, published free by the King Fahd Glorious Quran Printing
+ * Complex (license in assets/fonts/). Single weight; bundled unmodified.
+ */
 val ArabicFamily = FontFamily(
-    Font(R.font.notonaskharabic_regular, FontWeight.Normal),
-    Font(R.font.notonaskharabic_bold, FontWeight.Bold),
+    Font(R.font.kfgqpc_hafs_uthmanic, FontWeight.Normal),
 )
 
 /** Latin text identity (SIL Open Font License). */

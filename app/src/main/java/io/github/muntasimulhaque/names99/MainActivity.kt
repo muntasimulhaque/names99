@@ -5,24 +5,43 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.filled.School
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.unit.dp
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -34,7 +53,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import io.github.muntasimulhaque.names99.data.ThemeMode
 import io.github.muntasimulhaque.names99.ui.NamesViewModel
 import io.github.muntasimulhaque.names99.ui.about.AboutScreen
 import io.github.muntasimulhaque.names99.ui.detail.DetailScreen
@@ -43,6 +61,7 @@ import io.github.muntasimulhaque.names99.ui.memorize.FlashcardsScreen
 import io.github.muntasimulhaque.names99.ui.memorize.MemorizeScreen
 import io.github.muntasimulhaque.names99.ui.memorize.QuizScreen
 import io.github.muntasimulhaque.names99.ui.settings.SettingsScreen
+import io.github.muntasimulhaque.names99.ui.theme.Motion
 import io.github.muntasimulhaque.names99.ui.theme.Names99Theme
 
 class MainActivity : ComponentActivity() {
@@ -111,8 +130,19 @@ private fun App(startNumber: Int, onStartNumberConsumed: () -> Unit) {
                 navController = navController,
                 startDestination = "names",
                 modifier = Modifier.weight(1f),
+                // Pushed screens rise gently into place; pops sink away.
+                enterTransition = {
+                    fadeIn(tween(Motion.GENTLE, easing = Motion.Settle)) +
+                        slideInVertically(tween(Motion.GENTLE, easing = Motion.Settle)) { it / 24 }
+                },
+                exitTransition = { fadeOut(tween(Motion.QUICK)) },
+                popEnterTransition = { fadeIn(tween(Motion.GENTLE)) },
+                popExitTransition = {
+                    fadeOut(tween(Motion.GENTLE)) +
+                        slideOutVertically(tween(Motion.GENTLE, easing = Motion.Settle)) { it / 24 }
+                },
             ) {
-                composable("names") {
+                composable("names", enterTransition = tabFade, exitTransition = tabFadeOut) {
                     HomeScreen(
                         viewModel = viewModel,
                         onNameClick = { number -> navController.navigate("detail/$number") },
@@ -128,7 +158,7 @@ private fun App(startNumber: Int, onStartNumberConsumed: () -> Unit) {
                         onBack = { navController.popBackStack() },
                     )
                 }
-                composable("memorize") {
+                composable("memorize", enterTransition = tabFade, exitTransition = tabFadeOut) {
                     MemorizeScreen(
                         viewModel = viewModel,
                         onFlashcards = { navController.navigate("flashcards") },
@@ -147,7 +177,7 @@ private fun App(startNumber: Int, onStartNumberConsumed: () -> Unit) {
                         onBack = { navController.popBackStack() },
                     )
                 }
-                composable("settings") {
+                composable("settings", enterTransition = tabFade, exitTransition = tabFadeOut) {
                     SettingsScreen(
                         viewModel = viewModel,
                         onAbout = { navController.navigate("about") },
@@ -157,29 +187,92 @@ private fun App(startNumber: Int, onStartNumberConsumed: () -> Unit) {
                     AboutScreen(onBack = { navController.popBackStack() })
                 }
             }
-            if (showBottomBar) {
-                NamesBottomBar(navController, currentRoute)
+            AnimatedVisibility(
+                visible = showBottomBar,
+                enter = fadeIn(tween(Motion.QUICK)) + slideInVertically(tween(Motion.GENTLE)) { it },
+                exit = fadeOut(tween(Motion.QUICK)) + slideOutVertically(tween(Motion.GENTLE)) { it },
+            ) {
+                QuietBottomBar(navController, currentRoute)
             }
         }
     }
 }
 
+/** Tab switches crossfade — only pushed detail screens use the rising motion. */
+private val tabFade:
+    (androidx.compose.animation.AnimatedContentTransitionScope<androidx.navigation.NavBackStackEntry>.() ->
+    androidx.compose.animation.EnterTransition?) = {
+    fadeIn(tween(Motion.GENTLE))
+}
+
+private val tabFadeOut:
+    (androidx.compose.animation.AnimatedContentTransitionScope<androidx.navigation.NavBackStackEntry>.() ->
+    androidx.compose.animation.ExitTransition?) = {
+    fadeOut(tween(Motion.QUICK))
+}
+
+/**
+ * A bespoke, quiet bottom bar: no pill indicator, no tonal blocks — just a
+ * hairline rule and three small-caps labels, selection carried by color.
+ */
 @Composable
-private fun NamesBottomBar(navController: NavHostController, currentRoute: String?) {
-    NavigationBar {
-        topLevelRoutes.forEach { item ->
-            NavigationBarItem(
-                selected = currentRoute == item.route,
-                onClick = {
-                    navController.navigate(item.route) {
-                        popUpTo(navController.graph.findStartDestination().id) { saveState = true }
-                        launchSingleTop = true
-                        restoreState = true
-                    }
-                },
-                icon = { Icon(item.icon, contentDescription = null) },
-                label = { Text(stringResource(item.labelRes)) },
+private fun QuietBottomBar(navController: NavHostController, currentRoute: String?) {
+    Surface(color = MaterialTheme.colorScheme.surface) {
+        Column {
+            HorizontalDivider(
+                thickness = 0.5.dp,
+                color = MaterialTheme.colorScheme.outlineVariant,
             )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .navigationBarsPadding()
+                    .height(60.dp)
+                    .selectableGroup(),
+            ) {
+                topLevelRoutes.forEach { item ->
+                    val selected = currentRoute == item.route
+                    val tint by animateColorAsState(
+                        targetValue = if (selected) MaterialTheme.colorScheme.primary
+                        else MaterialTheme.colorScheme.onSurfaceVariant,
+                        animationSpec = tween(Motion.QUICK),
+                        label = "tabTint",
+                    )
+                    Column(
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxHeight()
+                            .selectable(
+                                selected = selected,
+                                role = Role.Tab,
+                                onClick = {
+                                    navController.navigate(item.route) {
+                                        popUpTo(navController.graph.findStartDestination().id) {
+                                            saveState = true
+                                        }
+                                        launchSingleTop = true
+                                        restoreState = true
+                                    }
+                                },
+                            ),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = androidx.compose.foundation.layout.Arrangement.Center,
+                    ) {
+                        Icon(
+                            item.icon,
+                            contentDescription = null,
+                            tint = tint,
+                            modifier = Modifier.height(22.dp),
+                        )
+                        Spacer(Modifier.height(4.dp))
+                        Text(
+                            text = stringResource(item.labelRes).uppercase(),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = tint,
+                        )
+                    }
+                }
+            }
         }
     }
 }

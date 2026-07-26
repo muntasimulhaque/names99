@@ -1,9 +1,15 @@
 package io.github.muntasimulhaque.names99.ui.memorize
 
 import android.app.Application
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.scaleIn
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -27,6 +33,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -47,7 +54,13 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import io.github.muntasimulhaque.names99.R
 import io.github.muntasimulhaque.names99.data.Name
 import io.github.muntasimulhaque.names99.ui.NamesViewModel
+import io.github.muntasimulhaque.names99.ui.theme.HeroContainer
+import io.github.muntasimulhaque.names99.ui.theme.HeroGold
+import io.github.muntasimulhaque.names99.ui.theme.HeroText
+import io.github.muntasimulhaque.names99.ui.theme.Motion
 import io.github.muntasimulhaque.names99.ui.theme.components.ArabicText
+import io.github.muntasimulhaque.names99.ui.theme.components.HairlineProgress
+import io.github.muntasimulhaque.names99.ui.theme.rememberHaptics
 import io.github.muntasimulhaque.names99.util.QuizBuilder
 import io.github.muntasimulhaque.names99.util.QuizQuestion
 
@@ -66,10 +79,13 @@ class QuizViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun select(optionIndex: Int) {
-        if (selected != -1) return
+    /** Returns true when the tapped option is the correct answer. */
+    fun select(optionIndex: Int): Boolean {
+        if (selected != -1) return false
         selected = optionIndex
-        if (optionIndex == questions[index].answerIndex) score++
+        val correct = optionIndex == questions[index].answerIndex
+        if (correct) score++
+        return correct
     }
 
     fun next() {
@@ -108,6 +124,9 @@ fun QuizScreen(
     Scaffold(
         topBar = {
             TopAppBar(
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background,
+                ),
                 title = {
                     if (!quiz.finished && quiz.questions.isNotEmpty()) {
                         Text(
@@ -164,6 +183,7 @@ private fun QuizQuestionContent(
 ) {
     val question = quiz.questions[quiz.index]
     val name = names.firstOrNull { it.number == question.number } ?: return
+    val haptics = rememberHaptics()
 
     Column(
         modifier = Modifier
@@ -171,13 +191,14 @@ private fun QuizQuestionContent(
             .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Spacer(Modifier.height(12.dp))
+        HairlineProgress(
+            progress = (quiz.index + 1) / quiz.questions.size.toFloat(),
+        )
+        Spacer(Modifier.height(20.dp))
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = MaterialTheme.shapes.large,
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.primaryContainer
-            ),
+            colors = CardDefaults.cardColors(containerColor = HeroContainer),
         ) {
             Column(
                 modifier = Modifier
@@ -187,15 +208,15 @@ private fun QuizQuestionContent(
             ) {
                 ArabicText(
                     text = name.arabic,
-                    fontSize = 42.sp,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                    fontSize = 40.sp,
+                    color = HeroGold,
                     textAlign = TextAlign.Center,
                 )
                 Spacer(Modifier.height(6.dp))
                 Text(
                     text = name.transliteration,
                     style = MaterialTheme.typography.displaySmall,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                    color = HeroText,
                     textAlign = TextAlign.Center,
                 )
             }
@@ -211,7 +232,13 @@ private fun QuizQuestionContent(
                     else -> OptionState.DIMMED
                 },
                 enabled = quiz.selected == -1,
-                onClick = { quiz.select(optionIndex) },
+                onClick = {
+                    val wasUnanswered = quiz.selected == -1
+                    val correct = quiz.select(optionIndex)
+                    if (wasUnanswered) {
+                        if (correct) haptics.confirm() else haptics.reject()
+                    }
+                },
             )
             Spacer(Modifier.height(10.dp))
         }
@@ -219,7 +246,9 @@ private fun QuizQuestionContent(
         Button(
             onClick = quiz::next,
             enabled = quiz.selected != -1,
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(52.dp),
         ) {
             Text(
                 stringResource(
@@ -242,15 +271,21 @@ private fun OptionButton(
     onClick: () -> Unit,
 ) {
     val colors = MaterialTheme.colorScheme
-    val (container, content, border) = when (state) {
-        OptionState.IDLE -> Triple(colors.surface, colors.onSurface, colors.outline)
-        OptionState.CORRECT -> Triple(colors.primaryContainer, colors.onPrimaryContainer, colors.primary)
-        OptionState.WRONG -> Triple(colors.errorContainer, colors.onErrorContainer, colors.error)
-        OptionState.DIMMED -> Triple(
-            colors.surface,
-            colors.onSurface.copy(alpha = 0.45f),
-            colors.outline.copy(alpha = 0.45f),
-        )
+    val container by animateColorAsState(
+        targetValue = when (state) {
+            OptionState.CORRECT -> colors.primaryContainer
+            OptionState.WRONG -> colors.errorContainer
+            else -> colors.surface
+        },
+        animationSpec = tween(Motion.QUICK),
+        label = "optionContainer",
+    )
+    val (content, border) = when (state) {
+        OptionState.IDLE -> colors.onSurface to colors.outline
+        OptionState.CORRECT -> colors.onPrimaryContainer to colors.primary
+        OptionState.WRONG -> colors.onErrorContainer to colors.error
+        OptionState.DIMMED ->
+            colors.onSurface.copy(alpha = 0.45f) to colors.outline.copy(alpha = 0.45f)
     }
     val stateCd = when (state) {
         OptionState.CORRECT -> stringResource(R.string.cd_correct)
@@ -268,9 +303,9 @@ private fun OptionButton(
             ),
         shape = MaterialTheme.shapes.medium,
         color = container,
-        border = BorderStroke(if (state == OptionState.IDLE) 1.dp else 2.dp, border),
+        border = BorderStroke(if (state == OptionState.IDLE) 1.dp else 1.5.dp, border),
     ) {
-        androidx.compose.foundation.layout.Row(
+        Row(
             modifier = Modifier.padding(horizontal = 18.dp, vertical = 14.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -280,18 +315,24 @@ private fun OptionButton(
                 color = content,
                 modifier = Modifier.weight(1f),
             )
-            when (state) {
-                OptionState.CORRECT -> Icon(
-                    Icons.Filled.CheckCircle,
-                    contentDescription = null,
-                    tint = colors.primary,
-                )
-                OptionState.WRONG -> Icon(
-                    Icons.Filled.Cancel,
-                    contentDescription = null,
-                    tint = colors.error,
-                )
-                else -> Unit
+            AnimatedVisibility(
+                visible = state == OptionState.CORRECT || state == OptionState.WRONG,
+                enter = fadeIn(tween(Motion.QUICK)) +
+                    scaleIn(Motion.lively(), initialScale = 0.4f),
+            ) {
+                when (state) {
+                    OptionState.CORRECT -> Icon(
+                        Icons.Filled.CheckCircle,
+                        contentDescription = null,
+                        tint = colors.primary,
+                    )
+                    OptionState.WRONG -> Icon(
+                        Icons.Filled.Cancel,
+                        contentDescription = null,
+                        tint = colors.error,
+                    )
+                    else -> Unit
+                }
             }
         }
     }
@@ -339,7 +380,12 @@ private fun QuizResultContent(
             )
         }
         Spacer(Modifier.height(28.dp))
-        Button(onClick = onRestart, modifier = Modifier.fillMaxWidth()) {
+        Button(
+            onClick = onRestart,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(52.dp),
+        ) {
             Text(stringResource(R.string.try_another_round))
         }
         TextButton(onClick = onBack) {

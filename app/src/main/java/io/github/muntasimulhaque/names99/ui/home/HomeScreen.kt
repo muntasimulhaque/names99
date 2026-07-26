@@ -2,6 +2,8 @@ package io.github.muntasimulhaque.names99.ui.home
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,6 +21,7 @@ import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items as gridItems
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ViewList
@@ -33,10 +36,11 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -50,12 +54,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -68,6 +76,7 @@ import io.github.muntasimulhaque.names99.ui.theme.HeroContainer
 import io.github.muntasimulhaque.names99.ui.theme.HeroGold
 import io.github.muntasimulhaque.names99.ui.theme.HeroSubtext
 import io.github.muntasimulhaque.names99.ui.theme.HeroText
+import io.github.muntasimulhaque.names99.ui.theme.Motion
 import io.github.muntasimulhaque.names99.ui.theme.components.ArabicText
 import io.github.muntasimulhaque.names99.ui.theme.components.NameListItem
 import io.github.muntasimulhaque.names99.util.SearchFilter
@@ -106,21 +115,44 @@ fun HomeScreen(
     val filtered = remember(names, query) { SearchFilter.filter(names, query) }
     val dailyName = remember(names, dailyNumber) { names.firstOrNull { it.number == dailyNumber } }
 
+    // The bar tucks itself away while reading and returns on the first upward pull.
+    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
+
     Scaffold(
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             TopAppBar(
+                scrollBehavior = scrollBehavior,
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background,
+                    scrolledContainerColor = MaterialTheme.colorScheme.background,
+                ),
                 title = {
                     if (searching) {
                         val focusRequester = remember { FocusRequester() }
-                        OutlinedTextField(
+                        BasicTextField(
                             value = query,
                             onValueChange = viewModel::setSearchQuery,
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .focusRequester(focusRequester),
-                            placeholder = { Text(stringResource(R.string.search_hint)) },
+                            textStyle = MaterialTheme.typography.titleMedium.copy(
+                                color = MaterialTheme.colorScheme.onSurface,
+                            ),
+                            cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
                             singleLine = true,
-                            shape = MaterialTheme.shapes.large,
+                            decorationBox = { inner ->
+                                Box(contentAlignment = Alignment.CenterStart) {
+                                    if (query.isEmpty()) {
+                                        Text(
+                                            text = stringResource(R.string.search_hint),
+                                            style = MaterialTheme.typography.titleMedium,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        )
+                                    }
+                                    inner()
+                                }
+                            },
                         )
                         LaunchedEffect(Unit) { focusRequester.requestFocus() }
                     } else {
@@ -243,11 +275,24 @@ fun HomeScreen(
 
 @Composable
 private fun DailyHeroCard(name: Name, onClick: () -> Unit) {
+    // The card yields slightly under the finger — paper, not glass.
+    val interaction = remember { MutableInteractionSource() }
+    val pressed by interaction.collectIsPressedAsState()
+    val scale by animateFloatAsState(
+        targetValue = if (pressed) 0.98f else 1f,
+        animationSpec = Motion.soft(),
+        label = "heroPress",
+    )
     Card(
         onClick = onClick,
+        interactionSource = interaction,
         modifier = Modifier
             .padding(horizontal = 16.dp, vertical = 8.dp)
-            .fillMaxWidth(),
+            .fillMaxWidth()
+            .graphicsLayer {
+                scaleX = scale
+                scaleY = scale
+            },
         shape = MaterialTheme.shapes.large,
         colors = CardDefaults.cardColors(containerColor = HeroContainer),
     ) {
@@ -266,7 +311,7 @@ private fun DailyHeroCard(name: Name, onClick: () -> Unit) {
             Spacer(Modifier.height(14.dp))
             ArabicText(
                 text = name.arabic,
-                fontSize = 42.sp,
+                fontSize = 40.sp,
                 color = HeroGold,
                 textAlign = TextAlign.Center,
             )
@@ -322,7 +367,7 @@ private fun NameGridCell(
                 Spacer(Modifier.height(6.dp))
                 ArabicText(
                     text = name.arabic,
-                    fontSize = 24.sp,
+                    fontSize = 23.sp,
                     color = MaterialTheme.colorScheme.primary,
                     textAlign = TextAlign.Center,
                 )

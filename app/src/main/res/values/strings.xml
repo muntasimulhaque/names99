@@ -35,7 +35,7 @@
     <string name="flashcards_subtitle">See the name, recall the meaning, flip to check.</string>
     <string name="quiz">Quiz</string>
     <string name="quiz_subtitle">Ten questions. Match each name to its meaning.</string>
-    <string name="progress_of">%1$d of 99 learned</string>
+    <string name="progress_of_caption">of 99 learned</string>
     <string name="remaining_count">%1$d still to learn</string>
     <string name="quiz_best">Best quiz score: %1$d of 10</string>
     <string name="all_learned_title">All 99 names learned</string>
@@ -51,6 +51,7 @@
     <string name="start_again">Start again</string>
     <string name="include_learned">Include learned</string>
     <string name="card_x_of_y">%1$d of %2$d</string>
+    <string name="swipe_hint">Swipe right if you know it — left to keep practicing</string>
 
     <!-- Quiz -->
     <string name="quiz_perfect">Masha\'Allah — a perfect round.</string>
@@ -89,6 +90,7 @@
     <string name="reset_dialog_text">This clears all names marked as learned and your best quiz score. It cannot be undone.</string>
     <string name="reset">Reset</string>
     <string name="cancel">Cancel</string>
+    <string name="ok">OK</string>
     <string name="about_section">About</string>
     <string name="version">Version %1$s</string>
 
@@ -98,5 +100,5 @@
     <string name="source_pdf">Source document (PDF)</string>
     <string name="read_blog">Read on the blog</string>
     <string name="foss_line">Free &amp; open source — no ads, no tracking</string>
-    <string name="about_fonts">Arabic set in Noto Naskh Arabic, Latin in Spectral — both under the SIL Open Font License.</string>
+    <string name="about_fonts">Arabic set in KFGQPC Uthmanic Script HAFS, the typeface of the Madinah Mushaf (King Fahd Glorious Quran Printing Complex). Latin set in Spectral (SIL Open Font License).</string>
 </resources>

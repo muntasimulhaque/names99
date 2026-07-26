@@ -1,0 +1,20 @@
+KFGQPC Uthmanic Script HAFS (UthmanicHafs, Version 2.1)
+Copyright (c) 2010 King Fahd Glorious Quran Printing Complex,
+AlMadinah AlMunawarrah, Kingdom of Saudi Arabia.
+ISBN: 978-603-8010-15-0, Accession No. 1430/7278
+
+From the font's embedded notice:
+
+  "The digitally signed machine readable Typeface (Font) licensed to you is
+  copyrighted, (2010), King Fahd Glorious Quran Printing Complex.
+  All rights reserved. This Font is the property of King Fahd Glorious
+  Quran Printing Complex, and may not be reproduced, modified without the
+  express written approval of King Fahd Glorious Quran Printing Complex."
+
+The Complex distributes this font free of charge and grants permission to
+use, copy, and distribute it unmodified. It is bundled in this app exactly
+as published (byte-for-byte; only the file name differs, as required by
+Android resource naming). It is not sold, and it has not been modified.
+
+Source: King Fahd Glorious Quran Printing Complex — fonts.qurancomplex.gov.sa
+License reference: https://scancode-licensedb.aboutcode.org/kfgqpc-uthmanic-script-hafs.html

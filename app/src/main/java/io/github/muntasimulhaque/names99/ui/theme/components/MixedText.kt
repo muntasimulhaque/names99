@@ -29,9 +29,10 @@ fun MixedText(
     overflow: TextOverflow = TextOverflow.Clip,
 ) {
     val annotated = remember(text) {
+        val shaped = text.forArabicFont()
         buildAnnotatedString {
-            append(text)
-            ARABIC_RUN.findAll(text).forEach { match ->
+            append(shaped)
+            ARABIC_RUN.findAll(shaped).forEach { match ->
                 addStyle(SpanStyle(fontFamily = ArabicFamily), match.range.first, match.range.last + 1)
             }
         }

@@ -1,25 +1,23 @@
 package io.github.muntasimulhaque.names99.ui.memorize
 
 import android.app.Application
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.Shuffle
 import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material3.Button
@@ -34,27 +32,42 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import io.github.muntasimulhaque.names99.R
 import io.github.muntasimulhaque.names99.data.Name
 import io.github.muntasimulhaque.names99.ui.NamesViewModel
+import io.github.muntasimulhaque.names99.ui.theme.HeroContainer
+import io.github.muntasimulhaque.names99.ui.theme.HeroGold
+import io.github.muntasimulhaque.names99.ui.theme.HeroSubtext
+import io.github.muntasimulhaque.names99.ui.theme.HeroText
+import io.github.muntasimulhaque.names99.ui.theme.Motion
 import io.github.muntasimulhaque.names99.ui.theme.components.ArabicText
+import io.github.muntasimulhaque.names99.ui.theme.components.HairlineProgress
+import io.github.muntasimulhaque.names99.ui.theme.rememberHaptics
+import kotlinx.coroutines.launch
 
 /** Session state for one flashcard run; survives rotation with the ViewModel. */
 class FlashcardsViewModel(application: Application) : AndroidViewModel(application) {
@@ -111,6 +124,9 @@ fun FlashcardsScreen(
     Scaffold(
         topBar = {
             TopAppBar(
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background,
+                ),
                 title = {
                     if (session.deck.isNotEmpty() && !session.done) {
                         Text(
@@ -171,35 +187,73 @@ fun FlashcardsScreen(
                 else -> {
                     val name = names.firstOrNull { it.number == session.deck[session.index] }
                         ?: return@Column
-                    Spacer(Modifier.height(16.dp))
-                    FlipCard(
-                        name = name,
-                        flipped = session.flipped,
-                        onFlip = session::flip,
-                        modifier = Modifier
-                            .weight(1f)
-                            .fillMaxWidth(),
+                    val scope = rememberCoroutineScope()
+                    val haptics = rememberHaptics()
+
+                    // Horizontal offset of the current card; a fresh Animatable
+                    // per card so each one starts centered.
+                    val offsetX = remember(session.deck, session.index) { Animatable(0f) }
+                    var cardWidth by remember { mutableFloatStateOf(0f) }
+
+                    fun commit(know: Boolean) {
+                        if (offsetX.isRunning && offsetX.targetValue != 0f) return
+                        scope.launch {
+                            haptics.confirm()
+                            val target = (if (know) 1.3f else -1.3f) * cardWidth
+                            offsetX.animateTo(target, tween(240))
+                            if (know && name.number !in learned) {
+                                viewModel.setLearned(name.number, true)
+                            }
+                            if (!know && name.number in learned) {
+                                viewModel.setLearned(name.number, false)
+                            }
+                            session.advance()
+                        }
+                    }
+
+                    HairlineProgress(
+                        progress = (session.index + 1) / session.deck.size.toFloat(),
                     )
                     Spacer(Modifier.height(20.dp))
+                    SwipeFlipCard(
+                        name = name,
+                        flipped = session.flipped,
+                        onFlip = {
+                            haptics.tick()
+                            session.flip()
+                        },
+                        offsetX = offsetX,
+                        onDragCommit = ::commit,
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxWidth()
+                            .onSizeChanged { cardWidth = it.width.toFloat() },
+                    )
+                    Spacer(Modifier.height(12.dp))
+                    Text(
+                        text = if (session.index == 0) stringResource(R.string.swipe_hint) else "",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center,
+                    )
+                    Spacer(Modifier.height(12.dp))
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(12.dp),
                     ) {
                         OutlinedButton(
-                            onClick = {
-                                if (name.number in learned) viewModel.setLearned(name.number, false)
-                                session.advance()
-                            },
-                            modifier = Modifier.weight(1f),
+                            onClick = { commit(false) },
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(52.dp),
                         ) {
                             Text(stringResource(R.string.still_learning))
                         }
                         Button(
-                            onClick = {
-                                if (name.number !in learned) viewModel.setLearned(name.number, true)
-                                session.advance()
-                            },
-                            modifier = Modifier.weight(1f),
+                            onClick = { commit(true) },
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(52.dp),
                         ) {
                             Text(stringResource(R.string.i_know_it))
                         }
@@ -212,31 +266,71 @@ fun FlashcardsScreen(
 }
 
 @Composable
-private fun FlipCard(
+private fun SwipeFlipCard(
     name: Name,
     flipped: Boolean,
     onFlip: () -> Unit,
+    offsetX: Animatable<Float, *>,
+    onDragCommit: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val scope = rememberCoroutineScope()
+
+    // Each card arrives with a soft rise (keyed to the card's own offset state).
+    val appear = remember(offsetX) { Animatable(0f) }
+    LaunchedEffect(offsetX) {
+        appear.animateTo(1f, tween(Motion.GENTLE, easing = Motion.Settle))
+    }
+
     val rotation by animateFloatAsState(
         targetValue = if (flipped) 180f else 0f,
-        animationSpec = tween(350),
+        animationSpec = tween(Motion.GENTLE),
         label = "flip",
     )
+
     Card(
         onClick = onFlip,
-        modifier = modifier.graphicsLayer {
-            rotationY = rotation
-            cameraDistance = 12f * density
-        },
+        modifier = modifier
+            .graphicsLayer {
+                val w = size.width.coerceAtLeast(1f)
+                val leaving = offsetX.value / (w * 1.2f)
+                translationX = offsetX.value
+                rotationZ = (offsetX.value / w) * 8f
+                alpha = (appear.value * (1f - leaving * leaving)).coerceIn(0f, 1f)
+                scaleX = 0.96f + 0.04f * appear.value
+                scaleY = 0.96f + 0.04f * appear.value
+                translationY = (1f - appear.value) * 24.dp.toPx()
+                rotationY = rotation
+                cameraDistance = 14f * density
+            }
+            .pointerInput(offsetX) {
+                detectHorizontalDragGestures(
+                    onDragEnd = {
+                        val threshold = size.width * 0.3f
+                        when {
+                            offsetX.value > threshold -> onDragCommit(true)
+                            offsetX.value < -threshold -> onDragCommit(false)
+                            else -> scope.launch { offsetX.animateTo(0f, Motion.soft()) }
+                        }
+                    },
+                    onDragCancel = {
+                        scope.launch { offsetX.animateTo(0f, Motion.soft()) }
+                    },
+                ) { change, amount ->
+                    change.consume()
+                    scope.launch { offsetX.snapTo(offsetX.value + amount) }
+                }
+            },
         shape = MaterialTheme.shapes.large,
         colors = CardDefaults.cardColors(
-            containerColor = if (rotation <= 90f) MaterialTheme.colorScheme.primaryContainer
-            else MaterialTheme.colorScheme.surfaceVariant
+            containerColor = if (rotation <= 90f) HeroContainer
+            else MaterialTheme.colorScheme.surface
         ),
+        border = if (rotation <= 90f) null
+        else BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
     ) {
         if (rotation <= 90f) {
-            // Front: Arabic + transliteration
+            // Front: the name itself, set like the share card.
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -246,27 +340,27 @@ private fun FlipCard(
             ) {
                 ArabicText(
                     text = name.arabic,
-                    fontSize = 46.sp,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                    fontSize = 44.sp,
+                    color = HeroGold,
                     textAlign = TextAlign.Center,
                 )
                 Spacer(Modifier.height(12.dp))
                 Text(
                     text = name.transliteration,
                     style = MaterialTheme.typography.displaySmall,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                    color = HeroText,
                     textAlign = TextAlign.Center,
                 )
                 Spacer(Modifier.height(24.dp))
                 Text(
                     text = stringResource(R.string.tap_to_flip),
                     style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f),
+                    color = HeroSubtext,
                     textAlign = TextAlign.Center,
                 )
             }
         } else {
-            // Back: title + meaning (counter-rotated so it reads correctly)
+            // Back: title + meaning (counter-rotated so it reads correctly).
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -283,12 +377,12 @@ private fun FlipCard(
                     color = MaterialTheme.colorScheme.secondary,
                     textAlign = TextAlign.Center,
                 )
-                Spacer(Modifier.height(12.dp))
+                Spacer(Modifier.height(14.dp))
                 Text(
                     text = name.meaning,
                     style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Center,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    textAlign = TextAlign.Start,
                 )
             }
         }
@@ -305,11 +399,11 @@ private fun AllLearnedContent(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
-        Icon(
-            Icons.Filled.EmojiEvents,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.secondary,
-            modifier = Modifier.size(56.dp),
+        ArabicText(
+            text = "٩٩",
+            fontSize = 44.sp,
+            color = MaterialTheme.colorScheme.secondary,
+            textAlign = TextAlign.Center,
         )
         Spacer(Modifier.height(16.dp))
         Text(

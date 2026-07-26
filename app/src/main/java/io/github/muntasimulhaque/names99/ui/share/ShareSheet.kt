@@ -3,11 +3,14 @@ package io.github.muntasimulhaque.names99.ui.share
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.Button
@@ -79,7 +82,7 @@ fun ShareSheet(name: Name, onDismiss: () -> Unit) {
             Spacer(Modifier.height(16.dp))
             // Everything inside this box is recorded into the graphics layer,
             // so it can be exported as a bitmap while drawing normally on screen.
-            androidx.compose.foundation.layout.Box(
+            Box(
                 modifier = Modifier.drawWithContent {
                     graphicsLayer.record {
                         this@drawWithContent.drawContent()
@@ -112,7 +115,10 @@ fun ShareSheet(name: Name, onDismiss: () -> Unit) {
     }
 }
 
-/** The exported card: deep emerald + gold, identical to the widget/hero identity. */
+/**
+ * The exported card: deep emerald + gold, identical to the widget/hero
+ * identity, with a fine gold frame inside — like a printed plate.
+ */
 @Composable
 private fun ShareCard(name: Name, modifier: Modifier = Modifier) {
     Card(
@@ -120,55 +126,62 @@ private fun ShareCard(name: Name, modifier: Modifier = Modifier) {
         shape = MaterialTheme.shapes.large,
         colors = CardDefaults.cardColors(containerColor = HeroContainer),
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 28.dp, vertical = 26.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            ArabicText(
-                text = stringResource(R.string.basmala),
-                fontSize = 15.sp,
-                color = HeroSubtext,
-                textAlign = TextAlign.Center,
-            )
-            Spacer(Modifier.height(22.dp))
-            ArabicText(
-                text = name.arabic,
-                fontSize = 54.sp,
-                color = HeroGold,
-                textAlign = TextAlign.Center,
-            )
-            Spacer(Modifier.height(6.dp))
-            Text(
-                text = name.transliteration,
-                style = MaterialTheme.typography.displaySmall,
-                color = HeroText,
-                textAlign = TextAlign.Center,
-            )
-            Text(
-                text = name.title,
-                style = MaterialTheme.typography.titleMedium,
-                fontStyle = FontStyle.Italic,
-                color = HeroSubtext,
-                textAlign = TextAlign.Center,
-            )
-            Spacer(Modifier.height(14.dp))
-            Text(
-                text = name.meaning,
-                style = MaterialTheme.typography.bodyMedium,
-                color = HeroText,
-                textAlign = TextAlign.Center,
-                maxLines = 6,
-                overflow = TextOverflow.Ellipsis,
-            )
-            Spacer(Modifier.height(22.dp))
-            Text(
-                text = stringResource(R.string.share_card_footer).uppercase(),
-                style = MaterialTheme.typography.labelMedium,
-                color = HeroSubtext,
-                textAlign = TextAlign.Center,
-            )
+        Box(Modifier.padding(10.dp)) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .border(
+                        width = 1.dp,
+                        color = HeroGold.copy(alpha = 0.4f),
+                        shape = RoundedCornerShape(20.dp),
+                    )
+                    .padding(horizontal = 22.dp, vertical = 24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                ArabicText(
+                    text = stringResource(R.string.basmala),
+                    fontSize = 15.sp,
+                    color = HeroSubtext,
+                    textAlign = TextAlign.Center,
+                )
+                Spacer(Modifier.height(20.dp))
+                ArabicText(
+                    text = name.arabic,
+                    fontSize = 50.sp,
+                    color = HeroGold,
+                    textAlign = TextAlign.Center,
+                )
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    text = name.transliteration,
+                    style = MaterialTheme.typography.displaySmall,
+                    color = HeroText,
+                    textAlign = TextAlign.Center,
+                )
+                Text(
+                    text = name.title,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontStyle = FontStyle.Italic,
+                    color = HeroSubtext,
+                    textAlign = TextAlign.Center,
+                )
+                Spacer(Modifier.height(14.dp))
+                Text(
+                    text = name.meaning,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = HeroText,
+                    textAlign = TextAlign.Center,
+                    maxLines = 6,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Spacer(Modifier.height(20.dp))
+                Text(
+                    text = stringResource(R.string.share_card_footer).uppercase(),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = HeroSubtext,
+                    textAlign = TextAlign.Center,
+                )
+            }
         }
     }
 }

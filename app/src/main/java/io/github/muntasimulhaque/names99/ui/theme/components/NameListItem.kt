@@ -41,7 +41,7 @@ fun NameListItem(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 20.dp, vertical = 12.dp),
+                .padding(horizontal = 20.dp, vertical = 13.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             // A quiet folio number instead of a badge — typography, not chrome.
@@ -87,7 +87,7 @@ fun NameListItem(
             }
             ArabicText(
                 text = name.arabic,
-                fontSize = 22.sp,
+                fontSize = 21.sp,
                 color = MaterialTheme.colorScheme.primary,
             )
         }

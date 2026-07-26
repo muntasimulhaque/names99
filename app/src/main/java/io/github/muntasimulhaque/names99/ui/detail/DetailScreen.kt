@@ -22,18 +22,17 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -41,6 +40,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
@@ -54,8 +54,12 @@ import io.github.muntasimulhaque.names99.R
 import io.github.muntasimulhaque.names99.data.Name
 import io.github.muntasimulhaque.names99.ui.NamesViewModel
 import io.github.muntasimulhaque.names99.ui.share.ShareSheet
+import io.github.muntasimulhaque.names99.ui.theme.Motion
 import io.github.muntasimulhaque.names99.ui.theme.components.ArabicText
+import io.github.muntasimulhaque.names99.ui.theme.components.LearnedButton
 import io.github.muntasimulhaque.names99.ui.theme.components.MixedText
+import io.github.muntasimulhaque.names99.ui.theme.rememberHaptics
+import kotlin.math.absoluteValue
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -96,23 +100,35 @@ fun DetailScreen(
     }
     val pagerState = rememberPagerState(initialPage = startIndex) { names.size }
     val current = names[pagerState.currentPage]
+    val haptics = rememberHaptics()
+
+    // A featherweight tick as each page settles — like a bead slipping past.
+    LaunchedEffect(pagerState) {
+        var first = true
+        snapshotFlow { pagerState.currentPage }.collect {
+            if (first) first = false else haptics.tick()
+        }
+    }
 
     if (showShare) {
         ShareSheet(name = current, onDismiss = { showShare = false })
     }
 
-    // A single calm fade as the page settles in.
+    // A single calm fade as the screen settles in.
     var entered by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) { entered = true }
     val enterAlpha by animateFloatAsState(
         targetValue = if (entered) 1f else 0f,
-        animationSpec = tween(450),
+        animationSpec = tween(Motion.CALM),
         label = "detailEnter",
     )
 
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background,
+                ),
                 title = {
                     Text(
                         text = stringResource(R.string.detail_counter, current.number).uppercase(),
@@ -139,6 +155,10 @@ fun DetailScreen(
                 .padding(padding)
                 .graphicsLayer { alpha = enterAlpha },
         ) { page ->
+            // Pages dim slightly while in motion, then settle to full presence.
+            val pageOffset =
+                ((pagerState.currentPage - page) + pagerState.currentPageOffsetFraction)
+                    .absoluteValue.coerceIn(0f, 1f)
             NamePage(
                 name = names[page],
                 learned = names[page].number in learned,
@@ -150,12 +170,12 @@ fun DetailScreen(
                 page = page,
                 previousLabel = names.getOrNull(page - 1)?.transliteration,
                 nextLabel = names.getOrNull(page + 1)?.transliteration,
+                modifier = Modifier.graphicsLayer { alpha = 1f - pageOffset * 0.3f },
             )
         }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun BackButton(onBack: () -> Unit) {
     IconButton(onClick = onBack) {
@@ -175,13 +195,14 @@ private fun NamePage(
     page: Int,
     previousLabel: String?,
     nextLabel: String?,
+    modifier: Modifier = Modifier,
 ) {
     val scope = rememberCoroutineScope()
 
     // Single scrollable page: the controls scroll with the content, but a
     // weighted spacer pushes them to just above the system bar whenever the
     // content is shorter than the screen.
-    BoxWithConstraints(Modifier.fillMaxSize()) {
+    BoxWithConstraints(modifier.fillMaxSize()) {
         val minPageHeight = maxHeight
         Column(
             modifier = Modifier
@@ -194,14 +215,14 @@ private fun NamePage(
                 modifier = Modifier.defaultMinSize(minHeight = minPageHeight),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                Spacer(Modifier.height(36.dp))
+                Spacer(Modifier.height(30.dp))
                 ArabicText(
                     text = name.arabic,
-                    fontSize = 72.sp,
+                    fontSize = 64.sp,
                     color = MaterialTheme.colorScheme.primary,
                     textAlign = TextAlign.Center,
                 )
-                Spacer(Modifier.height(16.dp))
+                Spacer(Modifier.height(14.dp))
                 Text(
                     text = name.transliteration,
                     style = MaterialTheme.typography.displayLarge,
@@ -244,24 +265,9 @@ private fun NamePage(
                     }
                 }
                 Spacer(Modifier.weight(1f))
-                Spacer(Modifier.height(24.dp))
-                FilterChip(
-                    selected = learned,
-                    onClick = onToggleLearned,
-                    label = {
-                        Text(stringResource(if (learned) R.string.learned else R.string.mark_learned))
-                    },
-                    leadingIcon = if (learned) {
-                        {
-                            Icon(
-                                Icons.Filled.Check,
-                                contentDescription = null,
-                                modifier = Modifier.padding(start = 4.dp),
-                            )
-                        }
-                    } else null,
-                )
-                Spacer(Modifier.height(8.dp))
+                Spacer(Modifier.height(28.dp))
+                LearnedButton(learned = learned, onToggle = onToggleLearned)
+                Spacer(Modifier.height(10.dp))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,

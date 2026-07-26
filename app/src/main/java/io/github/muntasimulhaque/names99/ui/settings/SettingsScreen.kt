@@ -1,7 +1,6 @@
 package io.github.muntasimulhaque.names99.ui.settings
 
 import android.Manifest
-import android.app.TimePickerDialog
 import android.os.Build
 import android.text.format.DateFormat
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -14,12 +13,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -32,7 +32,10 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TimePicker
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -81,6 +84,9 @@ fun SettingsScreen(
     Scaffold(
         topBar = {
             TopAppBar(
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background,
+                ),
                 title = {
                     Text(
                         text = stringResource(R.string.settings),
@@ -207,16 +213,16 @@ fun SettingsScreen(
                     .padding(vertical = 12.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Icon(
-                    Icons.Filled.Info,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                Spacer(Modifier.padding(start = 12.dp))
                 Text(
                     text = stringResource(R.string.about),
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.weight(1f),
+                )
+                Icon(
+                    Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.secondary,
                 )
             }
             Text(
@@ -229,20 +235,32 @@ fun SettingsScreen(
     }
 
     if (showTimePicker) {
-        val is24Hour = DateFormat.is24HourFormat(context)
-        TimePickerDialog(
-            context,
-            { _, hour, minute ->
-                viewModel.setDailyTime(hour, minute)
-                showTimePicker = false
+        // Material 3 time picker, themed with the app — not the legacy dialog.
+        val timeState = rememberTimePickerState(
+            initialHour = dailyTime.first,
+            initialMinute = dailyTime.second,
+            is24Hour = DateFormat.is24HourFormat(context),
+        )
+        AlertDialog(
+            onDismissRequest = { showTimePicker = false },
+            title = { Text(stringResource(R.string.reminder_time)) },
+            text = {
+                TimePicker(state = timeState)
             },
-            dailyTime.first,
-            dailyTime.second,
-            is24Hour,
-        ).apply {
-            setOnCancelListener { showTimePicker = false }
-            show()
-        }
+            confirmButton = {
+                TextButton(onClick = {
+                    viewModel.setDailyTime(timeState.hour, timeState.minute)
+                    showTimePicker = false
+                }) {
+                    Text(stringResource(R.string.ok))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showTimePicker = false }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            },
+        )
     }
 
     if (showResetDialog) {
@@ -284,6 +302,7 @@ private fun SectionLabel(text: String) {
 private fun SettingsDivider() {
     HorizontalDivider(
         modifier = Modifier.padding(vertical = 14.dp),
+        thickness = 0.5.dp,
         color = MaterialTheme.colorScheme.outlineVariant,
     )
 }
@@ -307,7 +326,7 @@ private fun ThemeOption(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         RadioButton(selected = current == mode, onClick = null)
-        Spacer(Modifier.padding(start = 8.dp))
+        Spacer(Modifier.width(8.dp))
         Text(
             text = stringResource(labelRes),
             style = MaterialTheme.typography.bodyLarge,
@@ -319,7 +338,7 @@ private fun ThemeOption(
 private fun appVersion(context: android.content.Context): String =
     runCatching {
         context.packageManager.getPackageInfo(context.packageName, 0).versionName
-    }.getOrNull() ?: "1.0.0"
+    }.getOrNull() ?: "1.4"
 
 private fun formatTime(context: android.content.Context, hour: Int, minute: Int): String {
     val calendar = Calendar.getInstance().apply {

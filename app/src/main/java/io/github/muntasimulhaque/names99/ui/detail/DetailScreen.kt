@@ -2,7 +2,9 @@ package io.github.muntasimulhaque.names99.ui.detail
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -43,6 +45,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
@@ -204,10 +207,11 @@ private fun NamePage(
     // content is shorter than the screen.
     BoxWithConstraints(modifier.fillMaxSize()) {
         val minPageHeight = maxHeight
+        val scrollState = rememberScrollState()
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState())
+                .verticalScroll(scrollState)
                 .padding(horizontal = 28.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
@@ -218,14 +222,14 @@ private fun NamePage(
                 Spacer(Modifier.height(30.dp))
                 ArabicText(
                     text = name.arabic,
-                    fontSize = 64.sp,
+                    fontSize = 52.sp,
                     color = MaterialTheme.colorScheme.primary,
                     textAlign = TextAlign.Center,
                 )
                 Spacer(Modifier.height(14.dp))
                 Text(
                     text = name.transliteration,
-                    style = MaterialTheme.typography.displayLarge,
+                    style = MaterialTheme.typography.displayMedium,
                     color = MaterialTheme.colorScheme.onSurface,
                     textAlign = TextAlign.Center,
                 )
@@ -293,5 +297,27 @@ private fun NamePage(
                 Spacer(Modifier.height(16.dp))
             }
         }
+
+        // The page melts into the paper at the fold while more remains below —
+        // a quiet invitation to keep reading. Gone once the end is reached.
+        val fadeAlpha by animateFloatAsState(
+            targetValue = if (scrollState.canScrollForward) 1f else 0f,
+            animationSpec = tween(Motion.QUICK),
+            label = "edgeFade",
+        )
+        val paper = MaterialTheme.colorScheme.background
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
+                .height(64.dp)
+                .graphicsLayer { alpha = fadeAlpha }
+                .background(
+                    Brush.verticalGradient(
+                        0f to paper.copy(alpha = 0f),
+                        1f to paper,
+                    )
+                ),
+        )
     }
 }

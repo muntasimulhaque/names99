@@ -6,6 +6,8 @@ import android.graphics.Bitmap
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -39,7 +41,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.FileProvider
@@ -80,17 +81,25 @@ fun ShareSheet(name: Name, onDismiss: () -> Unit) {
                 style = MaterialTheme.typography.titleLarge,
             )
             Spacer(Modifier.height(16.dp))
-            // Everything inside this box is recorded into the graphics layer,
-            // so it can be exported as a bitmap while drawing normally on screen.
-            Box(
-                modifier = Modifier.drawWithContent {
-                    graphicsLayer.record {
-                        this@drawWithContent.drawContent()
-                    }
-                    drawLayer(graphicsLayer)
-                }
+            // The card grows to hold the complete meaning — never an ellipsis.
+            // Long cards scroll in this preview; the export is the full card.
+            Column(
+                modifier = Modifier
+                    .weight(1f, fill = false)
+                    .verticalScroll(rememberScrollState()),
             ) {
-                ShareCard(name = name, modifier = Modifier.fillMaxWidth())
+                // Everything inside this box is recorded into the graphics layer,
+                // so it can be exported as a bitmap while drawing normally on screen.
+                Box(
+                    modifier = Modifier.drawWithContent {
+                        graphicsLayer.record {
+                            this@drawWithContent.drawContent()
+                        }
+                        drawLayer(graphicsLayer)
+                    }
+                ) {
+                    ShareCard(name = name, modifier = Modifier.fillMaxWidth())
+                }
             }
             Spacer(Modifier.height(20.dp))
             Button(
@@ -168,11 +177,11 @@ private fun ShareCard(name: Name, modifier: Modifier = Modifier) {
                 Spacer(Modifier.height(14.dp))
                 Text(
                     text = name.meaning,
-                    style = MaterialTheme.typography.bodyMedium,
+                    // The whole meaning, always; very long ones step down a size.
+                    style = if (name.meaning.length > 450) MaterialTheme.typography.bodySmall
+                    else MaterialTheme.typography.bodyMedium,
                     color = HeroText,
                     textAlign = TextAlign.Center,
-                    maxLines = 6,
-                    overflow = TextOverflow.Ellipsis,
                 )
                 Spacer(Modifier.height(20.dp))
                 Text(

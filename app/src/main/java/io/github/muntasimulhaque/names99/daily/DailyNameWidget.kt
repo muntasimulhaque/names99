@@ -22,15 +22,14 @@ import androidx.glance.layout.Alignment
 import androidx.glance.layout.Column
 import androidx.glance.layout.fillMaxSize
 import androidx.glance.layout.padding
-import androidx.glance.color.ColorProvider
 import androidx.glance.text.FontFamily
 import androidx.glance.text.FontStyle
 import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextAlign
 import androidx.glance.text.TextStyle
+import androidx.glance.unit.ColorProvider
 import io.github.muntasimulhaque.names99.MainActivity
-import io.github.muntasimulhaque.names99.R
 import io.github.muntasimulhaque.names99.data.NamesRepository
 import io.github.muntasimulhaque.names99.util.DailyName
 
@@ -38,13 +37,24 @@ class DailyNameWidget : GlanceAppWidget() {
 
     companion object {
         // Responsive height buckets: show only as many lines as fit completely,
-        // so nothing is ever clipped at any widget size.
+        // sized so even the longest title (#39, 71 chars) never truncates.
         private val COMPACT = DpSize(110.dp, 40.dp) // Arabic only
         private val MEDIUM = DpSize(110.dp, 90.dp) // + transliteration
-        private val TALL = DpSize(110.dp, 140.dp) // + overline & meaning
+        private val TALL = DpSize(110.dp, 140.dp) // + title (wrapping)
+        private val XTALL = DpSize(110.dp, 180.dp) // everything, larger
+
+        /**
+         * The system serif (Noto Naskh) misplaces the marks of the vocalized
+         * الله over the lam-heh joint — the very bug that once forced stripping
+         * them app-wide. The app's bundled HAFS renders it correctly, but the
+         * widget and notification draw with system fonts, so they show the
+         * plain form for this one word.
+         */
+        fun systemFontSafeArabic(text: String): String =
+            text.replace("اللَّه", "الله")
     }
 
-    override val sizeMode: SizeMode = SizeMode.Responsive(setOf(COMPACT, MEDIUM, TALL))
+    override val sizeMode: SizeMode = SizeMode.Responsive(setOf(COMPACT, MEDIUM, TALL, XTALL))
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         val names = NamesRepository.load(context)
@@ -54,14 +64,24 @@ class DailyNameWidget : GlanceAppWidget() {
             val height = LocalSize.current.height
             val showTransliteration = height >= MEDIUM.height
             val showTitle = height >= TALL.height
+            val roomy = height >= XTALL.height
 
-            // Glance cannot load bundled fonts, so Arabic and Latin both fall
-            // back to the system serif — which matches the app's book-like feel.
+            // Glance cannot load bundled fonts, so Arabic and Latin fall back
+            // to the system serif — which matches the app's book-like feel.
             val serif = FontFamily("serif")
-            val background = ColorProvider(day = Color(0xFF1F4E42), night = Color(0xFF191611))
-            val gold = ColorProvider(day = Color(0xFFD4B45A), night = Color(0xFFD4B45A))
-            val textColor = ColorProvider(day = Color(0xFFF2EDE2), night = Color(0xFFEAE2D1))
-            val subtextColor = ColorProvider(day = Color(0xFFBFD5CB), night = Color(0xFFA79B86))
+            // One identity on every home screen: the emerald-and-gold of the
+            // hero and share cards, deliberately NOT day/night switched.
+            val background = ColorProvider(Color(0xFF1F4E42))
+            val gold = ColorProvider(Color(0xFFD4B45A))
+            val textColor = ColorProvider(Color(0xFFF2EDE2))
+            val subtextColor = ColorProvider(Color(0xFFBFD5CB))
+
+            val arabicSize = when {
+                roomy -> 38.sp
+                showTitle -> 32.sp
+                showTransliteration -> 30.sp
+                else -> 22.sp
+            }
 
             Column(
                 modifier = GlanceModifier
@@ -79,26 +99,12 @@ class DailyNameWidget : GlanceAppWidget() {
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                if (showTitle) {
-                    Text(
-                        text = context.getString(R.string.widget_label).uppercase(),
-                        maxLines = 1,
-                        style = TextStyle(
-                            color = gold,
-                            fontSize = 9.sp,
-                            fontWeight = FontWeight.Medium,
-                            fontFamily = serif,
-                            textAlign = TextAlign.Center
-                        ),
-                        modifier = GlanceModifier.padding(bottom = 6.dp)
-                    )
-                }
                 Text(
-                    text = name.arabic,
+                    text = systemFontSafeArabic(name.arabic),
                     maxLines = 1,
                     style = TextStyle(
                         color = gold,
-                        fontSize = if (showTransliteration) 26.sp else 22.sp,
+                        fontSize = arabicSize,
                         fontWeight = FontWeight.Medium,
                         fontFamily = serif,
                         textAlign = TextAlign.Center
@@ -110,7 +116,7 @@ class DailyNameWidget : GlanceAppWidget() {
                         maxLines = 1,
                         style = TextStyle(
                             color = textColor,
-                            fontSize = 15.sp,
+                            fontSize = if (roomy) 18.sp else 16.sp,
                             fontFamily = serif,
                             textAlign = TextAlign.Center
                         ),
@@ -120,15 +126,15 @@ class DailyNameWidget : GlanceAppWidget() {
                 if (showTitle) {
                     Text(
                         text = name.title,
-                        maxLines = 1,
+                        maxLines = 3,
                         style = TextStyle(
                             color = subtextColor,
-                            fontSize = 11.sp,
+                            fontSize = if (roomy) 14.sp else 12.sp,
                             fontStyle = FontStyle.Italic,
                             fontFamily = serif,
                             textAlign = TextAlign.Center
                         ),
-                        modifier = GlanceModifier.padding(top = 2.dp)
+                        modifier = GlanceModifier.padding(top = 4.dp)
                     )
                 }
             }

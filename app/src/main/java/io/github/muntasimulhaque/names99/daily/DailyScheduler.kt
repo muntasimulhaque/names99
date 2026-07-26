@@ -143,7 +143,8 @@ class NotificationWorker(context: Context, params: WorkerParameters) :
 
         val notification = NotificationCompat.Builder(context, DailyScheduler.CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_notification)
-            .setContentTitle("${name.arabic}  ${name.transliteration}")
+            // System-font surface: use the Noto-safe form of الله (see DailyNameWidget).
+            .setContentTitle("${DailyNameWidget.systemFontSafeArabic(name.arabic)}  ${name.transliteration}")
             .setContentText(name.title)
             .setStyle(
                 NotificationCompat.BigTextStyle()

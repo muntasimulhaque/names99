@@ -2,7 +2,7 @@
     <string name="app_name">99 Names of Allah</string>
     <string name="launcher_name">99 Names</string>
     <string name="widget_label">Name of the Day</string>
-    <string name="basmala" translatable="false">بِسْمِ اللهِ الرَّحْمَنِ الرَّحِيمِ</string>
+    <string name="basmala" translatable="false">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</string>
 
     <!-- Navigation -->
     <string name="nav_names">Names</string>

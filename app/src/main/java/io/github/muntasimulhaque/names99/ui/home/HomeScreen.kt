@@ -5,6 +5,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
@@ -50,6 +51,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -145,10 +147,7 @@ fun HomeScreen(
                         )
                         LaunchedEffect(Unit) { focusRequester.requestFocus() }
                     } else {
-                        Text(
-                            text = stringResource(R.string.launcher_name),
-                            style = MaterialTheme.typography.headlineSmall,
-                        )
+                        HomeTitle()
                     }
                 },
                 navigationIcon = {
@@ -217,6 +216,39 @@ fun HomeScreen(
                 )
             }
         }
+    }
+}
+
+/** Below this the title would be smaller than the list beneath it — a floor, never a target. */
+private val MinTitleSize = 14.sp
+
+/**
+ * The app's full name, set to fit the bar on one line.
+ *
+ * It must never ellipsize: "99 Names of A…" would cut Allah's name, which is
+ * the whole reason the launcher label is the short form. At the largest text
+ * sizes (the in-app slider at 1.4x on top of a large system font scale) the
+ * full name is wider than the bar, and the bar's height is fixed, so wrapping
+ * would clip it. It steps down in size until it fits instead. At ordinary
+ * sizes nothing moves — the name is less than half the bar's width.
+ */
+@Composable
+private fun HomeTitle() {
+    val text = stringResource(R.string.app_title)
+    val base = MaterialTheme.typography.headlineSmall
+    val measurer = rememberTextMeasurer()
+    BoxWithConstraints {
+        val available = constraints.maxWidth
+        val fitted = remember(text, base, available, measurer) {
+            var style = base
+            while (style.fontSize > MinTitleSize &&
+                measurer.measure(text = text, style = style, softWrap = false).size.width > available
+            ) {
+                style = style.copy(fontSize = style.fontSize * 0.95f)
+            }
+            style
+        }
+        Text(text = text, style = fitted, maxLines = 1, softWrap = false)
     }
 }
 

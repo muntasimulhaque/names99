@@ -210,7 +210,7 @@ private fun ShareCard(name: Name, modifier: Modifier = Modifier) {
                     }
                     Spacer(Modifier.width(9.dp))
                     Text(
-                        text = stringResource(R.string.share_card_footer).uppercase(),
+                        text = stringResource(R.string.app_title).uppercase(),
                         style = MaterialTheme.typography.labelMedium,
                         color = HeroSubtext,
                         textAlign = TextAlign.Center,

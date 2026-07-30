@@ -1,5 +1,11 @@
 <resources>
+    <!--
+      Two names, on purpose. The launcher gives an icon label very little room,
+      and a launcher's own truncation would cut Allah's name, so the icon says
+      "99 Names". Everywhere inside the app it calls itself by its full name.
+    -->
     <string name="launcher_name">99 Names</string>
+    <string name="app_title">99 Names of Allah</string>
     <string name="widget_label">Name of the Day</string>
     <string name="basmala" translatable="false">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</string>
 
@@ -27,7 +33,6 @@
     <string name="cd_share">Share this name</string>
     <string name="share_title">Share this name</string>
     <string name="share_image">Share image</string>
-    <string name="share_card_footer">99 Names of Allah</string>
 
     <!-- Memorize -->
     <string name="flashcards">Flashcards</string>

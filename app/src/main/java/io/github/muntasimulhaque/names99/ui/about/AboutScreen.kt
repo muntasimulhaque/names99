@@ -56,7 +56,7 @@ import kotlinx.coroutines.withContext
 private const val BLOG_URL = "https://muntasimulhaque.bearblog.dev/99-names/"
 private const val SOURCE_PDF_URL =
     "https://bear-images.sfo2.cdn.digitaloceanspaces.com/muntasimulhaque/ninety-nine-names-1_compressed.pdf"
-private const val REPO_URL = "https://github.com/muntasimulhaque/99-names-app"
+private const val REPO_URL = "https://github.com/muntasimulhaque/names99"
 
 /** A quote's source sits in a trailing parenthesis: "…paradise." (Muslim) */
 private val CITATION = Regex("\\s*\\(([^()]{1,40})\\)\\s*$")

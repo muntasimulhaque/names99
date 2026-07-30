@@ -47,6 +47,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextAlign
@@ -65,6 +66,11 @@ import io.github.muntasimulhaque.names99.ui.theme.components.ScreenLabel
 import io.github.muntasimulhaque.names99.ui.theme.rememberHaptics
 import kotlin.math.absoluteValue
 import kotlinx.coroutines.launch
+
+// The reading measure sits in from the page edges. The prev/next footer does
+// not — it belongs to the edges themselves, so it bleeds back out through this
+// inset (see NamePage).
+private val PageInset = 28.dp
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -213,7 +219,7 @@ private fun NamePage(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(scrollState)
-                .padding(horizontal = 28.dp),
+                .padding(horizontal = PageInset),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Column(
@@ -276,7 +282,26 @@ private fun NamePage(
                 LearnedButton(learned = learned, onToggle = onToggleLearned)
                 Spacer(Modifier.height(10.dp))
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
+                    // Widened back out through the page inset so the chevrons
+                    // land on the same vertical line as the back and share
+                    // icons in the top bar, instead of floating in toward the
+                    // middle of the page. Safe to overflow: the padding sits
+                    // inside the scroll container, so this only reaches the
+                    // viewport's own edge — nothing clips it.
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .layout { measurable, constraints ->
+                            val bleed = PageInset.roundToPx()
+                            val placeable = measurable.measure(
+                                constraints.copy(
+                                    minWidth = constraints.minWidth + bleed * 2,
+                                    maxWidth = constraints.maxWidth + bleed * 2,
+                                )
+                            )
+                            layout(constraints.maxWidth, placeable.height) {
+                                placeable.place(-bleed, 0)
+                            }
+                        },
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically,
                 ) {

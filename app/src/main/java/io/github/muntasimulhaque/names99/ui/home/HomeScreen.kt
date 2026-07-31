@@ -219,12 +219,17 @@ fun HomeScreen(
 /**
  * The app's full name, set to fit the bar on one line.
  *
- * It must never ellipsize: "99 Names of A…" would cut Allah's name, which is
- * the whole reason the launcher label is the short form. At the largest text
- * sizes (the in-app slider at 1.4x on top of a large system font scale) the
- * full name is wider than the bar, and the bar's height is fixed, so wrapping
- * would clip it. At ordinary sizes nothing moves — the name is less than half
- * the bar's width.
+ * It must never ellipsize: "The 99 Names of A…" would cut Allah's name, which
+ * is the whole reason the launcher label is the short form instead. The bar's
+ * height is fixed, so wrapping would clip it too — it shrinks to fit.
+ *
+ * Material measures a top bar's title with the width left over after the
+ * navigation icon and the actions, so the search button on the right is
+ * already accounted for. The floor is 0.40 rather than the usual 0.55 because
+ * the worst case is real: "The 99 Names of Allah" is 10.379 em, so on a 320dp
+ * screen with the in-app slider at 1.4x on top of a 2.0 system font scale it
+ * needs 552dp of the 268dp available — a scale of 0.485. At ordinary sizes
+ * nothing moves; the name is 197dp of 341dp on a Pixel 4.
  */
 @Composable
 private fun HomeTitle() {
@@ -232,6 +237,7 @@ private fun HomeTitle() {
         text = stringResource(R.string.app_title),
         style = MaterialTheme.typography.headlineSmall,
         color = MaterialTheme.colorScheme.onSurface,
+        minScale = 0.40f,
     )
 }
 
@@ -278,11 +284,16 @@ private fun DailyHeroCard(name: Name, onClick: () -> Unit) {
                 textAlign = TextAlign.Center,
             )
             Spacer(Modifier.height(6.dp))
-            Text(
+            // The name is a proper noun and gets set whole. Left to wrap, a
+            // long one at a large font scale breaks mid-word — "Al-Wa / asi'"
+            // — which is the one thing the app is careful never to do.
+            FitText(
                 text = name.transliteration,
-                style = MaterialTheme.typography.displaySmall,
+                style = MaterialTheme.typography.displaySmall.copy(
+                    textAlign = TextAlign.Center,
+                ),
                 color = HeroText,
-                textAlign = TextAlign.Center,
+                minScale = 0.45f,
             )
             Spacer(Modifier.height(2.dp))
             Text(

@@ -76,15 +76,15 @@ class SearchFilterTest {
         val vowels = listOf(
             Name(25, "الْقَيُّوم", "Al-Qayyoom", "The Sustainer", "The one who sustains all."),
             Name(47, "الْغَفُور", "Al-Ghafoor", "The Oft-Forgiving", "The one who forgives extensively."),
-            Name(94, "الْمُقَدِّم", "Al-Moqaddim", "The Expediter", "The one who brings forward."),
+            Name(52, "الْقُدُّوس", "Al-Quddoos", "The Most Pure", "The one free of every fault."),
             Name(77, "الْوَلِيّ", "Al-Walee", "The Protector", "The one who protects."),
         )
         assertEquals(listOf(vowels[0]), SearchFilter.filter(vowels, "qayyum"))
         assertEquals(listOf(vowels[1]), SearchFilter.filter(vowels, "ghafur"))
-        assertEquals(listOf(vowels[2]), SearchFilter.filter(vowels, "muqaddim"))
+        assertEquals(listOf(vowels[2]), SearchFilter.filter(vowels, "quddus"))
         assertEquals(listOf(vowels[3]), SearchFilter.filter(vowels, "wali"))
         // The spellings the app itself uses must keep working.
         assertEquals(listOf(vowels[0]), SearchFilter.filter(vowels, "qayyoom"))
-        assertEquals(listOf(vowels[2]), SearchFilter.filter(vowels, "moqaddim"))
+        assertEquals(listOf(vowels[2]), SearchFilter.filter(vowels, "quddoos"))
     }
 }

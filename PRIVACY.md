@@ -1,4 +1,4 @@
-# Privacy Policy — 99 Names of Allah
+# Privacy Policy — The 99 Names of Allah
 
 Effective date: 31 July 2026
 

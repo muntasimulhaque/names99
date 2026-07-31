@@ -13,8 +13,8 @@ android {
         applicationId = "io.github.muntasimulhaque.names99"
         minSdk = 24
         targetSdk = 36
-        versionCode = 17
-        versionName = "2.6"
+        versionCode = 18
+        versionName = "2.7"
     }
 
     buildTypes {

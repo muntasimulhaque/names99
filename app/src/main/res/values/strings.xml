@@ -2,10 +2,12 @@
     <!--
       Two names, on purpose. The launcher gives an icon label very little room,
       and a launcher's own truncation would cut Allah's name, so the icon says
-      "99 Names". Everywhere inside the app it calls itself by its full name.
+      "99 Names". Everywhere the app has room to say its whole name — the home
+      screen, the share card, the Play listing — it says "The 99 Names of
+      Allah". Do not merge these two.
     -->
     <string name="launcher_name">99 Names</string>
-    <string name="app_title">99 Names of Allah</string>
+    <string name="app_title">The 99 Names of Allah</string>
     <string name="widget_label">Name of the Day</string>
     <!-- The line under the widget's name in the picker; saying "Name of the Day"
          twice told the reader nothing about what they were about to place. -->

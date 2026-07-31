@@ -83,9 +83,6 @@ fun BackButton(onBack: () -> Unit) {
     }
 }
 
-/** Below this a label would be smaller than it started — a floor, never a target. */
-private const val MIN_FIT_SCALE = 0.55f
-
 /**
  * Text set to fit the width it is given, stepping its size down instead of
  * wrapping or ellipsizing.
@@ -96,6 +93,10 @@ private const val MIN_FIT_SCALE = 0.55f
  * "MEM…" / "SETTI…". Shrinking still leaves them far larger than the default —
  * it only caps growth at what the space can hold. Measured up front, so there
  * is no first-frame flicker the way a layout-feedback loop would have.
+ *
+ * [minScale] is a floor, never a target; it exists only so a pathological
+ * constraint cannot loop forever. Set it low enough that the text always wins:
+ * a caller that would rather be small than cut should say so.
  */
 @Composable
 fun FitText(
@@ -103,12 +104,13 @@ fun FitText(
     style: TextStyle,
     color: Color,
     modifier: Modifier = Modifier,
+    minScale: Float = 0.55f,
 ) {
     val measurer = rememberTextMeasurer()
     BoxWithConstraints(modifier) {
         val available = constraints.maxWidth
-        val fitted = remember(text, style, available, measurer) {
-            val floor = style.fontSize * MIN_FIT_SCALE
+        val fitted = remember(text, style, available, measurer, minScale) {
+            val floor = style.fontSize * minScale
             var candidate = style
             while (candidate.fontSize > floor &&
                 measurer.measure(text, candidate, softWrap = false).size.width > available

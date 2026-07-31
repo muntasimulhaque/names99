@@ -14,8 +14,8 @@ object SearchFilter {
      *
      * So "rahman", "ar rahman" and "a'laa" all find "Ar-Rahmaan", and — because
      * the same long vowel is written "oo"/"u" and "ee"/"i" by different sources
-     * — "Muqaddim" finds "Al-Moqaddim", "Qayyum" finds "Al-Qayyoom", "Ghafur"
-     * finds "Al-Ghafoor" and "Wali" finds "Al-Walee". Readers arrive knowing
+     * — "Qayyum" finds "Al-Qayyoom", "Ghafur" finds "Al-Ghafoor", "Quddus"
+     * finds "Al-Quddoos" and "Wali" finds "Al-Walee". Readers arrive knowing
      * these names from elsewhere; they should not have to guess our spelling.
      */
     private fun latinKey(s: String): String {

@@ -1,4 +1,4 @@
-# 99 Names of Allah
+# The 99 Names of Allah
 
 A free, open-source, native Android app for reading and memorizing Al-Asma ul-Husna — the 99 Names of Allah — with Arabic, transliteration, and meanings.
 
@@ -56,6 +56,12 @@ Single-module Kotlin app. Jetpack Compose + Material 3 with a small design syste
 Uthaymeen (Rahimahullah) as presented in the book named above. It is included
 here for the benefit of anyone seeking to learn the names, with attribution
 intact — the MIT grant covers the software around it, not that text.
+
+One deliberate departure: the source's transliteration is inconsistent with
+itself in eight places — a doubled consonant left single, a long vowel written
+short — and those eight have been regularised to the convention the source
+follows everywhere else (#28, #32, #44, #48, #80, #87, #94, #95). Nothing else
+in the text has been altered.
 
 **Bundled fonts** are under their own terms: Spectral under the SIL Open Font
 License, and KFGQPC Uthmanic Script HAFS distributed free by the King Fahd

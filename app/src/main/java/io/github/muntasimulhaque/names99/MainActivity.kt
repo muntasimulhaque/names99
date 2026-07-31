@@ -290,7 +290,11 @@ private fun QuietBottomBar(navController: NavHostController, currentRoute: Strin
                         // in-app reading scale can't clip it. System font
                         // scaling does still apply, and at 2.0 "MEMORIZE"
                         // needs 135dp of a 116dp tab — so it fits itself
-                        // rather than ellipsizing to "MEM…".
+                        // rather than ellipsizing to "MEM…". The floor is low
+                        // because a tab is only a third of the screen: on a
+                        // 320dp phone at 2.8x it takes 0.54 to fit, and at the
+                        // floor the label overflows into its neighbour rather
+                        // than stopping politely.
                         FitText(
                             text = stringResource(item.labelRes).uppercase(),
                             style = MaterialTheme.typography.labelSmall.copy(
@@ -299,6 +303,7 @@ private fun QuietBottomBar(navController: NavHostController, currentRoute: Strin
                             ),
                             color = tint,
                             modifier = Modifier.padding(horizontal = 2.dp),
+                            minScale = 0.40f,
                         )
                     }
                 }

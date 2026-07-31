@@ -25,8 +25,8 @@ Based on the lecture of Sheikh Ibn Uthaymeen (Rahimahullah), as presented in *"T
 Please say so — it is far more use as an issue than as a review. Open a
 [content correction](https://github.com/muntasimulhaque/names99/issues/new?template=content-correction.yml)
 with the name's number (the figure to its left in the list), what the app
-shows, and what it should say. There is a "Report a correction" link at the
-foot of every name page that fills most of that in for you.
+shows, and what it should say. From inside the app, About → Send feedback
+opens an email instead.
 
 Transliteration in particular has no single correct convention, and this app
 follows its source rather than standardising it — so if a spelling looks wrong

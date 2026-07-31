@@ -37,10 +37,6 @@
     <string name="learned">Learned</string>
     <string name="mark_learned">Mark as learned</string>
     <string name="note_label">Note</string>
-    <string name="report_correction">Report a correction</string>
-    <string name="contact_email" translatable="false">muntasim.haque@gmail.com</string>
-    <string name="report_correction_subject">Correction: name %1$d, %2$s</string>
-    <string name="report_correction_body">Name %1$d — %2$s (%3$s)\n\nWhat the app shows:\n\nWhat it should say:\n\nWhat I am going by:\n</string>
 
     <!-- Share -->
     <string name="cd_share">Share this name</string>
@@ -120,6 +116,12 @@
     <string name="about_attribution">Based on the lecture of Sheikh Ibn Uthaymeen (Rahimahullah), as presented in “The Ninety Nine Names of Allah: A Memorisation Tool with Transliteration and Meanings”.</string>
     <string name="about_source_label">Source</string>
     <string name="about_typefaces_label">Typefaces</string>
+    <string name="about_contact_label">Contact</string>
+    <string name="send_feedback">Send feedback</string>
+    <string name="contact_email" translatable="false">muntasim.haque@gmail.com</string>
+    <!-- %1$s is the app's name, %2$s its version — so a report about something
+         broken says which build it was. -->
+    <string name="feedback_subject">%1$s %2$s — feedback</string>
     <string name="source_pdf">Source document (PDF)</string>
     <string name="read_blog">Read on the blog</string>
     <string name="source_code">Source code on GitHub</string>

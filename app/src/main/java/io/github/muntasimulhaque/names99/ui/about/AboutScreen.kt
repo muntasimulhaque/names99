@@ -37,6 +37,7 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import io.github.muntasimulhaque.names99.BuildConfig
 import io.github.muntasimulhaque.names99.R
 import io.github.muntasimulhaque.names99.ui.theme.Motion
 import io.github.muntasimulhaque.names99.ui.theme.components.ArabicText
@@ -250,6 +251,18 @@ private fun Colophon(context: Context) {
         textAlign = TextAlign.Start,
         modifier = Modifier.fillMaxWidth(),
     )
+    // Its own section, not a fourth source link: a way to reach the developer
+    // is neither a source nor a typeface. It lives here, at the foot of the
+    // one page a reader visits on purpose, rather than in the reading flow of
+    // all 99 name pages — where it interrupted the meaning to offer something
+    // almost nobody needs.
+    Spacer(Modifier.height(34.dp))
+    SectionLabel(stringResource(R.string.about_contact_label), Modifier.fillMaxWidth())
+    Spacer(Modifier.height(14.dp))
+    PageRule(Modifier.fillMaxWidth())
+    LinkRow(R.string.send_feedback) { context.sendFeedback() }
+    PageRule(Modifier.fillMaxWidth())
+
     Spacer(Modifier.height(32.dp))
     Text(
         text = stringResource(R.string.foss_line),
@@ -271,4 +284,28 @@ private fun LinkRow(labelRes: Int, onClick: () -> Unit) {
 
 private fun Context.openUrl(url: String) {
     runCatching { startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) }
+}
+
+/**
+ * Hands off to whatever the reader writes mail with. ACTION_SENDTO on a
+ * mailto: URI, exactly like the links above open a browser — the app itself
+ * still has no way to reach the network.
+ *
+ * The subject carries the version so that a report about something broken is
+ * answerable. Nothing else is filled in: no device details, nothing gathered
+ * on the reader's behalf.
+ */
+private fun Context.sendFeedback() {
+    val to = getString(R.string.contact_email)
+    val subject = getString(
+        R.string.feedback_subject,
+        getString(R.string.app_title),
+        BuildConfig.VERSION_NAME,
+    )
+    runCatching {
+        startActivity(
+            Intent(Intent.ACTION_SENDTO, Uri.parse("mailto:$to"))
+                .putExtra(Intent.EXTRA_SUBJECT, subject)
+        )
+    }
 }

@@ -7,6 +7,13 @@
     <string name="launcher_name">99 Names</string>
     <string name="app_title">99 Names of Allah</string>
     <string name="widget_label">Name of the Day</string>
+    <!-- The line under the widget's name in the picker; saying "Name of the Day"
+         twice told the reader nothing about what they were about to place. -->
+    <string name="widget_description">The day\'s name of Allah, on your home screen</string>
+    <!-- Sample content for the widget picker's preview only. -->
+    <string name="widget_preview_arabic" translatable="false">الرحمن</string>
+    <string name="widget_preview_name" translatable="false">Ar-Rahmaan</string>
+    <string name="widget_preview_title">The Extremely Merciful</string>
     <string name="basmala" translatable="false">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</string>
 
     <!-- Navigation -->
@@ -28,6 +35,10 @@
     <string name="learned">Learned</string>
     <string name="mark_learned">Mark as learned</string>
     <string name="note_label">Note</string>
+    <string name="report_correction">Report a correction</string>
+    <string name="contact_email" translatable="false">muntasim.haque@gmail.com</string>
+    <string name="report_correction_subject">Correction: name %1$d, %2$s</string>
+    <string name="report_correction_body">Name %1$d — %2$s (%3$s)\n\nWhat the app shows:\n\nWhat it should say:\n\nWhat I am going by:\n</string>
 
     <!-- Share -->
     <string name="cd_share">Share this name</string>
@@ -71,6 +82,7 @@
 
     <!-- Search -->
     <string name="no_results">No names match your search.</string>
+    <string name="names_unavailable">The names could not be loaded. Reinstalling the app should put this right.</string>
 
     <!-- Daily name -->
     <string name="daily_notification_channel">Name of the Day</string>
@@ -89,6 +101,9 @@
     <string name="daily_section">Daily name</string>
     <string name="daily_reminder">Daily name notification</string>
     <string name="reminder_time">Notification time</string>
+    <string name="notifications_blocked_title">Notifications are turned off</string>
+    <string name="notifications_blocked_body">Android is blocking notifications for this app, so the daily name cannot appear. You can turn them back on in your phone\'s settings.</string>
+    <string name="open_settings">Open settings</string>
     <string name="memorization_section">Memorization</string>
     <string name="reset_progress">Reset memorization progress</string>
     <string name="reset_dialog_text">This clears all names marked as learned and your best quiz score. It cannot be undone.</string>

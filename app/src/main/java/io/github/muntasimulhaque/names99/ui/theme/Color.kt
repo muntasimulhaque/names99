@@ -15,13 +15,31 @@ val LightColors = lightColorScheme(
     onSecondary = Color(0xFFFFFFFF),
     secondaryContainer = Color(0xFFF3E7C3),
     onSecondaryContainer = Color(0xFF3D2F05),
+    // Tertiary is the gold again. Material components that reach for it — the
+    // time picker's AM/PM selector is the only one here — would otherwise draw
+    // baseline lilac-pink in the middle of an emerald and gold palette.
+    tertiary = Color(0xFF8C6A1B),
+    onTertiary = Color(0xFFFFFFFF),
+    tertiaryContainer = Color(0xFFF3E7C3),
+    onTertiaryContainer = Color(0xFF3D2F05),
+    // A warm brick, not Material's fire-engine #B3261E: this red sits on paper
+    // and has to live directly beneath the emerald "correct" fill in the quiz.
+    // 7.48:1 on the page, and #4A1710 on the container is 11.40:1.
+    error = Color(0xFF8E2F24),
+    onError = Color(0xFFFFFFFF),
+    errorContainer = Color(0xFFF5DDD6),
+    onErrorContainer = Color(0xFF4A1710),
     background = Color(0xFFFAF5EA),
     onBackground = Color(0xFF211C12),
     surface = Color(0xFFFFFCF4),
     onSurface = Color(0xFF211C12),
     surfaceVariant = Color(0xFFEFE7D6),
     onSurfaceVariant = Color(0xFF6B6353),
-    outline = Color(0xFFB5AB97),
+    // Component boundaries, not hairlines: this draws the unmarked "Mark as
+    // learned" pill and the unanswered quiz options. At the old #B5AB97 it was
+    // 2.09:1 and failed WCAG 1.4.11's 3:1; now 3.54:1 on the page and 3.21:1
+    // in a dialog. outlineVariant below is decorative rules only, so it stays.
+    outline = Color(0xFF8A8170),
     outlineVariant = Color(0xFFD8CFBB),
     surfaceContainerLowest = Color(0xFFFFFFFF),
     surfaceContainerLow = Color(0xFFFDF8EE),
@@ -39,6 +57,14 @@ val DarkColors = darkColorScheme(
     onSecondary = Color(0xFF3A2E07),
     secondaryContainer = Color(0xFF54431B),
     onSecondaryContainer = Color(0xFFF4E8C4),
+    tertiary = Color(0xFFD8BC6A),
+    onTertiary = Color(0xFF3A2E07),
+    tertiaryContainer = Color(0xFF54431B),
+    onTertiaryContainer = Color(0xFFF4E8C4),
+    error = Color(0xFFE9A99A),
+    onError = Color(0xFF5C1A10),
+    errorContainer = Color(0xFF5C2419),
+    onErrorContainer = Color(0xFFF7D8CF),
     background = Color(0xFF14120D),
     onBackground = Color(0xFFEAE2D1),
     surface = Color(0xFF1B1913),

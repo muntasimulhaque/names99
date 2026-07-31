@@ -1,0 +1,63 @@
+name: Correction to a name
+description: Report a mistake in an Arabic spelling, transliteration, meaning or note.
+title: "Correction: name #"
+labels: ["content"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for taking the trouble. The app's content is reproduced from
+        the lecture of Sheikh Ibn Uthaymeen (Rahimahullah), as presented in
+        *The Ninety Nine Names of Allah: A Memorisation Tool with
+        Transliteration and Meanings* — so a correction is either a mistake we
+        introduced, or a place where the source itself is worth a note.
+
+  - type: input
+    id: number
+    attributes:
+      label: Which name?
+      description: The number shown to the left of the name in the list, 1–99.
+      placeholder: "32"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: field
+    attributes:
+      label: What is wrong?
+      options:
+        - Arabic spelling or vowel marks
+        - Transliteration
+        - Meaning (the short epithet)
+        - Meaning (the full explanation)
+        - Note
+        - Something else
+    validations:
+      required: true
+
+  - type: textarea
+    id: shown
+    attributes:
+      label: What the app shows
+      placeholder: "Ar-Razaaq"
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What it should say
+      placeholder: "Ar-Razzaaq"
+    validations:
+      required: true
+
+  - type: textarea
+    id: source
+    attributes:
+      label: What are you going by?
+      description: >
+        A page of the source book, another work, or the reasoning itself
+        (for example, which letter carries the shadda). This matters most
+        for transliteration, where conventions differ legitimately.
+    validations:
+      required: false

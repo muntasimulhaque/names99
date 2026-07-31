@@ -14,7 +14,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -27,6 +26,7 @@ import io.github.muntasimulhaque.names99.ui.NamesViewModel
 import io.github.muntasimulhaque.names99.ui.theme.components.HairlineProgress
 import io.github.muntasimulhaque.names99.ui.theme.components.NavRow
 import io.github.muntasimulhaque.names99.ui.theme.components.PageRule
+import io.github.muntasimulhaque.names99.ui.theme.components.paperTopBarColors
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -42,9 +42,7 @@ fun MemorizeScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background,
-                ),
+                colors = paperTopBarColors(),
                 title = {
                     Text(
                         text = stringResource(R.string.memorize),

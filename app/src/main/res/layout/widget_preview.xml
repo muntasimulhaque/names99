@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  What the widget picker shows before the widget is placed. Without it the
+  picker falls back to the launcher icon, which tells the reader nothing.
+
+  A still life, not the widget itself: Glance renders the real thing, and this
+  only has to look like it. The Arabic is unvocalized on purpose — like the
+  widget, this is set in the system serif, whose mark placement on اللَّه is
+  wrong, which is why the app's own screens use the bundled Mushaf face.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/widget_preview_background"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:paddingHorizontal="14dp"
+    android:paddingVertical="10dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="serif"
+        android:text="@string/widget_preview_arabic"
+        android:textColor="#D4B45A"
+        android:textSize="30sp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:fontFamily="serif"
+        android:text="@string/widget_preview_name"
+        android:textColor="#F2EDE2"
+        android:textSize="16sp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:fontFamily="serif"
+        android:text="@string/widget_preview_title"
+        android:textColor="#BFD5CB"
+        android:textSize="12sp"
+        android:textStyle="italic" />
+</LinearLayout>

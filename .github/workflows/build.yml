@@ -2,8 +2,14 @@ name: Build APK
 
 on:
   push:
-    branches: [main, master]
+    branches: [main]
+  pull_request:
+    branches: [main]
   workflow_dispatch:
+
+# Nothing here writes to the repository.
+permissions:
+  contents: read
 
 jobs:
   build:
@@ -29,8 +35,17 @@ jobs:
       - name: Build debug APK
         run: gradle assembleDebug
 
+      # The only build that ever reaches Google Play is minified and
+      # resource-shrunk. Building it here means R8 is exercised on every
+      # change, instead of for the first time on the day of a release.
+      - name: Build release (minified, unsigned)
+        run: gradle assembleRelease
+
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: 99-names-debug-apk
           path: app/build/outputs/apk/debug/app-debug.apk
+          # This is a debuggable build on a public repository. Recent ones are
+          # there for device testing; older ones needn't linger for 90 days.
+          retention-days: 7

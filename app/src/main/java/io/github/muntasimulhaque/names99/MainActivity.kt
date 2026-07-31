@@ -32,7 +32,6 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -43,7 +42,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
@@ -70,6 +68,7 @@ import io.github.muntasimulhaque.names99.ui.memorize.QuizScreen
 import io.github.muntasimulhaque.names99.ui.settings.SettingsScreen
 import io.github.muntasimulhaque.names99.ui.theme.Motion
 import io.github.muntasimulhaque.names99.ui.theme.Names99Theme
+import io.github.muntasimulhaque.names99.ui.theme.components.FitText
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
@@ -287,18 +286,18 @@ private fun QuietBottomBar(navController: NavHostController, currentRoute: Strin
                             modifier = Modifier.size(22.dp),
                         )
                         Spacer(Modifier.height(4.dp))
-                        // Chrome, not reading matter: the bar keeps its own
-                        // size so a large reading scale can't clip the labels
-                        // mid-word. System font scaling still applies.
-                        Text(
+                        // Chrome, not reading matter: fixed at 10sp so the
+                        // in-app reading scale can't clip it. System font
+                        // scaling does still apply, and at 2.0 "MEMORIZE"
+                        // needs 135dp of a 116dp tab — so it fits itself
+                        // rather than ellipsizing to "MEM…".
+                        FitText(
                             text = stringResource(item.labelRes).uppercase(),
                             style = MaterialTheme.typography.labelSmall.copy(
                                 fontSize = 10.sp,
                                 letterSpacing = 1.2.sp,
                             ),
                             color = tint,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
                             modifier = Modifier.padding(horizontal = 2.dp),
                         )
                     }

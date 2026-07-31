@@ -1,8 +1,11 @@
 package io.github.muntasimulhaque.names99.ui.detail
 
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -13,6 +16,7 @@ import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.pager.HorizontalPager
@@ -21,7 +25,6 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Share
@@ -45,6 +48,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.layout
@@ -60,6 +65,7 @@ import io.github.muntasimulhaque.names99.ui.NamesViewModel
 import io.github.muntasimulhaque.names99.ui.share.ShareSheet
 import io.github.muntasimulhaque.names99.ui.theme.Motion
 import io.github.muntasimulhaque.names99.ui.theme.components.ArabicText
+import io.github.muntasimulhaque.names99.ui.theme.components.BackButton
 import io.github.muntasimulhaque.names99.ui.theme.components.LearnedButton
 import io.github.muntasimulhaque.names99.ui.theme.components.MixedText
 import io.github.muntasimulhaque.names99.ui.theme.components.ScreenLabel
@@ -186,12 +192,38 @@ fun DetailScreen(
     }
 }
 
+/**
+ * A quiet way for a reader to say "this is wrong".
+ *
+ * The app puts religious text in front of people under one person's name;
+ * disagreements about a transliteration or a meaning are certain, and they are
+ * worth immeasurably more as a message than as a one-star review. A mailto:
+ * hand-off, so it needs no network permission of its own — the same way the
+ * About screen's links work.
+ */
 @Composable
-private fun BackButton(onBack: () -> Unit) {
-    IconButton(onClick = onBack) {
-        Icon(
-            Icons.AutoMirrored.Filled.ArrowBack,
-            contentDescription = stringResource(R.string.cd_back),
+private fun CorrectionLink(name: Name) {
+    val context = LocalContext.current
+    val email = stringResource(R.string.contact_email)
+    val subject = stringResource(R.string.report_correction_subject, name.number, name.transliteration)
+    val body = stringResource(R.string.report_correction_body, name.number, name.transliteration, name.title)
+    Box(
+        modifier = Modifier
+            .clip(MaterialTheme.shapes.small)
+            .clickable {
+                val compose = Intent(Intent.ACTION_SENDTO, Uri.parse("mailto:$email"))
+                    .putExtra(Intent.EXTRA_SUBJECT, subject)
+                    .putExtra(Intent.EXTRA_TEXT, body)
+                runCatching { context.startActivity(compose) }
+            }
+            .heightIn(min = 48.dp)
+            .padding(horizontal = 12.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            text = stringResource(R.string.report_correction),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
 }
@@ -277,6 +309,8 @@ private fun NamePage(
                         )
                     }
                 }
+                Spacer(Modifier.height(30.dp))
+                CorrectionLink(name)
                 Spacer(Modifier.weight(1f))
                 Spacer(Modifier.height(28.dp))
                 LearnedButton(learned = learned, onToggle = onToggleLearned)

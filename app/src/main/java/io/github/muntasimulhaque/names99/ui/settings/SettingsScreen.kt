@@ -1,7 +1,11 @@
 package io.github.muntasimulhaque.names99.ui.settings
 
 import android.Manifest
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
+import android.provider.Settings
 import android.text.format.DateFormat
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -43,7 +47,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TimePicker
 import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -65,7 +68,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import io.github.muntasimulhaque.names99.BuildConfig
 import io.github.muntasimulhaque.names99.R
 import io.github.muntasimulhaque.names99.data.ThemeMode
 import io.github.muntasimulhaque.names99.ui.NamesViewModel
@@ -73,6 +79,7 @@ import io.github.muntasimulhaque.names99.ui.theme.Motion
 import io.github.muntasimulhaque.names99.ui.theme.components.MixedText
 import io.github.muntasimulhaque.names99.ui.theme.components.NavRow
 import io.github.muntasimulhaque.names99.ui.theme.components.PageRule
+import io.github.muntasimulhaque.names99.ui.theme.components.paperTopBarColors
 import io.github.muntasimulhaque.names99.ui.theme.components.SectionLabel
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -97,19 +104,29 @@ fun SettingsScreen(
     var sliderValue by remember(textScale) { mutableFloatStateOf(textScale) }
     var showTimePicker by rememberSaveable { mutableStateOf(false) }
     var showResetDialog by rememberSaveable { mutableStateOf(false) }
+    var showBlockedDialog by rememberSaveable { mutableStateOf(false) }
 
     val notificationPermission = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { granted ->
-        if (granted) viewModel.setDailyEnabled(true)
+        // Say something on denial. Android stops showing the system dialog
+        // after the second refusal, so without this the switch would simply do
+        // nothing, for ever, with no way for the reader to find out why.
+        if (granted) viewModel.setDailyEnabled(true) else showBlockedDialog = true
+    }
+
+    // The permission can also be withdrawn in system settings long after it was
+    // granted, which would leave this screen saying the reminder is on while
+    // nothing is ever posted.
+    LifecycleResumeEffect(dailyEnabled) {
+        if (dailyEnabled && !notificationsAllowed(context)) viewModel.setDailyEnabled(false)
+        onPauseOrDispose {}
     }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background,
-                ),
+                colors = paperTopBarColors(),
                 title = {
                     Text(
                         text = stringResource(R.string.settings),
@@ -237,7 +254,9 @@ fun SettingsScreen(
             )
             PageRule()
             Spacer(Modifier.height(22.dp))
-            SectionLabel(stringResource(R.string.version, appVersion(context)))
+            // Compile-time constant: no PackageManager call, and no fallback
+            // string to go stale one release after somebody forgets it.
+            SectionLabel(stringResource(R.string.version, BuildConfig.VERSION_NAME))
             Spacer(Modifier.height(28.dp))
         }
     }
@@ -294,6 +313,46 @@ fun SettingsScreen(
             },
         )
     }
+
+    if (showBlockedDialog) {
+        AlertDialog(
+            onDismissRequest = { showBlockedDialog = false },
+            title = { Text(stringResource(R.string.notifications_blocked_title)) },
+            text = { Text(stringResource(R.string.notifications_blocked_body)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    showBlockedDialog = false
+                    openNotificationSettings(context)
+                }) {
+                    Text(stringResource(R.string.open_settings))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showBlockedDialog = false }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            },
+        )
+    }
+}
+
+/** Whether Android will actually let the daily name be posted. */
+private fun notificationsAllowed(context: android.content.Context): Boolean =
+    Build.VERSION.SDK_INT < 33 ||
+        ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) ==
+        PackageManager.PERMISSION_GRANTED
+
+/** Takes the reader to the one place a blocked permission can be granted again. */
+private fun openNotificationSettings(context: android.content.Context) {
+    val toNotifications = Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS)
+        .putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
+    val toAppDetails = Intent(
+        Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+        Uri.fromParts("package", context.packageName, null),
+    )
+    // Both are hand-offs to the system; a device with neither should not crash.
+    runCatching { context.startActivity(toNotifications) }
+        .onFailure { runCatching { context.startActivity(toAppDetails) } }
 }
 
 /**
@@ -406,11 +465,6 @@ private fun HairlineSlider(
         },
     )
 }
-
-private fun appVersion(context: android.content.Context): String =
-    runCatching {
-        context.packageManager.getPackageInfo(context.packageName, 0).versionName
-    }.getOrNull() ?: "2.3"
 
 private fun formatTime(context: android.content.Context, hour: Int, minute: Int): String {
     val calendar = Calendar.getInstance().apply {

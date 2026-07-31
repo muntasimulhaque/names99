@@ -57,15 +57,23 @@ object DailyScheduler {
     }
 
     /**
-     * Called on app start: keeps the widget fresh. UPDATE re-anchors the
-     * schedule to the next midnight rather than leaving a drifted one in place.
+     * Called on app start: pins the widget's refresh back to just after
+     * midnight.
+     *
+     * CANCEL_AND_REENQUEUE, not UPDATE. UPDATE carries the old work's enqueue
+     * time and period count across to the replacement, and WorkManager only
+     * honours an initial delay before the first period has completed — so
+     * after the first run the delay set here is ignored and a schedule that
+     * has drifted under Doze stays drifted. The people this matters to are
+     * exactly the widget's audience: readers who take the day's name off the
+     * home screen and rarely open the app at all.
      */
     fun ensureScheduled(context: Context) {
         val widgetRequest = PeriodicWorkRequestBuilder<WidgetUpdateWorker>(1, TimeUnit.DAYS)
             .setInitialDelay(minutesUntil(0, 5), TimeUnit.MINUTES)
             .build()
         WorkManager.getInstance(context).enqueueUniquePeriodicWork(
-            WIDGET_WORK, ExistingPeriodicWorkPolicy.UPDATE, widgetRequest
+            WIDGET_WORK, ExistingPeriodicWorkPolicy.CANCEL_AND_REENQUEUE, widgetRequest
         )
     }
 

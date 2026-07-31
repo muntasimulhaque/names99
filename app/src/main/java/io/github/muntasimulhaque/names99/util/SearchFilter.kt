@@ -8,15 +8,26 @@ object SearchFilter {
     private val ARABIC_MARKS = Regex("[\\u064B-\\u065F\\u0670\\u0653]")
 
     /**
-     * Forgiving Latin key: lowercase, punctuation/spaces dropped, and runs of
-     * a repeated letter collapsed — so "rahman", "ar rahman", and "a'laa"
-     * find "Ar-Rahmaan" and "Al-A'laa".
+     * Forgiving Latin key: lowercase, punctuation and spaces dropped, the two
+     * vowels that Arabic transliteration spells inconsistently folded together,
+     * and runs of a repeated letter collapsed.
+     *
+     * So "rahman", "ar rahman" and "a'laa" all find "Ar-Rahmaan", and — because
+     * the same long vowel is written "oo"/"u" and "ee"/"i" by different sources
+     * — "Muqaddim" finds "Al-Moqaddim", "Qayyum" finds "Al-Qayyoom", "Ghafur"
+     * finds "Al-Ghafoor" and "Wali" finds "Al-Walee". Readers arrive knowing
+     * these names from elsewhere; they should not have to guess our spelling.
      */
     private fun latinKey(s: String): String {
         val stripped = LATIN_NOISE.replace(s.lowercase(), "")
         val sb = StringBuilder(stripped.length)
         for (c in stripped) {
-            if (sb.isEmpty() || sb.last() != c) sb.append(c)
+            val folded = when (c) {
+                'o' -> 'u'
+                'e' -> 'i'
+                else -> c
+            }
+            if (sb.isEmpty() || sb.last() != folded) sb.append(folded)
         }
         return sb.toString()
     }

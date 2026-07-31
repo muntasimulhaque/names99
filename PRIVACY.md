@@ -1,6 +1,6 @@
 # Privacy Policy — 99 Names of Allah
 
-Effective date: 2026
+Effective date: 31 July 2026
 
 This app collects no data. Period.
 

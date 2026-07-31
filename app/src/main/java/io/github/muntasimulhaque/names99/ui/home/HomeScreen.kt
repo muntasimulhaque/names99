@@ -3,9 +3,7 @@ package io.github.muntasimulhaque.names99.ui.home
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
@@ -13,7 +11,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.BasicTextField
@@ -34,7 +31,6 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -51,15 +47,12 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
-import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleEventObserver
-import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.muntasimulhaque.names99.R
 import io.github.muntasimulhaque.names99.data.Name
@@ -70,7 +63,11 @@ import io.github.muntasimulhaque.names99.ui.theme.HeroSubtext
 import io.github.muntasimulhaque.names99.ui.theme.HeroText
 import io.github.muntasimulhaque.names99.ui.theme.Motion
 import io.github.muntasimulhaque.names99.ui.theme.components.ArabicText
+import io.github.muntasimulhaque.names99.ui.theme.components.FitText
 import io.github.muntasimulhaque.names99.ui.theme.components.NameListItem
+import io.github.muntasimulhaque.names99.ui.theme.components.NameRowInset
+import io.github.muntasimulhaque.names99.ui.theme.components.nameRowTextInset
+import io.github.muntasimulhaque.names99.ui.theme.components.paperTopBarColors
 import io.github.muntasimulhaque.names99.util.SearchFilter
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -80,6 +77,7 @@ fun HomeScreen(
     onNameClick: (Int) -> Unit,
 ) {
     val names by viewModel.names.collectAsStateWithLifecycle()
+    val namesLoaded by viewModel.namesLoaded.collectAsStateWithLifecycle()
     val learned by viewModel.learned.collectAsStateWithLifecycle()
     val query by viewModel.searchQuery.collectAsStateWithLifecycle()
 
@@ -87,13 +85,9 @@ fun HomeScreen(
     var dailyNumber by remember { mutableIntStateOf(viewModel.dailyNameNumber()) }
 
     // The daily name rolls over at midnight; recompute whenever the app resumes.
-    val lifecycleOwner = LocalLifecycleOwner.current
-    DisposableEffect(lifecycleOwner) {
-        val observer = LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_RESUME) dailyNumber = viewModel.dailyNameNumber()
-        }
-        lifecycleOwner.lifecycle.addObserver(observer)
-        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    LifecycleResumeEffect(Unit) {
+        dailyNumber = viewModel.dailyNameNumber()
+        onPauseOrDispose {}
     }
 
     if (searching) {
@@ -114,10 +108,7 @@ fun HomeScreen(
         topBar = {
             TopAppBar(
                 scrollBehavior = scrollBehavior,
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background,
-                    scrolledContainerColor = MaterialTheme.colorScheme.background,
-                ),
+                colors = paperTopBarColors(),
                 title = {
                     if (searching) {
                         val focusRequester = remember { FocusRequester() }
@@ -191,6 +182,8 @@ fun HomeScreen(
             top = padding.calculateTopPadding(),
             bottom = padding.calculateBottomPadding() + 16.dp,
         )
+        // The rule between rows starts where the names do, not under their numbers.
+        val dividerInset = nameRowTextInset()
         LazyColumn(
             contentPadding = contentPadding,
             modifier = Modifier.fillMaxSize(),
@@ -200,8 +193,12 @@ fun HomeScreen(
                     DailyHeroCard(dailyName!!, onClick = { onNameClick(dailyName!!.number) })
                 }
             }
-            if (filtered.isEmpty() && names.isNotEmpty()) {
-                item { NoResults() }
+            if (names.isEmpty() && namesLoaded) {
+                // The asset failed to read. Without this the screen would be
+                // blank paper with no explanation at all.
+                item { PageMessage(stringResource(R.string.names_unavailable)) }
+            } else if (filtered.isEmpty() && names.isNotEmpty()) {
+                item { PageMessage(stringResource(R.string.no_results)) }
             }
             items(filtered, key = { it.number }) { name ->
                 NameListItem(
@@ -210,7 +207,7 @@ fun HomeScreen(
                     onClick = { onNameClick(name.number) },
                 )
                 HorizontalDivider(
-                    modifier = Modifier.padding(start = 66.dp, end = 20.dp),
+                    modifier = Modifier.padding(start = dividerInset, end = NameRowInset),
                     thickness = 0.5.dp,
                     color = MaterialTheme.colorScheme.outlineVariant,
                 )
@@ -219,9 +216,6 @@ fun HomeScreen(
     }
 }
 
-/** Below this the title would be smaller than the list beneath it — a floor, never a target. */
-private val MinTitleSize = 14.sp
-
 /**
  * The app's full name, set to fit the bar on one line.
  *
@@ -229,27 +223,16 @@ private val MinTitleSize = 14.sp
  * the whole reason the launcher label is the short form. At the largest text
  * sizes (the in-app slider at 1.4x on top of a large system font scale) the
  * full name is wider than the bar, and the bar's height is fixed, so wrapping
- * would clip it. It steps down in size until it fits instead. At ordinary
- * sizes nothing moves — the name is less than half the bar's width.
+ * would clip it. At ordinary sizes nothing moves — the name is less than half
+ * the bar's width.
  */
 @Composable
 private fun HomeTitle() {
-    val text = stringResource(R.string.app_title)
-    val base = MaterialTheme.typography.headlineSmall
-    val measurer = rememberTextMeasurer()
-    BoxWithConstraints {
-        val available = constraints.maxWidth
-        val fitted = remember(text, base, available, measurer) {
-            var style = base
-            while (style.fontSize > MinTitleSize &&
-                measurer.measure(text = text, style = style, softWrap = false).size.width > available
-            ) {
-                style = style.copy(fontSize = style.fontSize * 0.95f)
-            }
-            style
-        }
-        Text(text = text, style = fitted, maxLines = 1, softWrap = false)
-    }
+    FitText(
+        text = stringResource(R.string.app_title),
+        style = MaterialTheme.typography.headlineSmall,
+        color = MaterialTheme.colorScheme.onSurface,
+    )
 }
 
 @Composable
@@ -315,8 +298,9 @@ private fun DailyHeroCard(name: Name, onClick: () -> Unit) {
     }
 }
 
+/** A quiet line of italic explanation where the list would have been. */
 @Composable
-private fun NoResults() {
+private fun PageMessage(text: String) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -324,7 +308,7 @@ private fun NoResults() {
         contentAlignment = Alignment.Center,
     ) {
         Text(
-            text = stringResource(R.string.no_results),
+            text = text,
             style = MaterialTheme.typography.bodyMedium,
             fontStyle = FontStyle.Italic,
             color = MaterialTheme.colorScheme.onSurfaceVariant,

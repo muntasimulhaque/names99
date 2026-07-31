@@ -65,4 +65,26 @@ class SearchFilterTest {
     fun arabicQueryWithoutMarksFindsVocalizedNames() {
         assertEquals(listOf(names[2]), SearchFilter.filter(names, "اللطيف"))
     }
+
+    /**
+     * Readers arrive knowing these names from other books, where the same long
+     * vowel is written "oo" or "u" and "ee" or "i". Before this, typing the
+     * spelling you already knew could find nothing at all.
+     */
+    @Test
+    fun alternateVowelSpellingsFindTheSameName() {
+        val vowels = listOf(
+            Name(25, "الْقَيُّوم", "Al-Qayyoom", "The Sustainer", "The one who sustains all."),
+            Name(47, "الْغَفُور", "Al-Ghafoor", "The Oft-Forgiving", "The one who forgives extensively."),
+            Name(94, "الْمُقَدِّم", "Al-Moqaddim", "The Expediter", "The one who brings forward."),
+            Name(77, "الْوَلِيّ", "Al-Walee", "The Protector", "The one who protects."),
+        )
+        assertEquals(listOf(vowels[0]), SearchFilter.filter(vowels, "qayyum"))
+        assertEquals(listOf(vowels[1]), SearchFilter.filter(vowels, "ghafur"))
+        assertEquals(listOf(vowels[2]), SearchFilter.filter(vowels, "muqaddim"))
+        assertEquals(listOf(vowels[3]), SearchFilter.filter(vowels, "wali"))
+        // The spellings the app itself uses must keep working.
+        assertEquals(listOf(vowels[0]), SearchFilter.filter(vowels, "qayyoom"))
+        assertEquals(listOf(vowels[2]), SearchFilter.filter(vowels, "moqaddim"))
+    }
 }

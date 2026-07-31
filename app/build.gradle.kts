@@ -13,8 +13,8 @@ android {
         applicationId = "io.github.muntasimulhaque.names99"
         minSdk = 24
         targetSdk = 36
-        versionCode = 16
-        versionName = "2.5"
+        versionCode = 17
+        versionName = "2.6"
     }
 
     buildTypes {
@@ -36,6 +36,9 @@ android {
     }
     buildFeatures {
         compose = true
+        // The Settings screen shows the version from BuildConfig.VERSION_NAME,
+        // so it can never disagree with the versionName above.
+        buildConfig = true
     }
 }
 
@@ -48,7 +51,6 @@ dependencies {
     implementation(libs.androidx.core.splashscreen)
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.ui)
-    implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
     implementation(libs.androidx.material.icons.extended)
     implementation(libs.androidx.navigation.compose)

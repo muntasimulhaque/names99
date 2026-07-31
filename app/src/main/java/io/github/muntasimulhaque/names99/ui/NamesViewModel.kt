@@ -12,6 +12,7 @@ import io.github.muntasimulhaque.names99.util.DailyName
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -21,8 +22,20 @@ class NamesViewModel(application: Application) : AndroidViewModel(application) {
 
     private val prefs = Prefs(application)
 
-    val names: StateFlow<List<Name>> = flow { emit(NamesRepository.load(application)) }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+    private val _namesLoaded = MutableStateFlow(false)
+
+    /**
+     * False only while the asset is still being read. [names] is empty both
+     * before the read and after a failed one; this is what tells the screens
+     * which of the two they are looking at.
+     */
+    val namesLoaded: StateFlow<Boolean> = _namesLoaded.asStateFlow()
+
+    val names: StateFlow<List<Name>> = flow {
+        val loaded = NamesRepository.load(application)
+        _namesLoaded.value = true   // set before emitting, so the two agree
+        emit(loaded)
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val learned: StateFlow<Set<Int>> = prefs.learned
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptySet())

@@ -66,6 +66,8 @@ import io.github.muntasimulhaque.ninetynine.ui.theme.components.ArabicText
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.FitText
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.NameListItem
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.NameRowInset
+import io.github.muntasimulhaque.ninetynine.ui.theme.components.PageMessage
+import io.github.muntasimulhaque.ninetynine.ui.theme.components.SettingsAction
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.nameRowTextInset
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.paperTopBarColors
 import io.github.muntasimulhaque.ninetynine.util.SearchFilter
@@ -75,10 +77,12 @@ import io.github.muntasimulhaque.ninetynine.util.SearchFilter
 fun HomeScreen(
     viewModel: NamesViewModel,
     onNameClick: (Int) -> Unit,
+    onSettings: () -> Unit,
 ) {
     val names by viewModel.names.collectAsStateWithLifecycle()
     val namesLoaded by viewModel.namesLoaded.collectAsStateWithLifecycle()
     val learned by viewModel.learned.collectAsStateWithLifecycle()
+    val bookmarked by viewModel.bookmarked.collectAsStateWithLifecycle()
     val query by viewModel.searchQuery.collectAsStateWithLifecycle()
 
     var searching by rememberSaveable { mutableStateOf(false) }
@@ -171,6 +175,9 @@ fun HomeScreen(
                                 contentDescription = stringResource(R.string.cd_search),
                             )
                         }
+                        // Last in the bar, as on every tab screen. Absent while
+                        // searching, which is a mode, not a place.
+                        SettingsAction(onSettings)
                     }
                 },
             )
@@ -205,6 +212,7 @@ fun HomeScreen(
                     name = name,
                     learned = name.number in learned,
                     onClick = { onNameClick(name.number) },
+                    bookmarked = name.number in bookmarked,
                 )
                 HorizontalDivider(
                     modifier = Modifier.padding(start = dividerInset, end = NameRowInset),
@@ -224,13 +232,16 @@ fun HomeScreen(
  * height is fixed, so wrapping would clip it too — it shrinks to fit.
  *
  * Material measures a top bar's title with the width left over after the
- * navigation icon and the actions, so the search button on the right is
- * already accounted for. The floor is 0.32 rather than the usual 0.55 because
- * the worst case is real: "The Ninety Nine Names of Allah" is 14.864 em in
- * Spectral SemiBold, so on a 320dp screen with the in-app slider at 1.4x on top
- * of a 2.0 system font scale it needs 791dp of the 268dp available — a scale of
- * 0.339. At ordinary sizes nothing moves at all: the name is 282dp of the 343dp
- * bar on a Pixel 4, so it never shrinks there.
+ * navigation icon and the actions, so the two buttons on the right are already
+ * accounted for. The floor is 0.27 rather than the usual 0.55 because the worst
+ * case is real: "The Ninety Nine Names of Allah" is 14.864 em in Spectral
+ * SemiBold, so on a 320dp screen with the in-app slider at 1.4x on top of a 2.0
+ * system font scale it needs 791dp of the 220dp available — a scale of 0.278.
+ *
+ * That 220dp is the 268dp this bar had with one action, less the 48dp the
+ * settings gear takes; the floor moved 0.32 -> 0.27 when the gear arrived. At
+ * ordinary sizes almost nothing moves: the name is 282dp of the 343dp bar on a
+ * Pixel 4, so it never shrinks there, and a 360dp phone sets it at 0.92.
  */
 @Composable
 private fun HomeTitle() {
@@ -238,7 +249,7 @@ private fun HomeTitle() {
         text = stringResource(R.string.app_title),
         style = MaterialTheme.typography.headlineSmall,
         color = MaterialTheme.colorScheme.onSurface,
-        minScale = 0.32f,
+        minScale = 0.27f,
     )
 }
 
@@ -310,21 +321,3 @@ private fun DailyHeroCard(name: Name, onClick: () -> Unit) {
     }
 }
 
-/** A quiet line of italic explanation where the list would have been. */
-@Composable
-private fun PageMessage(text: String) {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(48.dp),
-        contentAlignment = Alignment.Center,
-    ) {
-        Text(
-            text = text,
-            style = MaterialTheme.typography.bodyMedium,
-            fontStyle = FontStyle.Italic,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center,
-        )
-    }
-}

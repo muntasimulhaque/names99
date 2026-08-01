@@ -26,6 +26,7 @@ import io.github.muntasimulhaque.ninetynine.ui.NamesViewModel
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.HairlineProgress
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.NavRow
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.PageRule
+import io.github.muntasimulhaque.ninetynine.ui.theme.components.SettingsAction
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.paperTopBarColors
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -34,6 +35,7 @@ fun MemorizeScreen(
     viewModel: NamesViewModel,
     onFlashcards: () -> Unit,
     onQuiz: () -> Unit,
+    onSettings: () -> Unit,
 ) {
     val learned by viewModel.learned.collectAsStateWithLifecycle()
     val quizBest by viewModel.quizBest.collectAsStateWithLifecycle()
@@ -49,6 +51,7 @@ fun MemorizeScreen(
                         style = MaterialTheme.typography.headlineSmall,
                     )
                 },
+                actions = { SettingsAction(onSettings) },
             )
         },
     ) { padding ->

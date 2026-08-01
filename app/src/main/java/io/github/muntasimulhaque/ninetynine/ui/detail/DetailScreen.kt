@@ -1,5 +1,6 @@
 package io.github.muntasimulhaque.ninetynine.ui.detail
 
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
@@ -23,12 +24,15 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Bookmark
+import androidx.compose.material.icons.filled.BookmarkBorder
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -48,6 +52,8 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -81,6 +87,7 @@ fun DetailScreen(
 ) {
     val names by viewModel.names.collectAsStateWithLifecycle()
     val learned by viewModel.learned.collectAsStateWithLifecycle()
+    val bookmarked by viewModel.bookmarked.collectAsStateWithLifecycle()
     var showShare by remember { mutableStateOf(false) }
 
     if (names.isEmpty()) {
@@ -143,7 +150,15 @@ fun DetailScreen(
                     ScreenLabel(stringResource(R.string.detail_counter, current.number))
                 },
                 navigationIcon = { BackButton(onBack) },
+                // Keeping, then sending: the inward act sits inside, and Share
+                // keeps the edge it has always had.
                 actions = {
+                    BookmarkAction(
+                        bookmarked = current.number in bookmarked,
+                        onToggle = {
+                            viewModel.setBookmarked(current.number, current.number !in bookmarked)
+                        },
+                    )
                     IconButton(onClick = { showShare = true }) {
                         Icon(
                             Icons.Filled.Share,
@@ -183,6 +198,54 @@ fun DetailScreen(
                 },
             )
         }
+    }
+}
+
+/**
+ * Keeping a name, from the bar rather than the foot of the page.
+ *
+ * The page is one scroll container, so the footer travels with the text — on a
+ * long meaning it is well below the fold at exactly the moment a name strikes
+ * you. The bar does not move.
+ *
+ * The pop and the haptic are lifted from [LearnedButton] deliberately: the app
+ * has two per-name toggles on two different axes, and they should at least feel
+ * like they were made by the same hand.
+ */
+@Composable
+private fun BookmarkAction(bookmarked: Boolean, onToggle: () -> Unit) {
+    val haptics = rememberHaptics()
+
+    val scale = remember { Animatable(1f) }
+    val seeded = remember { mutableStateOf(false) }
+    LaunchedEffect(bookmarked) {
+        if (!seeded.value) {
+            seeded.value = true
+        } else {
+            scale.snapTo(0.94f)
+            scale.animateTo(1f, Motion.lively())
+        }
+    }
+
+    // The button is named once and never changes; what changes is the state
+    // announced after it. Set on the button, which is the node TalkBack focuses.
+    val state = stringResource(if (bookmarked) R.string.bookmarked else R.string.not_bookmarked)
+    IconButton(
+        onClick = {
+            haptics.confirm()
+            onToggle()
+        },
+        modifier = Modifier.semantics { stateDescription = state },
+    ) {
+        Icon(
+            imageVector = if (bookmarked) Icons.Filled.Bookmark else Icons.Filled.BookmarkBorder,
+            contentDescription = stringResource(R.string.cd_bookmark),
+            tint = if (bookmarked) MaterialTheme.colorScheme.secondary else LocalContentColor.current,
+            modifier = Modifier.graphicsLayer {
+                scaleX = scale.value
+                scaleY = scale.value
+            },
+        )
     }
 }
 

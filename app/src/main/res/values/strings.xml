@@ -30,6 +30,7 @@
     <!-- Navigation -->
     <string name="nav_names">Names</string>
     <string name="memorize">Memorize</string>
+    <string name="bookmarks">Bookmarks</string>
     <string name="settings">Settings</string>
     <string name="about">About</string>
     <string name="cd_back">Back</string>
@@ -46,6 +47,18 @@
     <string name="learned">Learned</string>
     <string name="mark_learned">Mark as learned</string>
     <string name="note_label">Note</string>
+
+    <!-- Bookmarks -->
+    <!--
+      Two different jobs, deliberately kept apart: cd_bookmark names the button
+      (it does not change), while bookmarked/not_bookmarked are the state a
+      screen reader announces after it. Merging them into one changing label
+      makes TalkBack read the action as though it were the state.
+    -->
+    <string name="cd_bookmark">Bookmark</string>
+    <string name="bookmarked">Bookmarked</string>
+    <string name="not_bookmarked">Not bookmarked</string>
+    <string name="no_bookmarks">Nothing kept yet. Open any name and tap the bookmark to keep it here.</string>
 
     <!-- Share -->
     <string name="cd_share">Share this name</string>

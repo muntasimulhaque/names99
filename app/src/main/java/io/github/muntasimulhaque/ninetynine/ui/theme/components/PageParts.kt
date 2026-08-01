@@ -1,6 +1,7 @@
 package io.github.muntasimulhaque.ninetynine.ui.theme.components
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -26,7 +28,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.rememberTextMeasurer
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.isSpecified
 import io.github.muntasimulhaque.ninetynine.R
@@ -72,6 +76,24 @@ fun paperTopBarColors(): TopAppBarColors = TopAppBarDefaults.topAppBarColors(
     containerColor = MaterialTheme.colorScheme.background,
     scrolledContainerColor = MaterialTheme.colorScheme.background,
 )
+
+/**
+ * The way to Settings from a tab screen.
+ *
+ * It sits on all three — Names, Bookmarks, Memorize — and always last in the
+ * bar, so it reads as a fixed corner rather than something one screen happens
+ * to offer. A gear present on some tabs and missing from others would be worse
+ * than either extreme.
+ */
+@Composable
+fun SettingsAction(onClick: () -> Unit) {
+    IconButton(onClick = onClick) {
+        Icon(
+            Icons.Filled.Settings,
+            contentDescription = stringResource(R.string.settings),
+        )
+    }
+}
 
 /** The way back, identical on every pushed screen. */
 @Composable
@@ -135,6 +157,31 @@ fun FitText(
             candidate
         }
         Text(text = text, style = fitted, color = color, maxLines = 1, softWrap = false)
+    }
+}
+
+/**
+ * A quiet line of italic explanation where a list would have been.
+ *
+ * Shared by the names list (nothing matched, or the asset failed to load) and
+ * the bookmarks list (nothing kept yet), so an empty screen reads the same way
+ * wherever the reader meets one.
+ */
+@Composable
+fun PageMessage(text: String) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(48.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            text = text,
+            style = MaterialTheme.typography.bodyMedium,
+            fontStyle = FontStyle.Italic,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+        )
     }
 }
 

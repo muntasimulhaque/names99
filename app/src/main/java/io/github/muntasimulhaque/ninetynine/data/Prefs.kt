@@ -44,6 +44,7 @@ class Prefs(private val context: Context) {
 
     private object Keys {
         val LEARNED = stringSetPreferencesKey("learned")
+        val BOOKMARKED = stringSetPreferencesKey("bookmarked")
         val THEME = stringPreferencesKey("theme")
         val TEXT_SCALE = floatPreferencesKey("text_scale")
         val DAILY_ENABLED = booleanPreferencesKey("daily_enabled")
@@ -55,6 +56,15 @@ class Prefs(private val context: Context) {
 
     val learned: Flow<Set<Int>> = data
         .map { p -> p[Keys.LEARNED]?.mapNotNull(String::toIntOrNull)?.toSet() ?: emptySet() }
+
+    /**
+     * The names the reader has kept. A separate axis from [learned] on purpose:
+     * that one is memorization progress and feeds the Memorize screen, this one
+     * is attachment and feeds nothing. Resetting progress deliberately leaves
+     * these alone.
+     */
+    val bookmarked: Flow<Set<Int>> = data
+        .map { p -> p[Keys.BOOKMARKED]?.mapNotNull(String::toIntOrNull)?.toSet() ?: emptySet() }
 
     val themeMode: Flow<ThemeMode> = data
         .map { p -> runCatching { ThemeMode.valueOf(p[Keys.THEME] ?: "SYSTEM") }.getOrDefault(ThemeMode.SYSTEM) }
@@ -93,6 +103,13 @@ class Prefs(private val context: Context) {
         p[Keys.LEARNED] = current
     }
 
+    suspend fun setBookmarked(number: Int, value: Boolean) = write { p ->
+        val current = p[Keys.BOOKMARKED]?.toMutableSet() ?: mutableSetOf()
+        if (value) current.add(number.toString()) else current.remove(number.toString())
+        p[Keys.BOOKMARKED] = current
+    }
+
+    /** Clears learned names and the quiz score only — bookmarks are not progress. */
     suspend fun resetLearned() = write {
         it[Keys.LEARNED] = emptySet()
         it.remove(Keys.QUIZ_BEST)

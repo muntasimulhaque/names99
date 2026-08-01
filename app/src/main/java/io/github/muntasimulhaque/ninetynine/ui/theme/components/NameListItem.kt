@@ -17,14 +17,20 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.github.muntasimulhaque.ninetynine.R
@@ -39,6 +45,19 @@ val NameRowInset = 20.dp
 
 /** Air between the folio number and the name it belongs to. */
 private val FolioGap = 16.dp
+
+/**
+ * The bookmark ribbon: a gold hairline in the margin, the same device the About
+ * page uses down the side of a block quote.
+ *
+ * It lives in the space between the page edge and [NameRowInset], which is
+ * otherwise empty, so it costs the row no width and leaves the folio numbers
+ * exactly where they were measured to sit. Held clear of the row's top and
+ * bottom so that two kept names in a row read as two marks and not as one long
+ * bar.
+ */
+private val RibbonWidth = 2.dp
+private val RibbonInset = 8.dp
 
 /**
  * The folio column is exactly as wide as the widest number in the list, so a
@@ -66,17 +85,47 @@ private fun folioWidth(): Dp {
 @Composable
 fun nameRowTextInset(): Dp = NameRowInset + folioWidth() + FolioGap
 
-/** One row in the names list: folio number, transliteration + title, learned tick, Arabic. */
+/**
+ * One row in the names list: bookmark ribbon, folio number, transliteration +
+ * title, learned tick, Arabic.
+ *
+ * [bookmarked] draws the ribbon and tells a screen reader the state. The
+ * bookmarks list passes `false` on purpose: every row there is kept, so the
+ * ribbon would be a solid bar down the page and the announcement pure noise.
+ */
 @Composable
 fun NameListItem(
     name: Name,
     learned: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    bookmarked: Boolean = false,
 ) {
+    val ribbon = MaterialTheme.colorScheme.secondary
+    val bookmarkedLabel = stringResource(R.string.bookmarked)
     Surface(
         onClick = onClick,
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier
+            .fillMaxWidth()
+            .then(
+                // On the clickable node itself, not on a child: a state set on
+                // a decorative descendant is never announced.
+                if (bookmarked) Modifier.semantics { stateDescription = bookmarkedLabel }
+                else Modifier
+            )
+            .drawBehind {
+                if (!bookmarked) return@drawBehind
+                val width = RibbonWidth.toPx()
+                val inset = RibbonInset.toPx()
+                drawRect(
+                    color = ribbon,
+                    topLeft = Offset(
+                        x = if (layoutDirection == LayoutDirection.Ltr) 0f else size.width - width,
+                        y = inset,
+                    ),
+                    size = Size(width, (size.height - inset * 2).coerceAtLeast(0f)),
+                )
+            },
         color = Color.Transparent,
     ) {
         Row(

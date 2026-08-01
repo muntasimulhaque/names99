@@ -40,6 +40,9 @@ class NamesViewModel(application: Application) : AndroidViewModel(application) {
     val learned: StateFlow<Set<Int>> = prefs.learned
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptySet())
 
+    val bookmarked: StateFlow<Set<Int>> = prefs.bookmarked
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptySet())
+
     val themeMode: StateFlow<ThemeMode> = prefs.themeMode
         .stateIn(viewModelScope, SharingStarted.Eagerly, ThemeMode.SYSTEM)
 
@@ -68,6 +71,10 @@ class NamesViewModel(application: Application) : AndroidViewModel(application) {
 
     fun setLearned(number: Int, value: Boolean) = viewModelScope.launch {
         prefs.setLearned(number, value)
+    }
+
+    fun setBookmarked(number: Int, value: Boolean) = viewModelScope.launch {
+        prefs.setBookmarked(number, value)
     }
 
     fun resetProgress() = viewModelScope.launch {

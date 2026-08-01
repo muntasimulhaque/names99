@@ -9,9 +9,10 @@ This app collects no data. Period.
 - The app has no network permission and works entirely offline.
 - The optional daily notification is generated locally on your device.
 
-**On your device.** Your learned-names progress, theme, text size, notification
-time and best quiz score are kept in the app's own storage. The app never sends
-them anywhere — it has no network permission at all.
+**On your device.** Your learned-names progress, your bookmarked names, theme,
+text size, notification time and best quiz score are kept in the app's own
+storage. The app never sends them anywhere — it has no network permission at
+all.
 
 **Android's backup.** If you have Android's system backup switched on, Android
 includes this app's data in your device backup, exactly as it does for other

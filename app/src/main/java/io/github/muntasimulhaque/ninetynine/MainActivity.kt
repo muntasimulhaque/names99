@@ -26,8 +26,8 @@ import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.MenuBook
+import androidx.compose.material.icons.filled.BookmarkBorder
 import androidx.compose.material.icons.filled.School
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -60,6 +60,7 @@ import androidx.navigation.navArgument
 import io.github.muntasimulhaque.ninetynine.daily.DailyNameWidget
 import io.github.muntasimulhaque.ninetynine.ui.NamesViewModel
 import io.github.muntasimulhaque.ninetynine.ui.about.AboutScreen
+import io.github.muntasimulhaque.ninetynine.ui.bookmarks.BookmarksScreen
 import io.github.muntasimulhaque.ninetynine.ui.detail.DetailScreen
 import io.github.muntasimulhaque.ninetynine.ui.home.HomeScreen
 import io.github.muntasimulhaque.ninetynine.ui.memorize.FlashcardsScreen
@@ -117,10 +118,17 @@ private data class TopLevelRoute(
     val icon: ImageVector,
 )
 
+/*
+ * Three destinations, all of them content: read the names, practise them, keep
+ * the ones you turn to. Settings is configuration rather than a place in the
+ * book, so it sits behind the gear in the corner of each of these instead of
+ * taking a quarter of the bar — which also keeps every label legible at a large
+ * system font (see the note on FitText below).
+ */
 private val topLevelRoutes = listOf(
     TopLevelRoute("names", R.string.nav_names, Icons.AutoMirrored.Filled.MenuBook),
     TopLevelRoute("memorize", R.string.memorize, Icons.Filled.School),
-    TopLevelRoute("settings", R.string.settings, Icons.Filled.Settings),
+    TopLevelRoute("bookmarks", R.string.bookmarks, Icons.Filled.BookmarkBorder),
 )
 
 @Composable
@@ -163,6 +171,7 @@ private fun App(startNumber: Int, onStartNumberConsumed: () -> Unit) {
                     HomeScreen(
                         viewModel = viewModel,
                         onNameClick = { number -> navController.navigate("detail/$number") },
+                        onSettings = { navController.navigate("settings") },
                     )
                 }
                 composable(
@@ -180,6 +189,18 @@ private fun App(startNumber: Int, onStartNumberConsumed: () -> Unit) {
                         viewModel = viewModel,
                         onFlashcards = { navController.navigate("flashcards") },
                         onQuiz = { navController.navigate("quiz") },
+                        onSettings = { navController.navigate("settings") },
+                    )
+                }
+                composable("bookmarks", enterTransition = tabFade, exitTransition = tabFadeOut) {
+                    BookmarksScreen(
+                        viewModel = viewModel,
+                        // The ordinary pager over all 99, opened at this name —
+                        // not a bookmarks-only one, which would make "N OF 99"
+                        // and the prev/next labels mean two different things
+                        // depending on how the reader arrived.
+                        onNameClick = { number -> navController.navigate("detail/$number") },
+                        onSettings = { navController.navigate("settings") },
                     )
                 }
                 composable("flashcards") {
@@ -194,10 +215,11 @@ private fun App(startNumber: Int, onStartNumberConsumed: () -> Unit) {
                         onBack = { navController.popBackStack() },
                     )
                 }
-                composable("settings", enterTransition = tabFade, exitTransition = tabFadeOut) {
+                composable("settings") {
                     SettingsScreen(
                         viewModel = viewModel,
                         onAbout = { navController.navigate("about") },
+                        onBack = { navController.popBackStack() },
                     )
                 }
                 composable("about") {
@@ -288,13 +310,21 @@ private fun QuietBottomBar(navController: NavHostController, currentRoute: Strin
                         Spacer(Modifier.height(4.dp))
                         // Chrome, not reading matter: fixed at 10sp so the
                         // in-app reading scale can't clip it. System font
-                        // scaling does still apply, and at 2.0 "MEMORIZE"
-                        // needs 135dp of a 116dp tab — so it fits itself
-                        // rather than ellipsizing to "MEM…". The floor is low
-                        // because a tab is only a third of the screen: on a
-                        // 320dp phone at 2.8x it takes 0.54 to fit, and at the
-                        // floor the label overflows into its neighbour rather
-                        // than stopping politely.
+                        // scaling does still apply, so the labels fit
+                        // themselves rather than ellipsizing to "MEM…".
+                        //
+                        // "BOOKMARKS" is the longest label the bar carries —
+                        // 6.681 em in Spectral Medium, so 155.2dp at a system
+                        // font scale of 2.0, against MEMORIZE's 135.0dp. At
+                        // three tabs a 320dp phone gives each one 102.7dp, so
+                        // the worst case is 0.66 and the 0.40 floor is never
+                        // approached.
+                        //
+                        // This is why Settings is a gear rather than a fourth
+                        // tab. A fourth would cut each tab to 76.0dp, putting
+                        // BOOKMARKS at 0.49 — 9.8sp rendered, *smaller* than
+                        // the 10sp base, so a reader who doubled their system
+                        // font would gain nothing at all from having done so.
                         FitText(
                             text = stringResource(item.labelRes).uppercase(),
                             style = MaterialTheme.typography.labelSmall.copy(

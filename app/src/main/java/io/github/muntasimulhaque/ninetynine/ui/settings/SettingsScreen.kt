@@ -76,9 +76,11 @@ import io.github.muntasimulhaque.ninetynine.R
 import io.github.muntasimulhaque.ninetynine.data.ThemeMode
 import io.github.muntasimulhaque.ninetynine.ui.NamesViewModel
 import io.github.muntasimulhaque.ninetynine.ui.theme.Motion
+import io.github.muntasimulhaque.ninetynine.ui.theme.components.BackButton
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.MixedText
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.NavRow
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.PageRule
+import io.github.muntasimulhaque.ninetynine.ui.theme.components.ScreenLabel
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.paperTopBarColors
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.SectionLabel
 import java.text.SimpleDateFormat
@@ -94,6 +96,7 @@ private const val SCALE_MAX = 1.4f
 fun SettingsScreen(
     viewModel: NamesViewModel,
     onAbout: () -> Unit,
+    onBack: () -> Unit,
 ) {
     val context = LocalContext.current
     val themeMode by viewModel.themeMode.collectAsStateWithLifecycle()
@@ -125,14 +128,12 @@ fun SettingsScreen(
 
     Scaffold(
         topBar = {
+            // A pushed screen since the gear replaced the tab, so it is titled
+            // and left the same way as About, Flashcards and Quiz.
             TopAppBar(
                 colors = paperTopBarColors(),
-                title = {
-                    Text(
-                        text = stringResource(R.string.settings),
-                        style = MaterialTheme.typography.headlineSmall,
-                    )
-                },
+                title = { ScreenLabel(stringResource(R.string.settings)) },
+                navigationIcon = { BackButton(onBack) },
             )
         },
     ) { padding ->

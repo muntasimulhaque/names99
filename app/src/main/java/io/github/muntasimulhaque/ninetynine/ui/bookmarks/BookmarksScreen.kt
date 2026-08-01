@@ -1,0 +1,99 @@
+package io.github.muntasimulhaque.ninetynine.ui.bookmarks
+
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import io.github.muntasimulhaque.ninetynine.R
+import io.github.muntasimulhaque.ninetynine.ui.NamesViewModel
+import io.github.muntasimulhaque.ninetynine.ui.theme.components.NameListItem
+import io.github.muntasimulhaque.ninetynine.ui.theme.components.NameRowInset
+import io.github.muntasimulhaque.ninetynine.ui.theme.components.PageMessage
+import io.github.muntasimulhaque.ninetynine.ui.theme.components.SettingsAction
+import io.github.muntasimulhaque.ninetynine.ui.theme.components.nameRowTextInset
+import io.github.muntasimulhaque.ninetynine.ui.theme.components.paperTopBarColors
+
+/**
+ * The names the reader has kept.
+ *
+ * Set exactly like the names list — same rows, same divider, same indent — so a
+ * name looks the same wherever it is met. There is no search here and no count:
+ * a kept list is short by its nature, and unlike memorization it has no total to
+ * be measured against.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun BookmarksScreen(
+    viewModel: NamesViewModel,
+    onNameClick: (Int) -> Unit,
+    onSettings: () -> Unit,
+) {
+    val names by viewModel.names.collectAsStateWithLifecycle()
+    val learned by viewModel.learned.collectAsStateWithLifecycle()
+    val bookmarked by viewModel.bookmarked.collectAsStateWithLifecycle()
+
+    // Book order, not the order they were kept in: this is a shelf, not a feed.
+    // `names` is already 1..99, so filtering preserves it for nothing.
+    val kept = remember(names, bookmarked) { names.filter { it.number in bookmarked } }
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                colors = paperTopBarColors(),
+                title = {
+                    Text(
+                        text = stringResource(R.string.bookmarks),
+                        style = MaterialTheme.typography.headlineSmall,
+                    )
+                },
+                actions = { SettingsAction(onSettings) },
+            )
+        },
+    ) { padding ->
+        // The rule between rows starts where the names do, not under their numbers.
+        val dividerInset = nameRowTextInset()
+        LazyColumn(
+            contentPadding = PaddingValues(
+                top = padding.calculateTopPadding(),
+                bottom = padding.calculateBottomPadding() + 16.dp,
+            ),
+            modifier = Modifier.fillMaxSize(),
+        ) {
+            if (kept.isEmpty()) {
+                // Says both that there is nothing here and how to put something
+                // here — an empty screen is the one place a hint is not clutter.
+                item { PageMessage(stringResource(R.string.no_bookmarks)) }
+            }
+            items(kept, key = { it.number }) { name ->
+                NameListItem(
+                    name = name,
+                    learned = name.number in learned,
+                    onClick = { onNameClick(name.number) },
+                    // Deliberately not marked: every row here is kept, so the
+                    // ribbon would draw a solid bar down the page and a screen
+                    // reader would say "bookmarked" ninety-nine times.
+                    bookmarked = false,
+                )
+                HorizontalDivider(
+                    modifier = Modifier.padding(start = dividerInset, end = NameRowInset),
+                    thickness = 0.5.dp,
+                    color = MaterialTheme.colorScheme.outlineVariant,
+                )
+            }
+        }
+    }
+}

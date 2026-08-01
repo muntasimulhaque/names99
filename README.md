@@ -1,6 +1,6 @@
-# The 99 Names of Allah
+# Ninety Nine
 
-A free, open-source, native Android app for reading and memorizing Al-Asma ul-Husna — the 99 Names of Allah — with Arabic, transliteration, and meanings.
+A free, open-source, native Android app for reading and memorizing Al-Asma ul-Husna — the ninety nine names of Allah — with Arabic, transliteration, and meanings.
 
 Based on the lecture of Sheikh Ibn Uthaymeen (Rahimahullah), as presented in *"The Ninety Nine Names of Allah: A Memorisation Tool with Transliteration and Meanings"*. Content curated at [muntasimulhaque.bearblog.dev/99-names](https://muntasimulhaque.bearblog.dev/99-names/).
 
@@ -23,7 +23,7 @@ Based on the lecture of Sheikh Ibn Uthaymeen (Rahimahullah), as presented in *"T
 ## Found a mistake in the content?
 
 Please say so — it is far more use as an issue than as a review. Open a
-[content correction](https://github.com/muntasimulhaque/names99/issues/new?template=content-correction.yml)
+[content correction](https://github.com/muntasimulhaque/ninetynine/issues/new?template=content-correction.yml)
 with the name's number (the figure to its left in the list), what the app
 shows, and what it should say. From inside the app, About → Send feedback
 opens an email instead.

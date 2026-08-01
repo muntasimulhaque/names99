@@ -3,8 +3,13 @@
     android:height="24dp"
     android:viewportWidth="24"
     android:viewportHeight="24">
-    <!-- Arabic-Indic "99" set in Noto Naskh Arabic Bold (SIL Open Font License); outlines derived with fontTools. -->
+    <!-- Allah (الله) in square Kufic (kufi murabbaʿ). Original artwork: drawn
+         on a 7×7 grid, one unit per stroke and one per gap, so no typeface
+         is involved and no font licence applies. The initial alif is laid
+         horizontally over the word, the standard squaring liberty of the
+         script; lam and lam are the verticals, the final heh is the closed
+         box, and the baseline joins heh to both lams. -->
     <path
         android:fillColor="#FFFFFFFF"
-        android:pathData="M9.31,17.99 Q8.88,16.90 8.61,16.06 Q8.35,15.21 8.21,14.46 Q8.07,13.70 8.02,12.86 Q7.55,13.00 7.10,13.00 Q5.67,13.00 4.83,12.19 Q4.00,11.37 4.00,9.94 Q4.00,9.06 4.42,8.14 Q4.84,7.22 5.55,6.61 Q6.21,6.01 6.86,6.01 Q8.13,6.01 8.79,7.11 Q9.45,8.22 9.45,10.26 Q9.45,11.39 9.58,12.27 Q9.72,13.16 10.06,14.06 Q10.41,14.96 11.01,16.19 Z M7.39,10.67 Q7.51,10.67 7.62,10.66 Q7.74,10.65 7.84,10.63 L7.90,10.61 Q7.76,9.51 7.36,8.92 Q6.96,8.34 6.31,8.34 Q5.98,8.34 5.71,8.49 Q5.45,8.65 5.29,8.90 Q5.14,9.16 5.14,9.47 Q5.14,10.04 5.73,10.35 Q6.33,10.67 7.39,10.67 Z M18.30,17.99 Q17.86,16.90 17.60,16.06 Q17.34,15.21 17.20,14.46 Q17.06,13.70 17.00,12.86 Q16.53,13.00 16.08,13.00 Q14.65,13.00 13.82,12.19 Q12.99,11.37 12.99,9.94 Q12.99,9.06 13.41,8.14 Q13.83,7.22 14.53,6.61 Q15.20,6.01 15.85,6.01 Q17.12,6.01 17.78,7.11 Q18.43,8.22 18.43,10.26 Q18.43,11.39 18.57,12.27 Q18.71,13.16 19.05,14.06 Q19.39,14.96 20.00,16.19 Z M16.38,10.67 Q16.49,10.67 16.61,10.66 Q16.73,10.65 16.83,10.63 L16.89,10.61 Q16.75,9.51 16.35,8.92 Q15.94,8.34 15.30,8.34 Q14.97,8.34 14.70,8.49 Q14.44,8.65 14.28,8.90 Q14.12,9.16 14.12,9.47 Q14.12,10.04 14.72,10.35 Q15.32,10.67 16.38,10.67 Z" />
+        android:pathData="M2,2h20v2.857h-20zM2,7.714h8.571v2.857h-8.571zM13.429,7.714h2.857v14.286h-2.857zM19.143,7.714h2.857v14.286h-2.857zM2,10.571h2.857v11.429h-2.857zM7.714,10.571h2.857v11.429h-2.857zM4.857,19.143h2.857v2.857h-2.857zM10.571,19.143h2.857v2.857h-2.857zM16.286,19.143h2.857v2.857h-2.857z" />
 </vector>

@@ -1,8 +1,8 @@
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="108dp"
-    android:height="108dp"
-    android:viewportWidth="108"
-    android:viewportHeight="108">
+    android:width="48dp"
+    android:height="48dp"
+    android:viewportWidth="48"
+    android:viewportHeight="48">
     <!-- Allah (الله) in square Kufic (kufi murabbaʿ). Original artwork: drawn
          on a 7×7 grid, one unit per stroke and one per gap, so no typeface
          is involved and no font licence applies. The initial alif is laid
@@ -10,9 +10,6 @@
          script; lam and lam are the verticals, the final heh is the closed
          box, and the baseline joins heh to both lams. -->
     <path
-        android:fillColor="#1F4E42"
-        android:pathData="M0,0h108v108h-108z" />
-    <path
         android:fillColor="#D4B45A"
-        android:pathData="M31.373,31.373h45.255v6.465h-45.255zM31.373,44.303h19.395v6.465h-19.395zM57.232,44.303h6.465v32.325h-6.465zM70.162,44.303h6.465v32.325h-6.465zM31.373,50.768h6.465v25.86h-6.465zM44.303,50.768h6.465v25.86h-6.465zM37.838,70.162h6.465v6.465h-6.465zM50.768,70.162h6.465v6.465h-6.465zM63.697,70.162h6.465v6.465h-6.465z" />
+        android:pathData="M0,0h48v6.857h-48zM0,13.714h20.571v6.857h-20.571zM27.429,13.714h6.857v34.286h-6.857zM41.143,13.714h6.857v34.286h-6.857zM0,20.571h6.857v27.429h-6.857zM13.714,20.571h6.857v27.429h-6.857zM6.857,41.143h6.857v6.857h-6.857zM20.571,41.143h6.857v6.857h-6.857zM34.286,41.143h6.857v6.857h-6.857z" />
 </vector>

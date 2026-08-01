@@ -4,7 +4,13 @@
         <item name="android:statusBarColor">@android:color/transparent</item>
     </style>
 
-    <style name="Theme.Names99.Starting" parent="Theme.SplashScreen">
+    <!-- Parent must be Theme.SplashScreen.IconBackground, not Theme.SplashScreen:
+         in core-splashscreen 1.0.1 the plain theme forwards only the icon, the
+         background and the duration to the platform attributes on API 31+, and
+         android:windowSplashScreenIconBackgroundColor is forwarded by the
+         IconBackground style alone. Inheriting the plain one silently drops the
+         emerald plate, leaving the gold mark on paper at 1.84:1. -->
+    <style name="Theme.Names99.Starting" parent="Theme.SplashScreen.IconBackground">
         <item name="windowSplashScreenBackground">@color/paper</item>
         <item name="windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground</item>
         <item name="windowSplashScreenIconBackgroundColor">@color/ic_launcher_background</item>

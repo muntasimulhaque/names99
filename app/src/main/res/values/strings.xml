@@ -1,14 +1,22 @@
 <resources>
     <!--
-      Two names, on purpose. The launcher label is the app's own name, kept
-      short because a launcher gives an icon label very little room. Everywhere
-      the app has space to say what it is about — the home screen, the share
-      card — it names its subject instead. The Play listing name is a third
-      string again, set in the Console rather than here, so it can carry the
-      search terms neither of these needs to. Do not merge these two.
+      Three names, on purpose. Do not merge them.
+
+      launcher_name — the app itself, kept short because a launcher gives an
+        icon label very little room, and with no Divine Name in it there is
+        nothing a launcher can truncate badly.
+      app_title — what the app is about, for a reader already inside it: the
+        home screen's running head, and the English title of Ibn Uthaymeen's
+        book. A running head names its subject; it does not advertise.
+      store_title — the Play listing's title, verbatim. It appears on the
+        shared image, which is the one surface someone who has never installed
+        the app will see, so whoever receives it can type what is written there
+        into Play and find it. This one is kept in step with the Play Console
+        BY HAND: if the listing is ever retitled, retitle it here too.
     -->
     <string name="launcher_name">Ninety Nine</string>
     <string name="app_title">The Ninety Nine Names of Allah</string>
+    <string name="store_title">Ninety Nine: Names of Allah</string>
     <string name="widget_label">Name of the Day</string>
     <!-- The line under the widget's name in the picker; saying "Name of the Day"
          twice told the reader nothing about what they were about to place. -->

@@ -211,16 +211,27 @@ private fun ShareCard(name: Name, modifier: Modifier = Modifier) {
                         )
                     }
                     Spacer(Modifier.width(9.dp))
+                    // The store's name, not the app's own. This image is the
+                    // only surface a stranger sees, so it carries the title
+                    // they can type into Play and actually find — see the note
+                    // over store_title in strings.xml.
+                    //
                     // Fitted, not fixed: tracked small caps at 11sp put
-                    // "THE NINETY NINE NAMES OF ALLAH" at 262dp — 18.880 em plus
-                    // 30 characters of 1.8sp tracking — against the 246dp left
-                    // beside the seal on a Pixel 4, and less than that on a
-                    // narrower phone, since the card follows the screen.
+                    // "NINETY NINE: NAMES OF ALLAH" at 233dp — 16.729 em plus
+                    // 27 characters of 1.8sp tracking — against the 246dp left
+                    // beside the seal on a Pixel 4 (which is 393dp wide, not
+                    // 411: 1080px at density 440), so it sits there at full
+                    // size. The card follows the screen, so the room is always
+                    // the screen width less 147dp of chrome — 48 sheet, 20 box,
+                    // 44 inner padding, 26 seal, 9 gap — giving 213dp on a
+                    // 360dp phone and 173dp on a 320dp one. A floor of 0.5
+                    // clears the last of those with room to spare: measured at
+                    // 0.727 in the exported PNG.
                     FitText(
-                        text = stringResource(R.string.app_title).uppercase(),
+                        text = stringResource(R.string.store_title).uppercase(),
                         style = MaterialTheme.typography.labelMedium,
                         color = HeroSubtext,
-                        minScale = 0.75f,
+                        minScale = 0.5f,
                     )
                 }
             }

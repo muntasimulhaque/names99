@@ -28,6 +28,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.isSpecified
 import io.github.muntasimulhaque.ninetynine.R
 
 /*
@@ -94,6 +95,14 @@ fun BackButton(onBack: () -> Unit) {
  * it only caps growth at what the space can hold. Measured up front, so there
  * is no first-frame flicker the way a layout-feedback loop would have.
  *
+ * Tracking steps down with the size, because letter-spacing is part of a type
+ * size and not a constant beside it. Held fixed it does two harmful things:
+ * shrunken small caps look loose, and — worse — the fixed air sets a hard floor
+ * on how narrow the line can ever get. The share card's wordmark is 27 tracked
+ * characters, so 49dp of its 233dp is air that no amount of shrinking used to
+ * remove; the 30-character wordmark it replaced could not render below 210dp
+ * however far it shrank, and so clipped on any screen under ~357dp.
+ *
  * [minScale] is a floor, never a target; it exists only so a pathological
  * constraint cannot loop forever. Set it low enough that the text always wins:
  * a caller that would rather be small than cut should say so.
@@ -115,7 +124,13 @@ fun FitText(
             while (candidate.fontSize > floor &&
                 measurer.measure(text, candidate, softWrap = false).size.width > available
             ) {
-                candidate = candidate.copy(fontSize = candidate.fontSize * 0.95f)
+                val tracking = candidate.letterSpacing
+                candidate = candidate.copy(
+                    fontSize = candidate.fontSize * 0.95f,
+                    // Unspecified on every untracked style (headlineSmall,
+                    // displaySmall), and multiplying that is not meaningful.
+                    letterSpacing = if (tracking.isSpecified) tracking * 0.95f else tracking,
+                )
             }
             candidate
         }

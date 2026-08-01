@@ -43,7 +43,12 @@
     <string name="cd_close_search">Close search</string>
 
     <!-- Detail -->
-    <string name="detail_counter">%1$d of 99</string>
+    <!--
+      Position in the list being paged through, not the name's own number —
+      the two are the same when reading all 99, and differ when the reader
+      arrived from Bookmarks and is paging through those.
+    -->
+    <string name="detail_counter">%1$d of %2$d</string>
     <string name="learned">Learned</string>
     <string name="mark_learned">Mark as learned</string>
     <string name="note_label">Note</string>

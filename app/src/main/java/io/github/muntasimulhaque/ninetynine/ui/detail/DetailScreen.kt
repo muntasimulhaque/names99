@@ -83,6 +83,7 @@ private val PageInset = 28.dp
 fun DetailScreen(
     viewModel: NamesViewModel,
     startNumber: Int,
+    bookmarksOnly: Boolean,
     onBack: () -> Unit,
 ) {
     val names by viewModel.names.collectAsStateWithLifecycle()
@@ -90,7 +91,32 @@ fun DetailScreen(
     val bookmarked by viewModel.bookmarked.collectAsStateWithLifecycle()
     var showShare by remember { mutableStateOf(false) }
 
-    if (names.isEmpty()) {
+    // The reader pages through the list they arrived from — all 99 from the
+    // names list, or just the kept ones from Bookmarks. Taken once and then
+    // held: un-bookmarking a name while reading it should un-fill the mark,
+    // not pull pages out from under the reader and shift everything along.
+    //
+    // Not `rememberSaveable`: on a config change the route is restored, this
+    // effect runs again and settles on the same list, which is simpler than
+    // persisting one and cannot disagree with the bookmarks on disk.
+    var pageNumbers by remember { mutableStateOf(emptyList<Int>()) }
+    LaunchedEffect(names, bookmarked, bookmarksOnly) {
+        if (pageNumbers.isEmpty()) {
+            val candidate =
+                if (bookmarksOnly) names.filter { it.number in bookmarked } else names
+            // DataStore emits asynchronously, so the bookmark set is empty for
+            // the first frame or two. Waiting until the name we opened is
+            // actually present is what stops us freezing an empty list.
+            if (candidate.any { it.number == startNumber }) {
+                pageNumbers = candidate.map { it.number }
+            }
+        }
+    }
+    val pages = remember(names, pageNumbers) {
+        pageNumbers.mapNotNull { number -> names.firstOrNull { it.number == number } }
+    }
+
+    if (pages.isEmpty()) {
         Scaffold(
             topBar = {
                 CenterAlignedTopAppBar(
@@ -112,11 +138,11 @@ fun DetailScreen(
         return
     }
 
-    val startIndex = remember(names) {
-        names.indexOfFirst { it.number == startNumber }.coerceAtLeast(0)
+    val startIndex = remember(pages) {
+        pages.indexOfFirst { it.number == startNumber }.coerceAtLeast(0)
     }
-    val pagerState = rememberPagerState(initialPage = startIndex) { names.size }
-    val current = names[pagerState.currentPage]
+    val pagerState = rememberPagerState(initialPage = startIndex) { pages.size }
+    val current = pages[pagerState.currentPage.coerceIn(0, pages.lastIndex)]
     val haptics = rememberHaptics()
 
     // A featherweight tick as each page settles — like a bead slipping past.
@@ -147,7 +173,13 @@ fun DetailScreen(
                     containerColor = MaterialTheme.colorScheme.background,
                 ),
                 title = {
-                    ScreenLabel(stringResource(R.string.detail_counter, current.number))
+                    ScreenLabel(
+                        stringResource(
+                            R.string.detail_counter,
+                            pagerState.currentPage + 1,
+                            pages.size,
+                        )
+                    )
                 },
                 navigationIcon = { BackButton(onBack) },
                 // Keeping, then sending: the inward act sits inside, and Share
@@ -177,16 +209,16 @@ fun DetailScreen(
                 .graphicsLayer { alpha = enterAlpha },
         ) { page ->
             NamePage(
-                name = names[page],
-                learned = names[page].number in learned,
+                name = pages[page],
+                learned = pages[page].number in learned,
                 onToggleLearned = {
-                    val number = names[page].number
+                    val number = pages[page].number
                     viewModel.setLearned(number, number !in learned)
                 },
                 pagerState = pagerState,
                 page = page,
-                previousLabel = names.getOrNull(page - 1)?.transliteration,
-                nextLabel = names.getOrNull(page + 1)?.transliteration,
+                previousLabel = pages.getOrNull(page - 1)?.transliteration,
+                nextLabel = pages.getOrNull(page + 1)?.transliteration,
                 // Pages dim slightly while in motion, then settle to full
                 // presence. Read inside the layer block so a swipe redraws
                 // rather than recomposing every visible page each frame.

@@ -82,7 +82,6 @@ fun HomeScreen(
     val names by viewModel.names.collectAsStateWithLifecycle()
     val namesLoaded by viewModel.namesLoaded.collectAsStateWithLifecycle()
     val learned by viewModel.learned.collectAsStateWithLifecycle()
-    val bookmarked by viewModel.bookmarked.collectAsStateWithLifecycle()
     val query by viewModel.searchQuery.collectAsStateWithLifecycle()
 
     var searching by rememberSaveable { mutableStateOf(false) }
@@ -212,7 +211,6 @@ fun HomeScreen(
                     name = name,
                     learned = name.number in learned,
                     onClick = { onNameClick(name.number) },
-                    bookmarked = name.number in bookmarked,
                 )
                 HorizontalDivider(
                     modifier = Modifier.padding(start = dividerInset, end = NameRowInset),

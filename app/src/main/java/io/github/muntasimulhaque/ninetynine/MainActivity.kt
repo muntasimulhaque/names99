@@ -112,6 +112,10 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+/** Which list a name page pages through. Absent means all 99. */
+private const val SCOPE_ALL = "all"
+private const val SCOPE_BOOKMARKS = "bookmarks"
+
 private data class TopLevelRoute(
     val route: String,
     val labelRes: Int,
@@ -174,13 +178,25 @@ private fun App(startNumber: Int, onStartNumberConsumed: () -> Unit) {
                         onSettings = { navController.navigate("settings") },
                     )
                 }
+                // The scope says which list the reader arrived from, and so
+                // which list the chevrons walk. Optional, so every existing
+                // entry point — the names list, the widget, the notification —
+                // keeps landing on all 99 without saying anything.
                 composable(
-                    "detail/{number}",
-                    arguments = listOf(navArgument("number") { type = NavType.IntType }),
+                    "detail/{number}?scope={scope}",
+                    arguments = listOf(
+                        navArgument("number") { type = NavType.IntType },
+                        navArgument("scope") {
+                            type = NavType.StringType
+                            defaultValue = SCOPE_ALL
+                        },
+                    ),
                 ) { entry ->
                     DetailScreen(
                         viewModel = viewModel,
                         startNumber = entry.arguments?.getInt("number") ?: 1,
+                        bookmarksOnly =
+                            entry.arguments?.getString("scope") == SCOPE_BOOKMARKS,
                         onBack = { navController.popBackStack() },
                     )
                 }
@@ -195,11 +211,11 @@ private fun App(startNumber: Int, onStartNumberConsumed: () -> Unit) {
                 composable("bookmarks", enterTransition = tabFade, exitTransition = tabFadeOut) {
                     BookmarksScreen(
                         viewModel = viewModel,
-                        // The ordinary pager over all 99, opened at this name —
-                        // not a bookmarks-only one, which would make "N OF 99"
-                        // and the prev/next labels mean two different things
-                        // depending on how the reader arrived.
-                        onNameClick = { number -> navController.navigate("detail/$number") },
+                        // Paged within the kept names, not across all 99: the
+                        // chevrons should walk the list you are looking at.
+                        onNameClick = { number ->
+                            navController.navigate("detail/$number?scope=$SCOPE_BOOKMARKS")
+                        },
                         onSettings = { navController.navigate("settings") },
                     )
                 }

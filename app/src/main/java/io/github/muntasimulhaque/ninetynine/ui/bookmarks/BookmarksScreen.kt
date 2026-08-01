@@ -83,10 +83,6 @@ fun BookmarksScreen(
                     name = name,
                     learned = name.number in learned,
                     onClick = { onNameClick(name.number) },
-                    // Deliberately not marked: every row here is kept, so the
-                    // ribbon would draw a solid bar down the page and a screen
-                    // reader would say "bookmarked" ninety-nine times.
-                    bookmarked = false,
                 )
                 HorizontalDivider(
                     modifier = Modifier.padding(start = dividerInset, end = NameRowInset),

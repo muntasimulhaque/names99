@@ -1,4 +1,4 @@
-# Ninety Nine
+# The Ninety Nine Names of Allah
 
 A free, open-source, native Android app for reading and memorizing Al-Asma ul-Husna — the ninety nine names of Allah — with Arabic, transliteration, and meanings.
 

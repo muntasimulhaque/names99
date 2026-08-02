@@ -65,6 +65,7 @@ import io.github.muntasimulhaque.ninetynine.data.Name
 import io.github.muntasimulhaque.ninetynine.ui.NamesViewModel
 import io.github.muntasimulhaque.ninetynine.ui.share.ShareSheet
 import io.github.muntasimulhaque.ninetynine.ui.theme.Motion
+import io.github.muntasimulhaque.ninetynine.ui.theme.LocalMotionScale
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.ArabicSize
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.ArabicText
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.BackButton
@@ -165,7 +166,13 @@ fun DetailScreen(
     val startIndex = remember(pages) {
         pages.indexOfFirst { it.number == startNumber }.coerceAtLeast(0)
     }
-    val pagerState = rememberPagerState(initialPage = startIndex) { pages.size }
+    // The pager's initial page is saved so rotation restores the reader to
+    // the page they were on, not the page they entered from.
+    var savedPage by rememberSaveable { mutableStateOf(startIndex) }
+    val pagerState = rememberPagerState(initialPage = savedPage) { pages.size }
+    LaunchedEffect(pagerState) {
+        snapshotFlow { pagerState.currentPage }.collect { savedPage = it }
+    }
     val current = pages[pagerState.currentPage.coerceIn(0, pages.lastIndex)]
     val haptics = rememberHaptics()
 
@@ -186,7 +193,7 @@ fun DetailScreen(
     LaunchedEffect(Unit) { entered = true }
     val enterAlpha by animateFloatAsState(
         targetValue = if (entered) 1f else 0f,
-        animationSpec = tween(Motion.CALM),
+        animationSpec = Motion.tween(Motion.CALM),
         label = "detailEnter",
     )
 
@@ -279,12 +286,13 @@ private fun BookmarkAction(bookmarked: Boolean, number: Int, onToggle: () -> Uni
     // new number adopts its state silently, and only a toggle pops.
     val scale = remember { Animatable(1f) }
     val seededFor = remember { mutableStateOf<Int?>(null) }
+    val motionScale = LocalMotionScale.current
     LaunchedEffect(number, bookmarked) {
         if (seededFor.value != number) {
             seededFor.value = number
         } else {
             scale.snapTo(0.94f)
-            scale.animateTo(1f, Motion.lively())
+            scale.animateTo(1f, Motion.livelySpec(motionScale))
         }
     }
 
@@ -451,7 +459,7 @@ private fun NamePage(
         // a quiet invitation to keep reading. Gone once the end is reached.
         val fadeAlpha by animateFloatAsState(
             targetValue = if (scrollState.canScrollForward) 1f else 0f,
-            animationSpec = tween(Motion.QUICK),
+            animationSpec = Motion.tween(Motion.QUICK),
             label = "edgeFade",
         )
         val paper = MaterialTheme.colorScheme.background

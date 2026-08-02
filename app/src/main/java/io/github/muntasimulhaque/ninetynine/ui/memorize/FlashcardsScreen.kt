@@ -1,6 +1,5 @@
 package io.github.muntasimulhaque.ninetynine.ui.memorize
 
-import android.app.Application
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
@@ -67,7 +66,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import io.github.muntasimulhaque.ninetynine.R
@@ -78,6 +77,7 @@ import io.github.muntasimulhaque.ninetynine.ui.theme.HeroGold
 import io.github.muntasimulhaque.ninetynine.ui.theme.HeroSubtext
 import io.github.muntasimulhaque.ninetynine.ui.theme.HeroText
 import io.github.muntasimulhaque.ninetynine.ui.theme.Motion
+import io.github.muntasimulhaque.ninetynine.ui.theme.LocalMotionScale
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.ArabicSize
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.ArabicText
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.BackButton
@@ -90,7 +90,7 @@ import io.github.muntasimulhaque.ninetynine.util.DeckBuilder
 import kotlinx.coroutines.launch
 
 /** Session state for one flashcard run; survives rotation with the ViewModel. */
-class FlashcardsViewModel(application: Application) : AndroidViewModel(application) {
+class FlashcardsViewModel : ViewModel() {
 
     var deck by mutableStateOf<List<Int>>(emptyList()); private set
     var index by mutableIntStateOf(0); private set
@@ -157,9 +157,11 @@ fun FlashcardsScreen(
     val names by viewModel.names.collectAsStateWithLifecycle()
     val namesLoaded by viewModel.namesLoaded.collectAsStateWithLifecycle()
     val learned by viewModel.learned.collectAsStateWithLifecycle()
+    val learnedLoaded by viewModel.learnedLoaded.collectAsStateWithLifecycle()
     val includeLearned by viewModel.includeLearned.collectAsStateWithLifecycle()
 
-    LaunchedEffect(names, includeLearned) {
+    LaunchedEffect(names, learned, learnedLoaded, includeLearned) {
+        if (!learnedLoaded) return@LaunchedEffect
         session.ensureDeck(names, learned, includeLearned)
     }
 
@@ -417,13 +419,14 @@ private fun SwipeFlipCard(
 
     // Each card arrives with a soft rise (keyed to the card's own offset state).
     val appear = remember(offsetX) { Animatable(0f) }
+    val motionScale = LocalMotionScale.current
     LaunchedEffect(offsetX) {
-        appear.animateTo(1f, tween(Motion.GENTLE, easing = Motion.Settle))
+        appear.animateTo(1f, Motion.spec(motionScale, Motion.GENTLE, Motion.Settle))
     }
 
     val rotation by animateFloatAsState(
         targetValue = if (flipped) 180f else 0f,
-        animationSpec = tween(Motion.GENTLE),
+        animationSpec = Motion.tween(Motion.GENTLE),
         label = "flip",
     )
 
@@ -464,11 +467,11 @@ private fun SwipeFlipCard(
                         when {
                             offsetX.value > threshold -> onDragCommit(true)
                             offsetX.value < -threshold -> onDragCommit(false)
-                            else -> scope.launch { offsetX.animateTo(0f, Motion.soft()) }
+                            else -> scope.launch { offsetX.animateTo(0f, Motion.softSpec(motionScale)) }
                         }
                     },
                     onDragCancel = {
-                        scope.launch { offsetX.animateTo(0f, Motion.soft()) }
+                        scope.launch { offsetX.animateTo(0f, Motion.softSpec(motionScale)) }
                     },
                 ) { change, amount ->
                     change.consume()

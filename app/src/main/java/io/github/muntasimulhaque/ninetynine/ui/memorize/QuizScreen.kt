@@ -1,6 +1,5 @@
 package io.github.muntasimulhaque.ninetynine.ui.memorize
 
-import android.app.Application
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
@@ -52,7 +51,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import io.github.muntasimulhaque.ninetynine.R
@@ -77,7 +76,7 @@ import io.github.muntasimulhaque.ninetynine.util.QuizBuilder
 import io.github.muntasimulhaque.ninetynine.util.QuizQuestion
 
 /** Session state for one quiz round; survives rotation with the ViewModel. */
-class QuizViewModel(application: Application) : AndroidViewModel(application) {
+class QuizViewModel : ViewModel() {
 
     var questions by mutableStateOf<List<QuizQuestion>>(emptyList()); private set
     var index by mutableIntStateOf(0); private set
@@ -139,9 +138,13 @@ fun QuizScreen(
     val names by viewModel.names.collectAsStateWithLifecycle()
     val namesLoaded by viewModel.namesLoaded.collectAsStateWithLifecycle()
     val learned by viewModel.learned.collectAsStateWithLifecycle()
+    val learnedLoaded by viewModel.learnedLoaded.collectAsStateWithLifecycle()
     val quizBest by viewModel.quizBest.collectAsStateWithLifecycle()
 
-    LaunchedEffect(names, learned) { quiz.ensureQuiz(names, learned) }
+    LaunchedEffect(names, learned, learnedLoaded) {
+        if (!learnedLoaded) return@LaunchedEffect
+        quiz.ensureQuiz(names, learned)
+    }
     LaunchedEffect(quiz.finished) {
         if (quiz.finished) viewModel.setQuizBest(quiz.score)
     }
@@ -331,7 +334,7 @@ private fun OptionButton(
             OptionState.WRONG -> colors.errorContainer
             else -> colors.surface
         },
-        animationSpec = tween(Motion.QUICK),
+        animationSpec = Motion.tween(Motion.QUICK),
         label = "optionContainer",
     )
     val (content, border) = when (state) {
@@ -379,7 +382,7 @@ private fun OptionButton(
             )
             AnimatedVisibility(
                 visible = state == OptionState.CORRECT || state == OptionState.WRONG,
-                enter = fadeIn(tween(Motion.QUICK)) +
+                enter = fadeIn(Motion.tween(Motion.QUICK)) +
                     scaleIn(Motion.lively(), initialScale = 0.4f),
             ) {
                 when (state) {

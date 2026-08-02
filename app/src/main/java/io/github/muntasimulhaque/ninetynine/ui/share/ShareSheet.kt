@@ -3,6 +3,7 @@ package io.github.muntasimulhaque.ninetynine.ui.share
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
@@ -30,6 +31,7 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -56,6 +58,8 @@ import io.github.muntasimulhaque.ninetynine.ui.theme.HeroContainer
 import io.github.muntasimulhaque.ninetynine.ui.theme.HeroGold
 import io.github.muntasimulhaque.ninetynine.ui.theme.HeroSubtext
 import io.github.muntasimulhaque.ninetynine.ui.theme.HeroText
+import io.github.muntasimulhaque.ninetynine.ui.theme.LocalTextScale
+import io.github.muntasimulhaque.ninetynine.ui.theme.appTypography
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.ArabicSize
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.ArabicText
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.FitText
@@ -106,7 +110,13 @@ fun ShareSheet(name: Name, onDismiss: () -> Unit) {
                         drawLayer(graphicsLayer)
                     }
                 ) {
-                    ShareCard(name = name, modifier = Modifier.fillMaxWidth())
+                    // The exported image is a public artifact — render at the
+                    // design-intended scale regardless of the reader's slider.
+                    CompositionLocalProvider(LocalTextScale provides 1f) {
+                        MaterialTheme(typography = appTypography(1f)) {
+                            ShareCard(name = name, modifier = Modifier.fillMaxWidth())
+                        }
+                    }
                 }
             }
             Spacer(Modifier.height(20.dp))
@@ -115,12 +125,16 @@ fun ShareSheet(name: Name, onDismiss: () -> Unit) {
                 onClick = {
                     scope.launch {
                         sharing = true
-                        runCatching {
+                        val result = runCatching {
                             val bitmap = graphicsLayer.toImageBitmap()
                             shareNameImage(context, bitmap, name)
                         }
                         sharing = false
-                        onDismiss()
+                        if (result.isSuccess) {
+                            onDismiss()
+                        } else {
+                            Toast.makeText(context, R.string.share_failed, Toast.LENGTH_SHORT).show()
+                        }
                     }
                 },
             ) {

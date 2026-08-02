@@ -74,6 +74,7 @@ import io.github.muntasimulhaque.ninetynine.ui.memorize.MemorizeScreen
 import io.github.muntasimulhaque.ninetynine.ui.memorize.QuizScreen
 import io.github.muntasimulhaque.ninetynine.ui.settings.SettingsScreen
 import io.github.muntasimulhaque.ninetynine.ui.theme.Motion
+import io.github.muntasimulhaque.ninetynine.ui.theme.LocalMotionScale
 import io.github.muntasimulhaque.ninetynine.ui.theme.Names99Theme
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.FitText
 import kotlinx.coroutines.launch
@@ -185,20 +186,21 @@ private fun App(startNumber: Int, onStartNumberConsumed: () -> Unit) {
         }
 
         Column(Modifier.fillMaxSize()) {
+            val motionScale = LocalMotionScale.current
             NavHost(
                 navController = navController,
                 startDestination = "names",
                 modifier = Modifier.weight(1f),
                 // Pushed screens rise gently into place; pops sink away.
                 enterTransition = {
-                    fadeIn(tween(Motion.GENTLE, easing = Motion.Settle)) +
-                        slideInVertically(tween(Motion.GENTLE, easing = Motion.Settle)) { it / 24 }
+                    fadeIn(Motion.spec(motionScale, Motion.GENTLE, easing = Motion.Settle)) +
+                        slideInVertically(Motion.spec(motionScale, Motion.GENTLE, easing = Motion.Settle)) { it / 24 }
                 },
-                exitTransition = { fadeOut(tween(Motion.QUICK)) },
-                popEnterTransition = { fadeIn(tween(Motion.GENTLE)) },
+                exitTransition = { fadeOut(Motion.spec(motionScale, Motion.QUICK)) },
+                popEnterTransition = { fadeIn(Motion.spec(motionScale, Motion.GENTLE)) },
                 popExitTransition = {
-                    fadeOut(tween(Motion.GENTLE)) +
-                        slideOutVertically(tween(Motion.GENTLE, easing = Motion.Settle)) { it / 24 }
+                    fadeOut(Motion.spec(motionScale, Motion.GENTLE)) +
+                        slideOutVertically(Motion.spec(motionScale, Motion.GENTLE, easing = Motion.Settle)) { it / 24 }
                 },
             ) {
                 composable("names", enterTransition = tabFade, exitTransition = tabFadeOut) {
@@ -287,8 +289,8 @@ private fun App(startNumber: Int, onStartNumberConsumed: () -> Unit) {
             }
             AnimatedVisibility(
                 visible = showBottomBar,
-                enter = fadeIn(tween(Motion.QUICK)) + slideInVertically(tween(Motion.GENTLE)) { it },
-                exit = fadeOut(tween(Motion.QUICK)) + slideOutVertically(tween(Motion.GENTLE)) { it },
+                enter = fadeIn(Motion.tween(Motion.QUICK)) + slideInVertically(Motion.tween(Motion.GENTLE)) { it },
+                exit = fadeOut(Motion.tween(Motion.QUICK)) + slideOutVertically(Motion.tween(Motion.GENTLE)) { it },
             ) {
                 QuietBottomBar(
                 navController = navController,
@@ -310,13 +312,13 @@ private fun App(startNumber: Int, onStartNumberConsumed: () -> Unit) {
 private val tabFade:
     (androidx.compose.animation.AnimatedContentTransitionScope<androidx.navigation.NavBackStackEntry>.() ->
     androidx.compose.animation.EnterTransition?) = {
-    fadeIn(tween(Motion.GENTLE))
+    fadeIn(androidx.compose.animation.core.tween(Motion.GENTLE))
 }
 
 private val tabFadeOut:
     (androidx.compose.animation.AnimatedContentTransitionScope<androidx.navigation.NavBackStackEntry>.() ->
     androidx.compose.animation.ExitTransition?) = {
-    fadeOut(tween(Motion.QUICK))
+    fadeOut(androidx.compose.animation.core.tween(Motion.QUICK))
 }
 
 /**
@@ -356,7 +358,7 @@ private fun QuietBottomBar(
                     val tint by animateColorAsState(
                         targetValue = if (selected) MaterialTheme.colorScheme.primary
                         else MaterialTheme.colorScheme.onSurfaceVariant,
-                        animationSpec = tween(Motion.QUICK),
+                        animationSpec = Motion.tween(Motion.QUICK),
                         label = "tabTint",
                     )
                     Column(

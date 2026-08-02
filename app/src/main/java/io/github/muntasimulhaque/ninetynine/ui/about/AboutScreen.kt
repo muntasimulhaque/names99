@@ -3,6 +3,7 @@ package io.github.muntasimulhaque.ninetynine.ui.about
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.widget.Toast
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Column
@@ -84,7 +85,7 @@ fun AboutScreen(onBack: () -> Unit) {
     LaunchedEffect(Unit) { entered = true }
     val enterAlpha by animateFloatAsState(
         targetValue = if (entered) 1f else 0f,
-        animationSpec = tween(Motion.CALM),
+        animationSpec = Motion.tween(Motion.CALM),
         label = "aboutEnter",
     )
 
@@ -285,6 +286,7 @@ private fun LinkRow(labelRes: Int, onClick: () -> Unit) {
 
 private fun Context.openUrl(url: String) {
     runCatching { startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) }
+        .onFailure { Toast.makeText(this, R.string.link_failed, Toast.LENGTH_SHORT).show() }
 }
 
 /**
@@ -308,5 +310,5 @@ private fun Context.sendFeedback() {
             Intent(Intent.ACTION_SENDTO, Uri.parse("mailto:$to"))
                 .putExtra(Intent.EXTRA_SUBJECT, subject)
         )
-    }
+    }.onFailure { Toast.makeText(this, R.string.link_failed, Toast.LENGTH_SHORT).show() }
 }

@@ -89,6 +89,8 @@
     <string name="cd_share">Share this name</string>
     <string name="share_title">Share this name</string>
     <string name="share_image">Share image</string>
+    <string name="share_failed">Couldn\u2019t create the image.</string>
+    <string name="link_failed">Couldn\u2019t open the link.</string>
 
     <!-- Memorize -->
     <string name="flashcards">Flashcards</string>

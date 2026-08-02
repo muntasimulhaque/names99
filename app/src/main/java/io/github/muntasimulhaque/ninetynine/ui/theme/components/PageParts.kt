@@ -28,6 +28,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.rememberTextMeasurer
@@ -52,7 +54,7 @@ fun SectionLabel(text: String, modifier: Modifier = Modifier) {
         text = text.uppercase(),
         style = MaterialTheme.typography.labelMedium,
         color = MaterialTheme.colorScheme.secondary,
-        modifier = modifier,
+        modifier = modifier.semantics { heading() },
     )
 }
 
@@ -66,7 +68,7 @@ fun ScreenLabel(text: String, modifier: Modifier = Modifier) {
         text = text.uppercase(),
         style = MaterialTheme.typography.labelMedium,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
-        modifier = modifier,
+        modifier = modifier.semantics { heading() },
     )
 }
 

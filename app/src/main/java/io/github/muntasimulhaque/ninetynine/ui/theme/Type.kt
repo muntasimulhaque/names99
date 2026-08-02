@@ -6,6 +6,7 @@ import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.isSpecified
 import androidx.compose.ui.unit.sp
 import io.github.muntasimulhaque.ninetynine.R
 
@@ -25,6 +26,7 @@ val SpectralFamily = FontFamily(
     Font(R.font.spectral_medium, FontWeight.Medium),
     Font(R.font.spectral_semibold, FontWeight.SemiBold),
     Font(R.font.spectral_italic, FontWeight.Normal, FontStyle.Italic),
+    Font(R.font.spectral_mediumitalic, FontWeight.Medium, FontStyle.Italic),
 )
 
 /*
@@ -143,7 +145,11 @@ private val BaseTypography = Typography(
 )
 
 private fun TextStyle.scaled(factor: Float): TextStyle =
-    copy(fontSize = fontSize * factor, lineHeight = lineHeight * factor)
+    copy(
+        fontSize = fontSize * factor,
+        lineHeight = lineHeight * factor,
+        letterSpacing = if (letterSpacing.isSpecified) letterSpacing * factor else letterSpacing,
+    )
 
 /** Typography with every size multiplied by the user's text-scale preference. */
 fun appTypography(scale: Float): Typography {

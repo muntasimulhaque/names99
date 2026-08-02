@@ -39,7 +39,18 @@ class NamesViewModel(application: Application) : AndroidViewModel(application) {
     }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val learned: StateFlow<Set<Int>> = prefs.learned
+        .onEach { _learnedLoaded.value = true }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptySet())
+
+    private val _learnedLoaded = MutableStateFlow(false)
+
+    /**
+     * False only while DataStore is still delivering its first value. An empty
+     * learned set is otherwise indistinguishable from "not read yet", and the
+     * flashcard deck and quiz both need to know the difference — building
+     * either before DataStore arrives silently drops the learned filter.
+     */
+    val learnedLoaded: StateFlow<Boolean> = _learnedLoaded.asStateFlow()
 
     private val _bookmarkedLoaded = MutableStateFlow(false)
 

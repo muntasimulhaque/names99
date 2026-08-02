@@ -34,6 +34,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import io.github.muntasimulhaque.ninetynine.R
 import io.github.muntasimulhaque.ninetynine.ui.theme.Motion
+import io.github.muntasimulhaque.ninetynine.ui.theme.LocalMotionScale
 import io.github.muntasimulhaque.ninetynine.ui.theme.rememberHaptics
 
 /**
@@ -51,29 +52,30 @@ fun LearnedButton(
 
     val container by animateColorAsState(
         targetValue = if (learned) colors.primaryContainer else colors.surface,
-        animationSpec = tween(Motion.QUICK),
+        animationSpec = Motion.tween(Motion.QUICK),
         label = "learnedContainer",
     )
     val content by animateColorAsState(
         targetValue = if (learned) colors.onPrimaryContainer else colors.onSurfaceVariant,
-        animationSpec = tween(Motion.QUICK),
+        animationSpec = Motion.tween(Motion.QUICK),
         label = "learnedContent",
     )
     val border by animateColorAsState(
         targetValue = if (learned) colors.primaryContainer else colors.outline,
-        animationSpec = tween(Motion.QUICK),
+        animationSpec = Motion.tween(Motion.QUICK),
         label = "learnedBorder",
     )
 
     // A soft pop each time the state actually changes (not on first show).
     val scale = remember { Animatable(1f) }
     val seeded = remember { mutableStateOf(false) }
+    val motionScale = LocalMotionScale.current
     LaunchedEffect(learned) {
         if (!seeded.value) {
             seeded.value = true
         } else {
             scale.snapTo(0.94f)
-            scale.animateTo(1f, Motion.lively())
+            scale.animateTo(1f, Motion.livelySpec(motionScale))
         }
     }
 
@@ -102,8 +104,8 @@ fun LearnedButton(
         ) {
             AnimatedVisibility(
                 visible = learned,
-                enter = fadeIn(tween(Motion.QUICK)) + expandHorizontally(tween(Motion.QUICK)),
-                exit = fadeOut(tween(Motion.QUICK)) + shrinkHorizontally(tween(Motion.QUICK)),
+                enter = fadeIn(Motion.tween(Motion.QUICK)) + expandHorizontally(Motion.tween(Motion.QUICK)),
+                exit = fadeOut(Motion.tween(Motion.QUICK)) + shrinkHorizontally(Motion.tween(Motion.QUICK)),
             ) {
                 Row {
                     Icon(

@@ -1,12 +1,15 @@
 package io.github.muntasimulhaque.ninetynine.ui.theme
 
 import android.app.Activity
+import android.provider.Settings
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 import io.github.muntasimulhaque.ninetynine.data.ThemeMode
@@ -50,11 +53,23 @@ fun Names99Theme(
     }
 
     CompositionLocalProvider(LocalTextScale provides textScale) {
-        MaterialTheme(
-            colorScheme = colors,
-            typography = appTypography(textScale),
-            shapes = AppShapes,
-            content = content,
-        )
+        // Read the system animator scale so Motion can collapse to snap()
+        // when the user has turned animations off.
+        val context = LocalContext.current
+        val motionScale = remember {
+            Settings.Global.getFloat(
+                context.contentResolver,
+                Settings.Global.ANIMATOR_DURATION_SCALE,
+                1f,
+            )
+        }
+        CompositionLocalProvider(LocalMotionScale provides motionScale) {
+            MaterialTheme(
+                colorScheme = colors,
+                typography = appTypography(textScale),
+                shapes = AppShapes,
+                content = content,
+            )
+        }
     }
 }

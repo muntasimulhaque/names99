@@ -203,8 +203,8 @@ fun SettingsScreen(
             }
             AnimatedVisibility(
                 visible = dailyEnabled,
-                enter = fadeIn(tween(Motion.GENTLE)) + expandVertically(tween(Motion.GENTLE)),
-                exit = fadeOut(tween(Motion.QUICK)) + shrinkVertically(tween(Motion.QUICK)),
+                enter = fadeIn(Motion.tween(Motion.GENTLE)) + expandVertically(Motion.tween(Motion.GENTLE)),
+                exit = fadeOut(Motion.tween(Motion.QUICK)) + shrinkVertically(Motion.tween(Motion.QUICK)),
             ) {
                 Row(
                     modifier = Modifier
@@ -385,7 +385,7 @@ private fun ThemeOption(
     // Fading the check keeps the row from shifting as the choice moves.
     val checkAlpha by animateFloatAsState(
         targetValue = if (selected) 1f else 0f,
-        animationSpec = tween(Motion.QUICK),
+        animationSpec = Motion.tween(Motion.QUICK),
         label = "themeCheck",
     )
     Row(

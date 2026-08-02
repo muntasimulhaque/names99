@@ -13,6 +13,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -31,9 +32,12 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.isSpecified
+import androidx.compose.ui.unit.times
 import io.github.muntasimulhaque.ninetynine.R
+import io.github.muntasimulhaque.ninetynine.ui.theme.LocalTextScale
 
 /*
  * The furniture every page is built from. Kept in one place so Memorize,
@@ -85,6 +89,26 @@ fun paperTopBarColors(): TopAppBarColors = TopAppBarDefaults.topAppBarColors(
  * to offer. A gear present on some tabs and missing from others would be worse
  * than either extreme.
  */
+/**
+ * The way to About from a tab screen.
+ *
+ * About is content, not configuration — the source it is drawn from, the
+ * typefaces, the du'a, the hadith the whole app exists for. Reaching it took
+ * Names → gear → About → About, so most readers never would. It sits to the
+ * LEFT of the gear because the gear is the fixed corner of every tab bar, and
+ * because About is the lighter of the two. The Settings row to it stays: a
+ * second path costs nothing.
+ */
+@Composable
+fun AboutAction(onClick: () -> Unit) {
+    IconButton(onClick = onClick) {
+        Icon(
+            Icons.Outlined.Info,
+            contentDescription = stringResource(R.string.about),
+        )
+    }
+}
+
 @Composable
 fun SettingsAction(onClick: () -> Unit) {
     IconButton(onClick = onClick) {
@@ -184,6 +208,36 @@ fun PageMessage(text: String) {
         )
     }
 }
+
+/**
+ * The width a column of prose is allowed to reach.
+ *
+ * In ems, not dp, and it moves with the reading scale. Fixed at 560dp it gave
+ * **87 characters a line** at the smallest text setting and 53 at the largest —
+ * Spectral Regular averages 0.4475 em per character across the 99 meanings, so
+ * the measure swung by two thirds while the book range is 60–66. The worst of
+ * it fell on the reader who *chose* smaller text, often precisely to fit more
+ * on screen, and who got the longest line as a result.
+ *
+ * 65 × 0.4475 em × 17sp = 494dp at the default scale, and it grows from there,
+ * so the character count holds at every slider position. Only binds on tablets
+ * and unfolded foldables; a phone column is narrower than this anyway.
+ */
+@Composable
+fun readingMeasure(): Dp = (494 * LocalTextScale.current).dp
+
+/**
+ * A gap that grows with the type it separates.
+ *
+ * Every space in the app was a dp constant while only the type responded to the
+ * reading slider, so at 1.4x the text was 40% larger and the air between blocks
+ * was unchanged — the page tightened exactly when the reader had asked for
+ * room, and About's paragraphs began to read as one block. For structural gaps
+ * only: touch targets and chrome padding stay fixed, because those answer to
+ * the finger rather than to the text.
+ */
+@Composable
+fun scaledGap(base: Dp): Dp = base * LocalTextScale.current
 
 /** The thinnest rule the screen can draw — separates matter, never decorates. */
 @Composable

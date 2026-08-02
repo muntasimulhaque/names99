@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
@@ -68,6 +69,7 @@ import io.github.muntasimulhaque.ninetynine.ui.theme.components.FitText
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.NameListItem
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.NameRowInset
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.PageMessage
+import io.github.muntasimulhaque.ninetynine.ui.theme.components.AboutAction
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.SettingsAction
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.nameRowTextInset
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.paperTopBarColors
@@ -79,6 +81,8 @@ fun HomeScreen(
     viewModel: NamesViewModel,
     onNameClick: (Int) -> Unit,
     onSettings: () -> Unit,
+    onAbout: () -> Unit,
+    listState: LazyListState,
 ) {
     val names by viewModel.names.collectAsStateWithLifecycle()
     val namesLoaded by viewModel.namesLoaded.collectAsStateWithLifecycle()
@@ -175,8 +179,10 @@ fun HomeScreen(
                                 contentDescription = stringResource(R.string.cd_search),
                             )
                         }
-                        // Last in the bar, as on every tab screen. Absent while
-                        // searching, which is a mode, not a place.
+                        // About then the gear, last in the bar, as on every tab
+                        // screen. Absent while searching, which is a mode, not
+                        // a place.
+                        AboutAction(onAbout)
                         SettingsAction(onSettings)
                     }
                 },
@@ -192,6 +198,7 @@ fun HomeScreen(
         // The rule between rows starts where the names do, not under their numbers.
         val dividerInset = nameRowTextInset()
         LazyColumn(
+            state = listState,
             contentPadding = contentPadding,
             modifier = Modifier.fillMaxSize(),
         ) {
@@ -231,24 +238,33 @@ fun HomeScreen(
  * height is fixed, so wrapping would clip it too — it shrinks to fit.
  *
  * Material measures a top bar's title with the width left over after the
- * navigation icon and the actions, so the two buttons on the right are already
- * accounted for. The floor is 0.27 rather than the usual 0.55 because the worst
- * case is real: "The Ninety Nine Names of Allah" is 14.864 em in Spectral
- * SemiBold, so on a 320dp screen with the in-app slider at 1.4x on top of a 2.0
- * system font scale it needs 791dp of the 220dp available — a scale of 0.278.
+ * navigation icon and the actions, so the three buttons on the right are
+ * already accounted for. Each one costs 48dp, which on a Pixel 4 leaves 247dp
+ * of the 343dp bar.
  *
- * That 220dp is the 268dp this bar had with one action, less the 48dp the
- * settings gear takes; the floor moved 0.32 -> 0.27 when the gear arrived. At
- * ordinary sizes almost nothing moves: the name is 282dp of the 343dp bar on a
- * Pixel 4, so it never shrinks there, and a 360dp phone sets it at 0.92.
+ * Set at 0.85 of headlineSmall — about 16sp rather than 19. "The Ninety Nine
+ * Names of Allah" is 14.864 em in Spectral SemiBold, so at 19sp it needed 282dp
+ * and was shrinking to 0.875 on a Pixel 4 once About joined the bar; at 16sp it
+ * needs 240dp and renders whole there. It is a running head, and a running head
+ * is meant to be quieter than the page it sits over — a book sets them smaller
+ * than the body, so this is closer to right than 19sp was.
+ *
+ * The floor is 0.25 because the worst case is real: on a 320dp screen with the
+ * in-app slider at 1.4x on top of a 2.0 system font scale it needs 672dp of the
+ * 172dp available. It must never ellipsize — "The Ninety Nine Names of A…"
+ * would cut Allah's name, which is the whole reason the launcher label is the
+ * short form instead.
  */
+private const val RunningHeadScale = 0.85f
+
 @Composable
 private fun HomeTitle() {
+    val base = MaterialTheme.typography.headlineSmall
     FitText(
         text = stringResource(R.string.app_title),
-        style = MaterialTheme.typography.headlineSmall,
+        style = base.copy(fontSize = base.fontSize * RunningHeadScale),
         color = MaterialTheme.colorScheme.onSurface,
-        minScale = 0.27f,
+        minScale = 0.25f,
     )
 }
 
@@ -300,7 +316,7 @@ private fun DailyHeroCard(name: Name, onClick: () -> Unit) {
             // — which is the one thing the app is careful never to do.
             FitText(
                 text = name.transliteration,
-                style = MaterialTheme.typography.displaySmall.copy(
+                style = MaterialTheme.typography.displayMedium.copy(
                     textAlign = TextAlign.Center,
                 ),
                 color = HeroText,

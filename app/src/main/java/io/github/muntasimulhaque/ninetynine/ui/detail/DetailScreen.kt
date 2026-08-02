@@ -71,6 +71,8 @@ import io.github.muntasimulhaque.ninetynine.ui.theme.components.BackButton
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.LearnedButton
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.MixedText
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.PageMessage
+import io.github.muntasimulhaque.ninetynine.ui.theme.components.readingMeasure
+import io.github.muntasimulhaque.ninetynine.ui.theme.components.scaledGap
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.ScreenLabel
 import io.github.muntasimulhaque.ninetynine.ui.theme.rememberHaptics
 import kotlin.math.absoluteValue
@@ -362,18 +364,18 @@ private fun NamePage(
                     color = MaterialTheme.colorScheme.secondary,
                     textAlign = TextAlign.Center,
                 )
-                Spacer(Modifier.height(28.dp))
+                Spacer(Modifier.height(scaledGap(28.dp)))
                 Text(
                     text = name.meaning,
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurface,
                     textAlign = TextAlign.Start,
-                    modifier = Modifier.widthIn(max = 560.dp),
+                    modifier = Modifier.widthIn(max = readingMeasure()),
                 )
                 if (name.note != null) {
-                    Spacer(Modifier.height(26.dp))
+                    Spacer(Modifier.height(scaledGap(26.dp)))
                     Column(
-                        modifier = Modifier.widthIn(max = 560.dp),
+                        modifier = Modifier.widthIn(max = readingMeasure()),
                         horizontalAlignment = Alignment.Start,
                     ) {
                         Text(
@@ -420,14 +422,21 @@ private fun NamePage(
                     if (previousLabel != null) {
                         TextButton(onClick = { scope.launch { pagerState.animateScrollToPage(page - 1) } }) {
                             Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, contentDescription = null)
-                            Text(previousLabel, fontStyle = FontStyle.Italic)
+                            // Roman, not italic. Italic means epithet, gloss or
+                            // quote everywhere else in the app — the page above
+                            // has just taught the reader that — so setting a
+                            // Name in it says the wrong thing. titleSmall also
+                            // rescues these from TextButton's labelLarge, which
+                            // made the app's main keep-reading affordance the
+                            // smallest Latin on the page.
+                            Text(previousLabel, style = MaterialTheme.typography.titleSmall)
                         }
                     } else {
                         Spacer(Modifier.widthIn(min = 48.dp))
                     }
                     if (nextLabel != null) {
                         TextButton(onClick = { scope.launch { pagerState.animateScrollToPage(page + 1) } }) {
-                            Text(nextLabel, fontStyle = FontStyle.Italic)
+                            Text(nextLabel, style = MaterialTheme.typography.titleSmall)
                             Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null)
                         }
                     } else {

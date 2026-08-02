@@ -40,12 +40,23 @@ private val BaseTypography = Typography(
         lineHeight = 50.sp,
         letterSpacing = (-0.5).sp,
     ),
+    /**
+     * The card transliteration.
+     *
+     * Was 34sp and completely unused — a dead slot at the top of the display
+     * ramp — while the hero, quiz, flashcard and share cards all needed a Light
+     * face *between* titleLarge's 18 and displaySmall's 28, and the scale did
+     * not have one. Setting those cards at displaySmall left the Arabic only
+     * 1.43x the Latin, so on the home card the eye landed on the
+     * transliteration and the Name read as a caption above it. At 24 the same
+     * pairing is 2.0x and the Name leads, with no change to the Arabic.
+     */
     displayMedium = TextStyle(
         fontFamily = SpectralFamily,
         fontWeight = FontWeight.Light,
-        fontSize = 34.sp,
-        lineHeight = 42.sp,
-        letterSpacing = (-0.25).sp,
+        fontSize = 24.sp,
+        lineHeight = 32.sp,
+        letterSpacing = (-0.1).sp,
     ),
     displaySmall = TextStyle(
         fontFamily = SpectralFamily,

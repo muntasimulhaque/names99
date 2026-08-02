@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -26,6 +27,7 @@ import io.github.muntasimulhaque.ninetynine.ui.NamesViewModel
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.HairlineProgress
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.NavRow
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.PageRule
+import io.github.muntasimulhaque.ninetynine.ui.theme.components.AboutAction
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.SettingsAction
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.paperTopBarColors
 
@@ -36,6 +38,8 @@ fun MemorizeScreen(
     onFlashcards: () -> Unit,
     onQuiz: () -> Unit,
     onSettings: () -> Unit,
+    onAbout: () -> Unit,
+    onLearned: () -> Unit,
 ) {
     val learned by viewModel.learned.collectAsStateWithLifecycle()
     val quizBest by viewModel.quizBest.collectAsStateWithLifecycle()
@@ -51,7 +55,10 @@ fun MemorizeScreen(
                         style = MaterialTheme.typography.headlineSmall,
                     )
                 },
-                actions = { SettingsAction(onSettings) },
+                actions = {
+                    AboutAction(onAbout)
+                    SettingsAction(onSettings)
+                },
             )
         },
     ) { padding ->
@@ -64,8 +71,13 @@ fun MemorizeScreen(
         ) {
             Spacer(Modifier.height(20.dp))
             // Progress as typography: a big light number, a quiet caption,
-            // and a hairline of gold — no rings, no dashboards.
-            Row(verticalAlignment = Alignment.Bottom) {
+            // and a hairline of gold — no rings, no dashboards. The number is
+            // also the way in: it stood for a list the app never let anyone
+            // see, while the newer bookmarks axis had a whole tab.
+            Row(
+                verticalAlignment = Alignment.Bottom,
+                modifier = Modifier.clickable(onClick = onLearned),
+            ) {
                 Text(
                     text = learnedCount.toString(),
                     style = MaterialTheme.typography.displayLarge,

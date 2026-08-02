@@ -117,6 +117,29 @@ class FlashcardsViewModel(application: Application) : AndroidViewModel(applicati
         if (index < deck.lastIndex) index++ else done = true
     }
 
+    /**
+     * The name the last card committed, so a mis-swipe can be taken back.
+     *
+     * A right-swipe writes a learned tick and moves on, and there was no way
+     * back a card — the exact mirror of the guard that stops a left-swipe
+     * silently *removing* one. Cleared as soon as the next card is committed,
+     * so undo only ever reaches one step.
+     */
+    var undoable by mutableStateOf<Pair<Int, Boolean>?>(null); private set
+
+    fun recordCommit(number: Int, markedLearned: Boolean) {
+        undoable = number to markedLearned
+    }
+
+    fun undo(): Pair<Int, Boolean>? {
+        val last = undoable ?: return null
+        undoable = null
+        flipped = false
+        done = false
+        if (index > 0) index--
+        return last
+    }
+
     fun restart(names: List<Name>, learned: Set<Int>, includeLearned: Boolean) {
         deck = emptyList()
         lastInclude = null
@@ -213,9 +236,9 @@ fun FlashcardsScreen(
                             offsetX.animateTo(target, tween(240))
                             // A review pass only ever adds. "Still learning" must
                             // not quietly delete a tick the reader already earned.
-                            if (know && name.number !in learned) {
-                                viewModel.setLearned(name.number, true)
-                            }
+                            val marked = know && name.number !in learned
+                            if (marked) viewModel.setLearned(name.number, true)
+                            session.recordCommit(name.number, marked)
                             session.advance()
                         }
                     }
@@ -248,12 +271,33 @@ fun FlashcardsScreen(
                                 .onSizeChanged { cardWidth = it.width.toFloat() },
                         )
                     }
-                    Text(
-                        text = if (session.index == 0) stringResource(R.string.swipe_hint) else "",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        textAlign = TextAlign.Center,
-                    )
+                    // The hint on the first card; after that, the way back from
+                    // a mis-swipe. One line either way, so the row beneath the
+                    // card never changes height.
+                    val undoable = session.undoable
+                    if (session.index == 0 && undoable == null) {
+                        Text(
+                            text = stringResource(R.string.swipe_hint),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            textAlign = TextAlign.Center,
+                        )
+                    } else if (undoable != null) {
+                        TextButton(
+                            onClick = {
+                                session.undo()?.let { (number, wasMarked) ->
+                                    if (wasMarked) viewModel.setLearned(number, false)
+                                }
+                            },
+                        ) {
+                            Text(
+                                text = stringResource(R.string.undo_card),
+                                style = MaterialTheme.typography.bodySmall,
+                            )
+                        }
+                    } else {
+                        Text("", style = MaterialTheme.typography.bodySmall)
+                    }
                     Spacer(Modifier.height(12.dp))
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -461,7 +505,7 @@ private fun SwipeFlipCard(
                 Spacer(Modifier.height(12.dp))
                 Text(
                     text = name.transliteration,
-                    style = MaterialTheme.typography.displaySmall,
+                    style = MaterialTheme.typography.displayMedium,
                     color = HeroText,
                     textAlign = TextAlign.Center,
                 )

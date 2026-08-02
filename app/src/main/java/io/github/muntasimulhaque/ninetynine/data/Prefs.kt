@@ -66,7 +66,14 @@ class Prefs(private val context: Context) {
         val DAILY_MINUTE = intPreferencesKey("daily_minute")
         val QUIZ_BEST = intPreferencesKey("quiz_best")
         val INCLUDE_LEARNED = booleanPreferencesKey("include_learned")
+        val OPENED_BEFORE = booleanPreferencesKey("opened_before")
     }
+
+    /**
+     * False until the reader has been shown the opening once. A book's epigraph
+     * is passed once and never again.
+     */
+    val openedBefore: Flow<Boolean> = data.map { p -> p[Keys.OPENED_BEFORE] ?: false }
 
     val learned: Flow<Set<Int>> = data
         .map { p -> p[Keys.LEARNED]?.mapNotNull(String::toIntOrNull)?.toSet() ?: emptySet() }
@@ -146,4 +153,6 @@ class Prefs(private val context: Context) {
     }
 
     suspend fun setIncludeLearned(include: Boolean) = write { it[Keys.INCLUDE_LEARNED] = include }
+
+    suspend fun setOpenedBefore() = write { it[Keys.OPENED_BEFORE] = true }
 }

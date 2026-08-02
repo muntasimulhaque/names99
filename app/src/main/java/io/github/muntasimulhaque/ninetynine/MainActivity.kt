@@ -22,6 +22,8 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.material.icons.Icons
@@ -34,6 +36,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.setValue
@@ -66,6 +69,7 @@ import io.github.muntasimulhaque.ninetynine.ui.bookmarks.BookmarksScreen
 import io.github.muntasimulhaque.ninetynine.ui.detail.DetailScreen
 import io.github.muntasimulhaque.ninetynine.ui.home.HomeScreen
 import io.github.muntasimulhaque.ninetynine.ui.memorize.FlashcardsScreen
+import io.github.muntasimulhaque.ninetynine.ui.memorize.LearnedScreen
 import io.github.muntasimulhaque.ninetynine.ui.memorize.MemorizeScreen
 import io.github.muntasimulhaque.ninetynine.ui.memorize.QuizScreen
 import io.github.muntasimulhaque.ninetynine.ui.settings.SettingsScreen
@@ -156,12 +160,34 @@ private fun App(startNumber: Int, onStartNumberConsumed: () -> Unit) {
     val viewModel: NamesViewModel = viewModel()
     val themeMode by viewModel.themeMode.collectAsStateWithLifecycle()
     val textScale by viewModel.textScale.collectAsStateWithLifecycle()
+    val openedBefore by viewModel.openedBefore.collectAsStateWithLifecycle()
 
     Names99Theme(themeMode = themeMode, textScale = textScale) {
         val navController = rememberNavController()
         val backStackEntry by navController.currentBackStackEntryAsState()
         val currentRoute = backStackEntry?.destination?.route
         val showBottomBar = currentRoute in topLevelRoutes.map { it.route }
+
+        // A book opens on its epigraph. `intro.txt` carries the hadith this
+        // whole app exists for — "whoever enumerates them will enter paradise"
+        // — and it was three taps down behind a gear, so most readers would
+        // never have met it. Shown once, then never again. Not shown at all if
+        // the app was opened by tapping the widget or the notification: that
+        // reader asked for a specific name, and answering with something else
+        // would be rude.
+        LaunchedEffect(openedBefore, startNumber) {
+            if (openedBefore == false && startNumber !in 1..99) {
+                viewModel.markOpened()
+                navController.navigate("about")
+            }
+        }
+
+        // Re-tapping the tab you are already on returns to the top of its list.
+        // Scroll to name 80 and the only way back to the daily card used to be
+        // to fling through 79 rows; there is no fast-scroller, by an earlier
+        // and correct decision. Hoisted here so the bar can reach them.
+        val namesListState = rememberLazyListState()
+        val bookmarksListState = rememberLazyListState()
 
         LaunchedEffect(startNumber) {
             if (startNumber in 1..99) {
@@ -195,6 +221,8 @@ private fun App(startNumber: Int, onStartNumberConsumed: () -> Unit) {
                         viewModel = viewModel,
                         onNameClick = { number -> navController.navigate("detail/$number") },
                         onSettings = { navController.navigate("settings") },
+                        onAbout = { navController.navigate("about") },
+                        listState = namesListState,
                     )
                 }
                 // The scope says which list the reader arrived from, and so
@@ -224,7 +252,9 @@ private fun App(startNumber: Int, onStartNumberConsumed: () -> Unit) {
                         viewModel = viewModel,
                         onFlashcards = { navController.navigate("flashcards") },
                         onQuiz = { navController.navigate("quiz") },
+                        onLearned = { navController.navigate("learned") },
                         onSettings = { navController.navigate("settings") },
+                        onAbout = { navController.navigate("about") },
                     )
                 }
                 composable("bookmarks", enterTransition = tabFade, exitTransition = tabFadeOut) {
@@ -236,6 +266,8 @@ private fun App(startNumber: Int, onStartNumberConsumed: () -> Unit) {
                             navController.navigate("detail/$number?scope=$SCOPE_BOOKMARKS")
                         },
                         onSettings = { navController.navigate("settings") },
+                        onAbout = { navController.navigate("about") },
+                        listState = bookmarksListState,
                     )
                 }
                 composable("flashcards") {
@@ -244,9 +276,17 @@ private fun App(startNumber: Int, onStartNumberConsumed: () -> Unit) {
                         onBack = { navController.popBackStack() },
                     )
                 }
+                composable("learned") {
+                    LearnedScreen(
+                        viewModel = viewModel,
+                        onNameClick = { number -> navController.navigate("detail/$number") },
+                        onBack = { navController.popBackStack() },
+                    )
+                }
                 composable("quiz") {
                     QuizScreen(
                         viewModel = viewModel,
+                        onNameClick = { number -> navController.navigate("detail/$number") },
                         onBack = { navController.popBackStack() },
                     )
                 }
@@ -266,7 +306,17 @@ private fun App(startNumber: Int, onStartNumberConsumed: () -> Unit) {
                 enter = fadeIn(tween(Motion.QUICK)) + slideInVertically(tween(Motion.GENTLE)) { it },
                 exit = fadeOut(tween(Motion.QUICK)) + slideOutVertically(tween(Motion.GENTLE)) { it },
             ) {
-                QuietBottomBar(navController, currentRoute)
+                QuietBottomBar(
+                navController = navController,
+                currentRoute = currentRoute,
+                listStateFor = { route ->
+                    when (route) {
+                        "names" -> namesListState
+                        "bookmarks" -> bookmarksListState
+                        else -> null
+                    }
+                },
+            )
             }
         }
     }
@@ -290,7 +340,12 @@ private val tabFadeOut:
  * hairline rule and three small-caps labels, selection carried by color.
  */
 @Composable
-private fun QuietBottomBar(navController: NavHostController, currentRoute: String?) {
+private fun QuietBottomBar(
+    navController: NavHostController,
+    currentRoute: String?,
+    listStateFor: (String) -> LazyListState?,
+) {
+    val scope = rememberCoroutineScope()
     Surface(color = MaterialTheme.colorScheme.surface) {
         Column {
             // `outline`, not `outlineVariant`. The bar's surface is 1.06:1
@@ -328,6 +383,16 @@ private fun QuietBottomBar(navController: NavHostController, currentRoute: Strin
                                 selected = selected,
                                 role = Role.Tab,
                                 onClick = {
+                                    // Already here: go back to the top of the
+                                    // list instead of navigating nowhere.
+                                    // restoreState would otherwise restore the
+                                    // scroll position, so re-tapping did
+                                    // literally nothing.
+                                    val here = listStateFor(item.route)
+                                    if (selected && here != null) {
+                                        scope.launch { here.animateScrollToItem(0) }
+                                        return@selectable
+                                    }
                                     navController.navigate(item.route) {
                                         popUpTo(navController.graph.findStartDestination().id) {
                                             saveState = true

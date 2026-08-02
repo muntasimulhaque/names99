@@ -78,6 +78,7 @@
     <string name="cd_card_front">%1$s. Tap to reveal the meaning.</string>
     <string name="cd_card_back">%1$s. %2$s. %3$s</string>
     <!-- Read out after an answer, so the correct one is not left to the colour alone. -->
+    <string name="names_to_revisit">Names to revisit</string>
     <string name="quiz_answer_correct">Correct.</string>
     <string name="quiz_answer_wrong">Wrong. The correct answer is %1$s</string>
     <string name="bookmarked">Bookmarked</string>
@@ -97,6 +98,9 @@
     <string name="progress_of_caption">of 99 learned</string>
     <string name="remaining_count">%1$d still to learn</string>
     <string name="quiz_best">Best quiz score: %1$d of 10</string>
+    <string name="learned_names">Learned names</string>
+    <string name="no_learned">No names marked as learned yet. Open any name and tap Mark as learned.</string>
+    <string name="undo_card">Undo last card</string>
     <string name="all_learned_title">All 99 names learned</string>
     <string name="all_learned_text">Masha\'Allah — you have marked every name as learned. Keep reviewing to keep them fresh.</string>
     <string name="review_learned">Review learned names</string>

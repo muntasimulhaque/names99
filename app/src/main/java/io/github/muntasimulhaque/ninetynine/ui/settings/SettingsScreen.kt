@@ -257,7 +257,15 @@ fun SettingsScreen(
             Spacer(Modifier.height(22.dp))
             // Compile-time constant: no PackageManager call, and no fallback
             // string to go stale one release after somebody forgets it.
-            SectionLabel(stringResource(R.string.version, BuildConfig.VERSION_NAME))
+            // A datum, not a heading. SectionLabel is the app's heading style, so
+            // this rendered "VERSION 3.3" as a gold section label with no
+            // section under it — and the only gold on the page announcing
+            // nothing. Same treatment as the closing line on About.
+            Text(
+                text = stringResource(R.string.version, BuildConfig.VERSION_NAME),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
             Spacer(Modifier.height(28.dp))
         }
     }

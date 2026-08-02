@@ -45,4 +45,21 @@ class DeckBuilderTest {
         val b = DeckBuilder.build(names, learned, includeLearned = true, random = Random(7))
         assertEquals(a, b)
     }
+
+    @Test
+    fun deckIsCappedToOneSitting() {
+        // A deck used to be every unlearned name — "1 OF 97", which nobody
+        // finishes, so the done screen was never seen and the progress
+        // hairline barely moved.
+        val ninetyNine = (1..99).map { Name(it, "arabic$it", "Name-$it", "Title $it", "Meaning $it") }
+        val deck = DeckBuilder.build(ninetyNine, learned = emptySet(), includeLearned = false)
+        assertEquals(DeckBuilder.SESSION, deck.size)
+        assertEquals(deck.size, deck.distinct().size)
+    }
+
+    @Test
+    fun aShortDeckIsNotPaddedToTheSessionLength() {
+        val deck = DeckBuilder.build(names, learned, includeLearned = false)
+        assertEquals(4, deck.size)   // six names, two already learned
+    }
 }

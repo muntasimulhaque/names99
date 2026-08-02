@@ -66,6 +66,9 @@ import io.github.muntasimulhaque.ninetynine.ui.theme.components.ArabicSize
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.ArabicText
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.BackButton
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.HairlineProgress
+import io.github.muntasimulhaque.ninetynine.ui.theme.components.NavRow
+import io.github.muntasimulhaque.ninetynine.ui.theme.components.PageRule
+import io.github.muntasimulhaque.ninetynine.ui.theme.components.SectionLabel
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.PageMessage
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.paperTopBarColors
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.ScreenLabel
@@ -82,9 +85,18 @@ class QuizViewModel(application: Application) : AndroidViewModel(application) {
     var selected by mutableIntStateOf(-1); private set
     var finished by mutableStateOf(false); private set
 
-    fun ensureQuiz(names: List<Name>) {
+    /**
+     * The names answered wrongly, in the order they came up.
+     *
+     * The round used to keep only a score, so a reader saw "4 / 10" and had no
+     * way to find out which four — the information existed a second earlier and
+     * was thrown away. A book of exercises has an answers page.
+     */
+    var missed by mutableStateOf<List<Int>>(emptyList()); private set
+
+    fun ensureQuiz(names: List<Name>, learned: Set<Int>) {
         if (questions.isEmpty() && names.isNotEmpty()) {
-            questions = QuizBuilder.build(names)
+            questions = QuizBuilder.build(names, preferred = learned)
         }
     }
 
@@ -93,7 +105,7 @@ class QuizViewModel(application: Application) : AndroidViewModel(application) {
         if (selected != -1) return false
         selected = optionIndex
         val correct = optionIndex == questions[index].answerIndex
-        if (correct) score++
+        if (correct) score++ else missed = missed + questions[index].number
         return correct
     }
 
@@ -106,12 +118,13 @@ class QuizViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun restart(names: List<Name>) {
-        questions = QuizBuilder.build(names)
+    fun restart(names: List<Name>, learned: Set<Int>) {
+        questions = QuizBuilder.build(names, preferred = learned)
         index = 0
         score = 0
         selected = -1
         finished = false
+        missed = emptyList()
     }
 }
 
@@ -119,14 +132,16 @@ class QuizViewModel(application: Application) : AndroidViewModel(application) {
 @Composable
 fun QuizScreen(
     viewModel: NamesViewModel,
+    onNameClick: (Int) -> Unit,
     onBack: () -> Unit,
 ) {
     val quiz: QuizViewModel = viewModel()
     val names by viewModel.names.collectAsStateWithLifecycle()
     val namesLoaded by viewModel.namesLoaded.collectAsStateWithLifecycle()
+    val learned by viewModel.learned.collectAsStateWithLifecycle()
     val quizBest by viewModel.quizBest.collectAsStateWithLifecycle()
 
-    LaunchedEffect(names) { quiz.ensureQuiz(names) }
+    LaunchedEffect(names, learned) { quiz.ensureQuiz(names, learned) }
     LaunchedEffect(quiz.finished) {
         if (quiz.finished) viewModel.setQuizBest(quiz.score)
     }
@@ -168,7 +183,9 @@ fun QuizScreen(
                     score = quiz.score,
                     total = quiz.questions.size,
                     best = quizBest,
-                    onRestart = { quiz.restart(names) },
+                    missed = quiz.missed.mapNotNull { n -> names.firstOrNull { it.number == n } },
+                    onRestart = { quiz.restart(names, learned) },
+                    onNameClick = onNameClick,
                     onBack = onBack,
                 )
                 else -> QuizQuestionContent(
@@ -227,7 +244,7 @@ private fun QuizQuestionContent(
                         Spacer(Modifier.height(6.dp))
                         Text(
                             text = name.transliteration,
-                            style = MaterialTheme.typography.displaySmall,
+                            style = MaterialTheme.typography.displayMedium,
                             color = HeroText,
                             textAlign = TextAlign.Center,
                         )
@@ -388,7 +405,9 @@ private fun QuizResultContent(
     score: Int,
     total: Int,
     best: Int,
+    missed: List<Name>,
     onRestart: () -> Unit,
+    onNameClick: (Int) -> Unit,
     onBack: () -> Unit,
 ) {
     Column(
@@ -424,6 +443,29 @@ private fun QuizResultContent(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
+        // The answers page. A round that only scores you is a measuring
+        // instrument; naming what you missed makes it a teaching one, and the
+        // rows are the same table-of-contents row Memorize and Settings draw,
+        // so nothing new arrives on screen. Empty on a perfect round, which is
+        // exactly when the page should stay quiet.
+        if (missed.isNotEmpty()) {
+            Spacer(Modifier.height(32.dp))
+            SectionLabel(
+                text = stringResource(R.string.names_to_revisit),
+                modifier = Modifier.fillMaxWidth(),
+            )
+            Spacer(Modifier.height(4.dp))
+            missed.forEach { name ->
+                NavRow(
+                    title = name.transliteration,
+                    subtitle = name.title,
+                    titleStyle = MaterialTheme.typography.titleMedium,
+                    onClick = { onNameClick(name.number) },
+                )
+                PageRule()
+            }
+        }
+
         Spacer(Modifier.height(28.dp))
         Button(
             onClick = onRestart,

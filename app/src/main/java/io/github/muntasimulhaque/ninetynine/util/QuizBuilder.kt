@@ -39,11 +39,41 @@ object QuizBuilder {
     private fun ambiguousAgainst(answer: Set<String>, other: Set<String>): Boolean =
         other.isNotEmpty() && (answer.containsAll(other) || other.containsAll(answer))
 
-    /** Builds [count] multiple-choice questions: pick the correct title for a name. */
-    fun build(all: List<Name>, count: Int = DEFAULT_COUNT, random: Random = Random): List<QuizQuestion> {
+    /** How many learned names it takes before a round is worth drawing from them. */
+    const val MIN_LEARNED_POOL = 4
+
+    /**
+     * Builds [count] multiple-choice questions: pick the correct title for a name.
+     *
+     * [preferred] is asked about first when there are enough of them — the names
+     * the reader has marked learned. Without it a reader who opened the quiz on
+     * their first day was examined on all 99, scored two or three, and told to
+     * keep at it: the least kind moment in an app whose whole register is
+     * encouragement, and a waste of the one thing it knows about them. Below
+     * [MIN_LEARNED_POOL] the round is drawn from everything, because a two-name
+     * quiz is not a quiz.
+     *
+     * Distractors always come from the full list of titles: the point is to
+     * recognise the right meaning among plausible ones, and narrowing the wrong
+     * answers to the learned set would make it easier the more you knew.
+     */
+    fun build(
+        all: List<Name>,
+        count: Int = DEFAULT_COUNT,
+        random: Random = Random,
+        preferred: Set<Int> = emptySet(),
+    ): List<QuizQuestion> {
         val titles = all.map { it.title }.distinct()
         val words = titles.associateWith(::contentWords)
-        return all.shuffled(random).take(count.coerceAtMost(all.size)).map { name ->
+        val pooled = all.filter { it.number in preferred }
+        val asked = if (pooled.size >= MIN_LEARNED_POOL) {
+            // Learned names first, topped up from the rest if the reader has
+            // fewer learned than a full round.
+            pooled.shuffled(random) + all.filter { it.number !in preferred }.shuffled(random)
+        } else {
+            all.shuffled(random)
+        }
+        return asked.take(count.coerceAtMost(all.size)).map { name ->
             val answerWords = words[name.title] ?: contentWords(name.title)
             val usable = titles.filter {
                 it != name.title && !ambiguousAgainst(answerWords, words.getValue(it))

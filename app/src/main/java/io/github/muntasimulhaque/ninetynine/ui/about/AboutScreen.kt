@@ -46,6 +46,8 @@ import io.github.muntasimulhaque.ninetynine.ui.theme.components.BackButton
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.MixedText
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.NavRow
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.PageRule
+import io.github.muntasimulhaque.ninetynine.ui.theme.components.readingMeasure
+import io.github.muntasimulhaque.ninetynine.ui.theme.components.scaledGap
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.paperTopBarColors
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.ScreenLabel
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.SectionLabel
@@ -60,8 +62,6 @@ private const val REPO_URL = "https://github.com/muntasimulhaque/ninetynine"
 /** A quote's source sits in a trailing parenthesis: "…paradise." (Muslim) */
 private val CITATION = Regex("\\s*\\(([^()]{1,40})\\)\\s*$")
 
-/** The measure — prose stops widening here, however large the screen. */
-private val MEASURE = 560.dp
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -109,7 +109,7 @@ fun AboutScreen(onBack: () -> Unit) {
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Column(
-                modifier = Modifier.widthIn(max = MEASURE).fillMaxWidth(),
+                modifier = Modifier.widthIn(max = readingMeasure()).fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 Spacer(Modifier.height(28.dp))
@@ -136,7 +136,7 @@ fun AboutScreen(onBack: () -> Unit) {
                                 .padding(
                                     bottom = if (paragraphs.getOrNull(index + 1)
                                             ?.startsWith(">") == true
-                                    ) 12.dp else 20.dp
+                                    ) scaledGap(12.dp) else scaledGap(20.dp)
                                 ),
                         )
                     }

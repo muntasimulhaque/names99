@@ -40,6 +40,7 @@ import androidx.compose.ui.unit.sp
 import io.github.muntasimulhaque.ninetynine.BuildConfig
 import io.github.muntasimulhaque.ninetynine.R
 import io.github.muntasimulhaque.ninetynine.ui.theme.Motion
+import io.github.muntasimulhaque.ninetynine.ui.theme.components.ArabicSize
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.ArabicText
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.BackButton
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.MixedText
@@ -114,7 +115,7 @@ fun AboutScreen(onBack: () -> Unit) {
                 Spacer(Modifier.height(28.dp))
                 ArabicText(
                     text = stringResource(R.string.basmala),
-                    fontSize = 30.sp,
+                    fontSize = ArabicSize.Line,
                     color = MaterialTheme.colorScheme.primary,
                     textAlign = TextAlign.Center,
                 )

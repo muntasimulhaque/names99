@@ -62,6 +62,7 @@ import io.github.muntasimulhaque.ninetynine.ui.theme.HeroGold
 import io.github.muntasimulhaque.ninetynine.ui.theme.HeroSubtext
 import io.github.muntasimulhaque.ninetynine.ui.theme.HeroText
 import io.github.muntasimulhaque.ninetynine.ui.theme.Motion
+import io.github.muntasimulhaque.ninetynine.ui.theme.components.ArabicSize
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.ArabicText
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.FitText
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.NameListItem
@@ -289,7 +290,7 @@ private fun DailyHeroCard(name: Name, onClick: () -> Unit) {
             Spacer(Modifier.height(14.dp))
             ArabicText(
                 text = name.arabic,
-                fontSize = 40.sp,
+                fontSize = ArabicSize.Panel,
                 color = HeroGold,
                 textAlign = TextAlign.Center,
             )
@@ -306,13 +307,18 @@ private fun DailyHeroCard(name: Name, onClick: () -> Unit) {
                 minScale = 0.45f,
             )
             Spacer(Modifier.height(2.dp))
+            // Two lines, and the same slot the share card uses for the same
+            // string. On one line this cut the meaning of the day in half —
+            // several of the 99 epithets do not fit a phone at default size,
+            // so roughly one morning in eight the app opened on "The Perfect
+            // Lord And Master Upon Whom Th…". The card has the height to spare.
             Text(
                 text = name.title,
-                style = MaterialTheme.typography.titleSmall,
+                style = MaterialTheme.typography.titleMedium,
                 fontStyle = FontStyle.Italic,
                 color = HeroSubtext,
                 textAlign = TextAlign.Center,
-                maxLines = 1,
+                maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
             )
         }

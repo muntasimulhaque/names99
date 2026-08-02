@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -40,8 +41,20 @@ class NamesViewModel(application: Application) : AndroidViewModel(application) {
     val learned: StateFlow<Set<Int>> = prefs.learned
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptySet())
 
+    private val _bookmarkedLoaded = MutableStateFlow(false)
+
+    /**
+     * False only while DataStore is still delivering its first value. An empty
+     * bookmark set is otherwise indistinguishable from "not read yet", and a
+     * screen that freezes a page list needs to know the difference — see
+     * DetailScreen, which strands the reader on a blank page if it guesses.
+     */
+    val bookmarkedLoaded: StateFlow<Boolean> = _bookmarkedLoaded.asStateFlow()
+
     val bookmarked: StateFlow<Set<Int>> = prefs.bookmarked
+        .onEach { _bookmarkedLoaded.value = true }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptySet())
+
 
     val themeMode: StateFlow<ThemeMode> = prefs.themeMode
         .stateIn(viewModelScope, SharingStarted.Eagerly, ThemeMode.SYSTEM)
@@ -76,6 +89,7 @@ class NamesViewModel(application: Application) : AndroidViewModel(application) {
     fun setBookmarked(number: Int, value: Boolean) = viewModelScope.launch {
         prefs.setBookmarked(number, value)
     }
+
 
     fun resetProgress() = viewModelScope.launch {
         prefs.resetLearned()

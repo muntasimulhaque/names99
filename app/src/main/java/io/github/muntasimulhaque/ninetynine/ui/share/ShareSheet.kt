@@ -56,6 +56,7 @@ import io.github.muntasimulhaque.ninetynine.ui.theme.HeroContainer
 import io.github.muntasimulhaque.ninetynine.ui.theme.HeroGold
 import io.github.muntasimulhaque.ninetynine.ui.theme.HeroSubtext
 import io.github.muntasimulhaque.ninetynine.ui.theme.HeroText
+import io.github.muntasimulhaque.ninetynine.ui.theme.components.ArabicSize
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.ArabicText
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.FitText
 import kotlinx.coroutines.Dispatchers
@@ -159,14 +160,14 @@ private fun ShareCard(name: Name, modifier: Modifier = Modifier) {
             ) {
                 ArabicText(
                     text = stringResource(R.string.basmala),
-                    fontSize = 15.sp,
+                    fontSize = ArabicSize.Caption,
                     color = HeroSubtext,
                     textAlign = TextAlign.Center,
                 )
                 Spacer(Modifier.height(20.dp))
                 ArabicText(
                     text = name.arabic,
-                    fontSize = 50.sp,
+                    fontSize = ArabicSize.Card,
                     color = HeroGold,
                     textAlign = TextAlign.Center,
                 )
@@ -217,16 +218,20 @@ private fun ShareCard(name: Name, modifier: Modifier = Modifier) {
                     // over store_title in strings.xml.
                     //
                     // Fitted, not fixed: tracked small caps at 11sp put
-                    // "NINETY NINE: NAMES OF ALLAH" at 233dp — 16.729 em plus
-                    // 27 characters of 1.8sp tracking — against the 246dp left
-                    // beside the seal on a Pixel 4 (which is 393dp wide, not
-                    // 411: 1080px at density 440), so it sits there at full
-                    // size. The card follows the screen, so the room is always
+                    // "THE NINETY NINE NAMES OF ALLAH" at 262dp — 18.880 em
+                    // plus 30 characters of 1.8sp tracking — against the 246dp
+                    // left beside the seal on a Pixel 4 (which is 393dp wide,
+                    // not 411: 1080px at density 440), so it sits at 0.94 even
+                    // there. The card follows the screen, so the room is always
                     // the screen width less 147dp of chrome — 48 sheet, 20 box,
                     // 44 inner padding, 26 seal, 9 gap — giving 213dp on a
-                    // 360dp phone and 173dp on a 320dp one. A floor of 0.5
-                    // clears the last of those with room to spare: measured at
-                    // 0.727 in the exported PNG.
+                    // 360dp phone (0.81) and 173dp on a 320dp one (0.66). A
+                    // floor of 0.5 clears the last of those with room to spare.
+                    //
+                    // It is the longest this wordmark has been, because the
+                    // listing took the book's full title in v3.3. Shrinking a
+                    // little everywhere was the accepted price of the store and
+                    // the running head finally saying the same thing.
                     FitText(
                         text = stringResource(R.string.store_title).uppercase(),
                         style = MaterialTheme.typography.labelMedium,

@@ -68,12 +68,15 @@ object DailyScheduler {
      * exactly the widget's audience: readers who take the day's name off the
      * home screen and rarely open the app at all.
      */
-    fun ensureScheduled(context: Context) {
+    fun ensureScheduled(context: Context, reanchor: Boolean) {
         val widgetRequest = PeriodicWorkRequestBuilder<WidgetUpdateWorker>(1, TimeUnit.DAYS)
             .setInitialDelay(minutesUntil(0, 5), TimeUnit.MINUTES)
             .build()
         WorkManager.getInstance(context).enqueueUniquePeriodicWork(
-            WIDGET_WORK, ExistingPeriodicWorkPolicy.CANCEL_AND_REENQUEUE, widgetRequest
+            WIDGET_WORK,
+            if (reanchor) ExistingPeriodicWorkPolicy.CANCEL_AND_REENQUEUE
+            else ExistingPeriodicWorkPolicy.KEEP,
+            widgetRequest,
         )
     }
 
@@ -86,11 +89,16 @@ object DailyScheduler {
      * correct it. Re-anchoring on launch pins it back to the chosen time, and
      * fixes a timezone or DST change at the same time.
      */
-    suspend fun ensureNotificationScheduled(context: Context) {
+    suspend fun ensureNotificationScheduled(context: Context, reanchor: Boolean) {
         val prefs = Prefs(context.applicationContext)
         if (!prefs.dailyEnabled.first()) return
         val (hour, minute) = prefs.dailyTime.first()
-        enqueueNotification(context, hour, minute, ExistingPeriodicWorkPolicy.REPLACE)
+        enqueueNotification(
+            context,
+            hour,
+            minute,
+            if (reanchor) ExistingPeriodicWorkPolicy.REPLACE else ExistingPeriodicWorkPolicy.KEEP,
+        )
     }
 
     /** Applies the user's current enabled/time settings, replacing any previous schedule. */

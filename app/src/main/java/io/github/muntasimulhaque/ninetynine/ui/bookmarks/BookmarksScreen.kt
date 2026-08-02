@@ -43,6 +43,7 @@ fun BookmarksScreen(
     onSettings: () -> Unit,
 ) {
     val names by viewModel.names.collectAsStateWithLifecycle()
+    val namesLoaded by viewModel.namesLoaded.collectAsStateWithLifecycle()
     val learned by viewModel.learned.collectAsStateWithLifecycle()
     val bookmarked by viewModel.bookmarked.collectAsStateWithLifecycle()
 
@@ -74,9 +75,18 @@ fun BookmarksScreen(
             modifier = Modifier.fillMaxSize(),
         ) {
             if (kept.isEmpty()) {
-                // Says both that there is nothing here and how to put something
-                // here — an empty screen is the one place a hint is not clutter.
-                item { PageMessage(stringResource(R.string.no_bookmarks)) }
+                // Which emptiness this is matters. Saying "nothing kept yet"
+                // when the asset failed to read tells the reader their kept
+                // names are gone, which is false and alarming — the names
+                // simply could not be loaded at all.
+                item {
+                    PageMessage(
+                        stringResource(
+                            if (namesLoaded && names.isEmpty()) R.string.names_unavailable
+                            else R.string.no_bookmarks
+                        )
+                    )
+                }
             }
             items(kept, key = { it.number }) { name ->
                 NameListItem(

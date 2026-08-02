@@ -138,7 +138,7 @@ fun NameListItem(
             }
             ArabicText(
                 text = name.arabic,
-                fontSize = 21.sp,
+                fontSize = ArabicSize.Row,
                 color = MaterialTheme.colorScheme.primary,
             )
         }

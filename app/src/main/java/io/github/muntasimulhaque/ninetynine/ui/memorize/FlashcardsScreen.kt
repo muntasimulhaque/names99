@@ -54,7 +54,10 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.toggleableState
@@ -75,9 +78,11 @@ import io.github.muntasimulhaque.ninetynine.ui.theme.HeroGold
 import io.github.muntasimulhaque.ninetynine.ui.theme.HeroSubtext
 import io.github.muntasimulhaque.ninetynine.ui.theme.HeroText
 import io.github.muntasimulhaque.ninetynine.ui.theme.Motion
+import io.github.muntasimulhaque.ninetynine.ui.theme.components.ArabicSize
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.ArabicText
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.BackButton
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.HairlineProgress
+import io.github.muntasimulhaque.ninetynine.ui.theme.components.PageMessage
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.paperTopBarColors
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.ScreenLabel
 import io.github.muntasimulhaque.ninetynine.ui.theme.rememberHaptics
@@ -127,6 +132,7 @@ fun FlashcardsScreen(
 ) {
     val session: FlashcardsViewModel = viewModel()
     val names by viewModel.names.collectAsStateWithLifecycle()
+    val namesLoaded by viewModel.namesLoaded.collectAsStateWithLifecycle()
     val learned by viewModel.learned.collectAsStateWithLifecycle()
     val includeLearned by viewModel.includeLearned.collectAsStateWithLifecycle()
 
@@ -176,7 +182,11 @@ fun FlashcardsScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             when {
-                names.isEmpty() -> Unit
+                // Blank paper said nothing at all when the asset failed to
+                // read. Home has explained this case since v2.6; these screens
+                // are reachable without passing it.
+                names.isEmpty() ->
+                    if (namesLoaded) PageMessage(stringResource(R.string.names_unavailable))
                 session.deck.isEmpty() -> AllLearnedContent(
                     onReviewLearned = { viewModel.setIncludeLearned(true) },
                     onBack = onBack,
@@ -373,9 +383,24 @@ private fun SwipeFlipCard(
         label = "flip",
     )
 
+    // The card is one merged node — `clickable` merges its descendants — so
+    // flipping it swaps the text in place and emits only a content-changed
+    // event, which TalkBack does not speak. Without a live region the whole
+    // memorisation loop is silent: you tap to reveal the meaning and hear
+    // nothing, then press "I know it" and cannot tell what happened or which
+    // name is now in front of you.
+    val faceLabel = if (flipped) {
+        stringResource(R.string.cd_card_back, name.transliteration, name.title, name.meaning)
+    } else {
+        stringResource(R.string.cd_card_front, name.transliteration)
+    }
     Card(
         onClick = onFlip,
         modifier = modifier
+            .semantics {
+                liveRegion = LiveRegionMode.Polite
+                contentDescription = faceLabel
+            }
             .graphicsLayer {
                 val w = size.width.coerceAtLeast(1f)
                 val leaving = offsetX.value / (w * 1.2f)
@@ -412,7 +437,11 @@ private fun SwipeFlipCard(
             else MaterialTheme.colorScheme.surface
         ),
         border = if (rotation <= 90f) null
-        else BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+        // `outline`: this border is the flipped card's entire boundary, and its
+        // fill is only 1.06:1 against the page. At outlineVariant's 1.42:1 the
+        // card lost its edge completely on flip — it went from a clearly
+        // bounded emerald object to a shape with no perceivable outline.
+        else BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
     ) {
         if (rotation <= 90f) {
             // Front: the name itself, set like the share card.
@@ -425,7 +454,7 @@ private fun SwipeFlipCard(
             ) {
                 ArabicText(
                     text = name.arabic,
-                    fontSize = 44.sp,
+                    fontSize = ArabicSize.Panel,
                     color = HeroGold,
                     textAlign = TextAlign.Center,
                 )
@@ -486,7 +515,7 @@ private fun AllLearnedContent(
     ) {
         ArabicText(
             text = "٩٩",
-            fontSize = 44.sp,
+            fontSize = ArabicSize.Panel,
             color = MaterialTheme.colorScheme.secondary,
             textAlign = TextAlign.Center,
         )

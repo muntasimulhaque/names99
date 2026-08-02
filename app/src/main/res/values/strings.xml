@@ -1,10 +1,12 @@
 <resources>
     <!--
-      Three names, on purpose. Do not merge them.
+      Three strings for three surfaces. Two of them now hold the same words,
+      and they are still three strings on purpose. Do not merge them.
 
       launcher_name — the app itself, kept short because a launcher gives an
         icon label very little room, and with no Divine Name in it there is
-        nothing a launcher can truncate badly.
+        nothing a launcher can truncate badly. It is a subset of the title
+        below, the way "Maps" is of "Google Maps".
       app_title — what the app is about, for a reader already inside it: the
         home screen's running head, and the English title of Ibn Uthaymeen's
         book. A running head names its subject; it does not advertise.
@@ -12,11 +14,17 @@
         shared image, which is the one surface someone who has never installed
         the app will see, so whoever receives it can type what is written there
         into Play and find it. This one is kept in step with the Play Console
-        BY HAND: if the listing is ever retitled, retitle it here too.
+        BY HAND: if the listing is ever retitled, retitle it here too — which
+        is exactly why it stays a separate string from app_title even while
+        the two read alike. The listing can move; the running head should not
+        follow it by accident.
+
+      The title is EXACTLY 30 characters, which is exactly Play's limit. There
+      is no room to add a word, and a stray space would put it over.
     -->
     <string name="launcher_name">Ninety Nine</string>
     <string name="app_title">The Ninety Nine Names of Allah</string>
-    <string name="store_title">Ninety Nine: Names of Allah</string>
+    <string name="store_title">The Ninety Nine Names of Allah</string>
     <string name="widget_label">Name of the Day</string>
     <!-- The line under the widget's name in the picker; saying "Name of the Day"
          twice told the reader nothing about what they were about to place. -->
@@ -61,6 +69,17 @@
       makes TalkBack read the action as though it were the state.
     -->
     <string name="cd_bookmark">Bookmark</string>
+
+    <!--
+      Spoken descriptions of the two flashcard faces. The card is a single
+      merged node whose text is swapped in place, so a screen reader has
+      nothing to announce unless it is told what the face now shows.
+    -->
+    <string name="cd_card_front">%1$s. Tap to reveal the meaning.</string>
+    <string name="cd_card_back">%1$s. %2$s. %3$s</string>
+    <!-- Read out after an answer, so the correct one is not left to the colour alone. -->
+    <string name="quiz_answer_correct">Correct.</string>
+    <string name="quiz_answer_wrong">Wrong. The correct answer is %1$s</string>
     <string name="bookmarked">Bookmarked</string>
     <string name="not_bookmarked">Not bookmarked</string>
     <string name="no_bookmarks">Nothing kept yet. Open any name and tap the bookmark to keep it here.</string>

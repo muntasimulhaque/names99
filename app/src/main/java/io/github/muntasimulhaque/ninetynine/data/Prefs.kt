@@ -13,8 +13,8 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.retryWhen
 import java.io.IOException
 
 val Context.dataStore by preferencesDataStore(
@@ -38,9 +38,23 @@ class Prefs(private val context: Context) {
      * default handler and kills the process — on launch, every launch, with
      * no way out but clearing app data. That would destroy the one thing this
      * app stores: which of the 99 names the reader has learned.
+     *
+     * `retryWhen`, not `catch`: `catch` emits and then *completes* the flow, so
+     * a single transient read failure would end every derived flow for the rest
+     * of the process. `stateIn` would pin the empty value, and Memorize would
+     * read "0 learned" and Bookmarks "nothing kept" — a lie about intact data,
+     * until the app was restarted. This emits the same fallback and then lets
+     * DataStore try again.
      */
     private val data: Flow<Preferences> = context.dataStore.data
-        .catch { if (it is IOException) emit(emptyPreferences()) else throw it }
+        .retryWhen { cause, _ ->
+            if (cause is IOException) {
+                emit(emptyPreferences())
+                true
+            } else {
+                false
+            }
+        }
 
     private object Keys {
         val LEARNED = stringSetPreferencesKey("learned")

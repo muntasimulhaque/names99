@@ -11,7 +11,7 @@ import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -92,7 +92,11 @@ fun LearnedButton(
     ) {
         Row(
             modifier = Modifier
-                .height(44.dp)
+                // heightIn, not height: the Surface clips to a circle, and
+                // labelLarge's 18sp line box at the in-app 1.4x on top of a
+                // system font scale of 2.0 is 50dp — which a fixed 44dp box
+                // cuts through. The pill grows instead.
+                .heightIn(min = 44.dp)
                 .padding(horizontal = 22.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {

@@ -42,6 +42,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
@@ -58,6 +59,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import io.github.muntasimulhaque.ninetynine.daily.DailyNameWidget
+import io.github.muntasimulhaque.ninetynine.daily.DailyScheduler
 import io.github.muntasimulhaque.ninetynine.ui.NamesViewModel
 import io.github.muntasimulhaque.ninetynine.ui.about.AboutScreen
 import io.github.muntasimulhaque.ninetynine.ui.bookmarks.BookmarksScreen
@@ -80,6 +82,16 @@ class MainActivity : ComponentActivity() {
         installSplashScreen()
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+        // Re-anchor here, not in Application.onCreate. This runs only when a
+        // person actually opens the app, so it cannot cancel a worker that
+        // WorkManager just started the process to run. Doze deferrals still get
+        // corrected — every launch pins both schedules back to their times.
+        DailyScheduler.ensureScheduled(this, reanchor = true)
+        lifecycleScope.launch {
+            DailyScheduler.ensureNotificationScheduled(this@MainActivity, reanchor = true)
+        }
+
         startNumber = consumeNameNumber(intent)
         setContent { App(startNumber, onStartNumberConsumed = { startNumber = -1 }) }
     }
@@ -101,11 +113,15 @@ class MainActivity : ComponentActivity() {
     }
 
     /** Reads the extra, then removes it so a configuration change can't replay the navigation. */
-    private fun consumeNameNumber(intent: Intent?): Int {
+    private fun consumeNameNumber(intent: Intent?): Int = runCatching {
+        // This activity is exported, so any app on the device can launch it
+        // with arbitrary extras. Reading one unparcels the whole bundle, and a
+        // crafted extra naming a class this app does not have throws
+        // BadParcelableException right here in onCreate.
         val number = intent?.getIntExtra(EXTRA_NAME_NUMBER, -1) ?: -1
         intent?.removeExtra(EXTRA_NAME_NUMBER)
-        return number
-    }
+        number
+    }.getOrDefault(-1)
 
     companion object {
         const val EXTRA_NAME_NUMBER = "nameNumber"
@@ -150,7 +166,10 @@ private fun App(startNumber: Int, onStartNumberConsumed: () -> Unit) {
         LaunchedEffect(startNumber) {
             if (startNumber in 1..99) {
                 onStartNumberConsumed()
-                navController.navigate("detail/$startNumber")
+                // Without this, tapping the widget on successive mornings —
+                // without pressing Back in between — stacks a name page on top
+                // of a name page, and Back then lands on an identical screen.
+                navController.navigate("detail/$startNumber") { launchSingleTop = true }
             }
         }
 
@@ -274,9 +293,13 @@ private val tabFadeOut:
 private fun QuietBottomBar(navController: NavHostController, currentRoute: String?) {
     Surface(color = MaterialTheme.colorScheme.surface) {
         Column {
+            // `outline`, not `outlineVariant`. The bar's surface is 1.06:1
+            // against the page, so this rule is the only thing separating them
+            // — that makes it meaningful non-text, which WCAG 1.4.11 holds to
+            // 3:1. outlineVariant is 1.42:1 and effectively invisible.
             HorizontalDivider(
                 thickness = 0.5.dp,
-                color = MaterialTheme.colorScheme.outlineVariant,
+                color = MaterialTheme.colorScheme.outline,
             )
             Row(
                 // The bar takes its height from the tabs rather than fixing it,
@@ -341,11 +364,19 @@ private fun QuietBottomBar(navController: NavHostController, currentRoute: Strin
                         // BOOKMARKS at 0.49 — 9.8sp rendered, *smaller* than
                         // the 10sp base, so a reader who doubled their system
                         // font would gain nothing at all from having done so.
+                        // Selection is carried by weight as well as colour.
+                        // Colour alone failed WCAG 1.4.1: primary against
+                        // onSurfaceVariant is 1.22:1 in light and 1.20:1 in
+                        // dark — the two differ almost purely in hue, so a
+                        // deuteranope or protanope (~8% of men), a greyscale
+                        // screen or a high-contrast mode could not tell which
+                        // tab was active at all.
                         FitText(
                             text = stringResource(item.labelRes).uppercase(),
                             style = MaterialTheme.typography.labelSmall.copy(
                                 fontSize = 10.sp,
                                 letterSpacing = 1.2.sp,
+                                fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium,
                             ),
                             color = tint,
                             modifier = Modifier.padding(horizontal = 2.dp),

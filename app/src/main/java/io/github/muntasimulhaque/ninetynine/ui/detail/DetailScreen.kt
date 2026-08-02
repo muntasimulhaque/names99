@@ -44,6 +44,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
@@ -64,10 +65,12 @@ import io.github.muntasimulhaque.ninetynine.data.Name
 import io.github.muntasimulhaque.ninetynine.ui.NamesViewModel
 import io.github.muntasimulhaque.ninetynine.ui.share.ShareSheet
 import io.github.muntasimulhaque.ninetynine.ui.theme.Motion
+import io.github.muntasimulhaque.ninetynine.ui.theme.components.ArabicSize
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.ArabicText
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.BackButton
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.LearnedButton
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.MixedText
+import io.github.muntasimulhaque.ninetynine.ui.theme.components.PageMessage
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.ScreenLabel
 import io.github.muntasimulhaque.ninetynine.ui.theme.rememberHaptics
 import kotlin.math.absoluteValue
@@ -87,8 +90,10 @@ fun DetailScreen(
     onBack: () -> Unit,
 ) {
     val names by viewModel.names.collectAsStateWithLifecycle()
+    val namesLoaded by viewModel.namesLoaded.collectAsStateWithLifecycle()
     val learned by viewModel.learned.collectAsStateWithLifecycle()
     val bookmarked by viewModel.bookmarked.collectAsStateWithLifecycle()
+    val bookmarkedLoaded by viewModel.bookmarkedLoaded.collectAsStateWithLifecycle()
     var showShare by remember { mutableStateOf(false) }
 
     // The reader pages through the list they arrived from — all 99 from the
@@ -96,30 +101,45 @@ fun DetailScreen(
     // held: un-bookmarking a name while reading it should un-fill the mark,
     // not pull pages out from under the reader and shift everything along.
     //
-    // Not `rememberSaveable`: on a config change the route is restored, this
-    // effect runs again and settles on the same list, which is simpler than
-    // persisting one and cannot disagree with the bookmarks on disk.
-    var pageNumbers by remember { mutableStateOf(emptyList<Int>()) }
-    LaunchedEffect(names, bookmarked, bookmarksOnly) {
-        if (pageNumbers.isEmpty()) {
-            val candidate =
-                if (bookmarksOnly) names.filter { it.number in bookmarked } else names
-            // DataStore emits asynchronously, so the bookmark set is empty for
-            // the first frame or two. Waiting until the name we opened is
-            // actually present is what stops us freezing an empty list.
-            if (candidate.any { it.number == startNumber }) {
-                pageNumbers = candidate.map { it.number }
-            }
-        }
+    // `rememberSaveable`, and it must be. A plain `remember` was wiped by every
+    // Activity recreation, and the effect then rebuilt from the CURRENT
+    // bookmarks — which, if the reader had just un-bookmarked the name they
+    // were on, no longer contained it. The guard never passed again and the
+    // screen spun for ever, escapable only by Back. An ArrayList is stored
+    // rather than a bare List because only a Serializable survives the bundle.
+    var pageNumbers by rememberSaveable { mutableStateOf(ArrayList<Int>()) }
+    LaunchedEffect(names, bookmarked, bookmarksOnly, namesLoaded, bookmarkedLoaded) {
+        if (pageNumbers.isNotEmpty() || !namesLoaded || names.isEmpty()) return@LaunchedEffect
+        // An empty bookmark set is indistinguishable from one DataStore has not
+        // delivered yet, so wait for the flag rather than guessing.
+        if (bookmarksOnly && !bookmarkedLoaded) return@LaunchedEffect
+
+        val scoped = if (bookmarksOnly) names.filter { it.number in bookmarked } else names
+        // The name being read always belongs in its own pager, even if it has
+        // since been un-bookmarked — it was in the list when the screen opened,
+        // and rebuilding without it is what used to strand the reader.
+        val withStart =
+            if (scoped.any { it.number == startNumber }) scoped
+            else (scoped + names.filter { it.number == startNumber }).sortedBy { it.number }
+        pageNumbers = ArrayList(withStart.map { it.number })
     }
     val pages = remember(names, pageNumbers) {
         pageNumbers.mapNotNull { number -> names.firstOrNull { it.number == number } }
     }
 
     if (pages.isEmpty()) {
+        // Blank paper while the asset is still being read — quieter than a
+        // spinner, and this screen is reachable straight from the notification
+        // and the widget, so it is the app's first impression that morning.
+        // Once the read has finished and there is still nothing, say so: this
+        // page can be opened without ever passing Home, which is where the
+        // explanation used to live exclusively.
         Scaffold(
             topBar = {
                 CenterAlignedTopAppBar(
+                    colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.background,
+                    ),
                     title = {},
                     navigationIcon = { BackButton(onBack) },
                 )
@@ -132,7 +152,9 @@ fun DetailScreen(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center,
             ) {
-                CircularProgressIndicator()
+                if (namesLoaded && names.isEmpty()) {
+                    PageMessage(stringResource(R.string.names_unavailable))
+                }
             }
         }
         return
@@ -187,6 +209,7 @@ fun DetailScreen(
                 actions = {
                     BookmarkAction(
                         bookmarked = current.number in bookmarked,
+                        number = current.number,
                         onToggle = {
                             viewModel.setBookmarked(current.number, current.number !in bookmarked)
                         },
@@ -245,14 +268,18 @@ fun DetailScreen(
  * like they were made by the same hand.
  */
 @Composable
-private fun BookmarkAction(bookmarked: Boolean, onToggle: () -> Unit) {
+private fun BookmarkAction(bookmarked: Boolean, number: Int, onToggle: () -> Unit) {
     val haptics = rememberHaptics()
 
+    // The pop means "you just changed this", so it must not fire when the
+    // reader swipes from an unkept name to a kept one. The button lives in the
+    // bar and survives page changes, so the latch is per-name: arriving at a
+    // new number adopts its state silently, and only a toggle pops.
     val scale = remember { Animatable(1f) }
-    val seeded = remember { mutableStateOf(false) }
-    LaunchedEffect(bookmarked) {
-        if (!seeded.value) {
-            seeded.value = true
+    val seededFor = remember { mutableStateOf<Int?>(null) }
+    LaunchedEffect(number, bookmarked) {
+        if (seededFor.value != number) {
+            seededFor.value = number
         } else {
             scale.snapTo(0.94f)
             scale.animateTo(1f, Motion.lively())
@@ -314,7 +341,7 @@ private fun NamePage(
                 Spacer(Modifier.height(30.dp))
                 ArabicText(
                     text = name.arabic,
-                    fontSize = 52.sp,
+                    fontSize = ArabicSize.Page,
                     color = MaterialTheme.colorScheme.primary,
                     textAlign = TextAlign.Center,
                 )

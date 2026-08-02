@@ -5,8 +5,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.TextUnit
+import androidx.compose.ui.unit.sp
 import io.github.muntasimulhaque.ninetynine.ui.theme.ArabicFamily
 import io.github.muntasimulhaque.ninetynine.ui.theme.LocalTextScale
 
@@ -22,6 +24,46 @@ fun String.forArabicFont(): String = replace("\u0622", "\u0627\u0653")
  * diacritics. Sizes are given explicitly rather than taken from the type
  * scale, so the reader's text-size preference is applied here by hand.
  */
+/**
+ * The Arabic sizes, named by the Latin they sit with.
+ *
+ * There is a rigorous fifteen-slot scale for Latin and, until this existed,
+ * nothing at all for the script the book is actually about: every Arabic size
+ * was a bare literal at its call site, and the app had drifted into seven
+ * different Arabic-to-Latin ratios — 1.86 on the name page, 1.79 on the share
+ * card, 1.57 on a flashcard, 1.43 on the hero and quiz cards, 1.31 in the list.
+ *
+ * That reversed the reading order between the two most-seen screens: on a name
+ * page the eye lands on the Name and the transliteration is plainly
+ * subordinate, while on the home screen it landed on "Al-Wadood" and the Arabic
+ * read as a caption above it. On the front page of a book of the Names, the
+ * Name should win.
+ *
+ * The name page's 52:28 is the reference the rest are tuned to. It is not
+ * arbitrary: HAFS's body height is 0.346 em against Spectral's 0.450 x-height,
+ * so at 1.86 the Arabic body lands between the Latin's x-height and its cap,
+ * and the Arabic dominates without stranding the Latin.
+ */
+object ArabicSize {
+    /** Pairs `displaySmall` on the name page — the reference pairing, 1.86x. */
+    val Page = 52.sp
+
+    /** Pairs `displaySmall` on the share card. */
+    val Card = 50.sp
+
+    /** Pairs `displaySmall` on the hero, quiz and flashcard faces. */
+    val Panel = 48.sp
+
+    /** Pairs `titleMedium` in the names list, restoring a display-like ratio. */
+    val Row = 26.sp
+
+    /** Pairs `titleLarge` — the basmala and other set-apart lines. */
+    val Line = 30.sp
+
+    /** Pairs `labelMedium` — the share card's small basmala. */
+    val Caption = 15.sp
+}
+
 @Composable
 fun ArabicText(
     text: String,
@@ -38,7 +80,15 @@ fun ArabicText(
         color = color,
         fontSize = size,
         fontFamily = ArabicFamily,
+        // Pinned, never inherited: ArabicFamily declares Normal only, so any
+        // heavier ambient style would make Compose synthesise the weight —
+        // a fake-bold smear on a face whose licence forbids modification.
+        fontWeight = FontWeight.Normal,
         textAlign = textAlign,
-        lineHeight = size * 1.7f,
+        // 1.85, not 1.7. HAFS declares ascender 1.172 + descender 0.586 =
+        // 1.758 em of its own clearance, so 1.7 sat 3.3% BELOW what the font
+        // asks for and shaved the line box exactly where the shadda-and-fatha
+        // stacks live. Measured from the file's hhea table, not guessed.
+        lineHeight = size * 1.85f,
     )
 }

@@ -37,7 +37,11 @@ fun HairlineProgress(
             .fillMaxWidth()
             .height(height)
             .clip(CircleShape)
-            .background(MaterialTheme.colorScheme.outlineVariant),
+            // `outline`, not `outlineVariant`: this track is where the bar
+            // ends, so it carries meaning. With an invisible track there is
+            // nothing to judge the gold fill against. outlineVariant is 1.42:1
+            // on paper; WCAG 1.4.11 asks 3:1 of non-text that informs.
+            .background(MaterialTheme.colorScheme.outline),
     ) {
         Box(
             modifier = Modifier

@@ -8,6 +8,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.scaleIn
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -43,6 +44,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
@@ -58,9 +62,11 @@ import io.github.muntasimulhaque.ninetynine.ui.theme.HeroContainer
 import io.github.muntasimulhaque.ninetynine.ui.theme.HeroGold
 import io.github.muntasimulhaque.ninetynine.ui.theme.HeroText
 import io.github.muntasimulhaque.ninetynine.ui.theme.Motion
+import io.github.muntasimulhaque.ninetynine.ui.theme.components.ArabicSize
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.ArabicText
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.BackButton
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.HairlineProgress
+import io.github.muntasimulhaque.ninetynine.ui.theme.components.PageMessage
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.paperTopBarColors
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.ScreenLabel
 import io.github.muntasimulhaque.ninetynine.ui.theme.rememberHaptics
@@ -117,6 +123,7 @@ fun QuizScreen(
 ) {
     val quiz: QuizViewModel = viewModel()
     val names by viewModel.names.collectAsStateWithLifecycle()
+    val namesLoaded by viewModel.namesLoaded.collectAsStateWithLifecycle()
     val quizBest by viewModel.quizBest.collectAsStateWithLifecycle()
 
     LaunchedEffect(names) { quiz.ensureQuiz(names) }
@@ -155,7 +162,8 @@ fun QuizScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             when {
-                quiz.questions.isEmpty() -> Unit
+                quiz.questions.isEmpty() ->
+                    if (namesLoaded) PageMessage(stringResource(R.string.names_unavailable))
                 quiz.finished -> QuizResultContent(
                     score = quiz.score,
                     total = quiz.questions.size,
@@ -212,7 +220,7 @@ private fun QuizQuestionContent(
                     ) {
                         ArabicText(
                             text = name.arabic,
-                            fontSize = 40.sp,
+                            fontSize = ArabicSize.Panel,
                             color = HeroGold,
                             textAlign = TextAlign.Center,
                         )
@@ -245,6 +253,30 @@ private fun QuizQuestionContent(
                     )
                     Spacer(Modifier.height(10.dp))
                 }
+
+                // The green fill tells a sighted reader which answer was right.
+                // A screen reader was told nothing: `stateDescription` sits on
+                // each option, so the one the reader TAPPED re-announces
+                // ("Wrong answer") because it holds focus, while the option
+                // that turns green is a different, unfocused node and stays
+                // silent. Being told you are wrong and never told the answer
+                // defeats the point of a quiz. An empty, zero-height live
+                // region carries it without putting anything on screen.
+                val verdict = when {
+                    quiz.selected == -1 -> ""
+                    quiz.selected == question.answerIndex ->
+                        stringResource(R.string.quiz_answer_correct)
+                    else -> stringResource(
+                        R.string.quiz_answer_wrong,
+                        question.options[question.answerIndex],
+                    )
+                }
+                Box(
+                    Modifier.semantics {
+                        liveRegion = LiveRegionMode.Assertive
+                        contentDescription = verdict
+                    }
+                )
                 Spacer(Modifier.weight(1f))
                 Spacer(Modifier.height(14.dp))
                 Button(
@@ -289,8 +321,13 @@ private fun OptionButton(
         OptionState.IDLE -> colors.onSurface to colors.outline
         OptionState.CORRECT -> colors.onPrimaryContainer to colors.primary
         OptionState.WRONG -> colors.onErrorContainer to colors.error
-        OptionState.DIMMED ->
-            colors.onSurface.copy(alpha = 0.45f) to colors.outline.copy(alpha = 0.45f)
+        // Quiet, not unreadable. These options stay deliberately enabled (see
+        // below) and on screen, so they are content — WCAG's inactive-component
+        // exemption does not apply. At 45% alpha the text was 2.84:1 and the
+        // border 1.68:1, which is unreadable in sunlight and to anyone with low
+        // vision, exactly when a reader most wants to compare the answers.
+        // onSurfaceVariant is 5.79:1 and reads as quiet without disappearing.
+        OptionState.DIMMED -> colors.onSurfaceVariant to colors.outline
     }
     val stateCd = when (state) {
         OptionState.CORRECT -> stringResource(R.string.cd_correct)

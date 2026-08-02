@@ -78,7 +78,6 @@ import io.github.muntasimulhaque.ninetynine.ui.NamesViewModel
 import io.github.muntasimulhaque.ninetynine.ui.theme.Motion
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.BackButton
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.MixedText
-import io.github.muntasimulhaque.ninetynine.ui.theme.components.NavRow
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.PageRule
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.ScreenLabel
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.paperTopBarColors
@@ -95,7 +94,6 @@ private const val SCALE_MAX = 1.4f
 @Composable
 fun SettingsScreen(
     viewModel: NamesViewModel,
-    onAbout: () -> Unit,
     onBack: () -> Unit,
 ) {
     val context = LocalContext.current
@@ -246,15 +244,12 @@ fun SettingsScreen(
                 )
             }
 
-            // The About row brings its own padding — no space needed under the rule.
-            SectionBreak(bottom = 0.dp)
-            NavRow(
-                title = stringResource(R.string.about),
-                subtitle = stringResource(R.string.about_row_subtitle),
-                onClick = onAbout,
-            )
-            PageRule()
-            Spacer(Modifier.height(22.dp))
+            // About used to sit here as a row. It is reached from the ⓘ in
+            // every tab bar instead: it is the book's front matter — the
+            // hadith, the source, the typefaces — which is content, and this
+            // page is configuration. Same argument that moved Settings itself
+            // out of the bottom bar and into a corner.
+            SectionBreak()
             // Compile-time constant: no PackageManager call, and no fallback
             // string to go stale one release after somebody forgets it.
             // A datum, not a heading. SectionLabel is the app's heading style, so

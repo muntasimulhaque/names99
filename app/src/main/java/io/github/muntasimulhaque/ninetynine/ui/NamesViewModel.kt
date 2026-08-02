@@ -56,14 +56,6 @@ class NamesViewModel(application: Application) : AndroidViewModel(application) {
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptySet())
 
 
-    /**
-     * Null while DataStore is still reading. The opening is shown only on an
-     * explicit `false`, so a slow read shows the list rather than flashing an
-     * epigraph at a reader who has been here for months.
-     */
-    val openedBefore: StateFlow<Boolean?> = prefs.openedBefore
-        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
-
     val themeMode: StateFlow<ThemeMode> = prefs.themeMode
         .stateIn(viewModelScope, SharingStarted.Eagerly, ThemeMode.SYSTEM)
 
@@ -98,8 +90,6 @@ class NamesViewModel(application: Application) : AndroidViewModel(application) {
         prefs.setBookmarked(number, value)
     }
 
-
-    fun markOpened() = viewModelScope.launch { prefs.setOpenedBefore() }
 
     fun resetProgress() = viewModelScope.launch {
         prefs.resetLearned()

@@ -158,7 +158,6 @@
     <string name="reset">Reset</string>
     <string name="cancel">Cancel</string>
     <string name="ok">OK</string>
-    <string name="about_row_subtitle">The hadith, the sources, and the typefaces</string>
     <string name="version">Version %1$s</string>
 
     <!-- About -->

@@ -160,27 +160,12 @@ private fun App(startNumber: Int, onStartNumberConsumed: () -> Unit) {
     val viewModel: NamesViewModel = viewModel()
     val themeMode by viewModel.themeMode.collectAsStateWithLifecycle()
     val textScale by viewModel.textScale.collectAsStateWithLifecycle()
-    val openedBefore by viewModel.openedBefore.collectAsStateWithLifecycle()
 
     Names99Theme(themeMode = themeMode, textScale = textScale) {
         val navController = rememberNavController()
         val backStackEntry by navController.currentBackStackEntryAsState()
         val currentRoute = backStackEntry?.destination?.route
         val showBottomBar = currentRoute in topLevelRoutes.map { it.route }
-
-        // A book opens on its epigraph. `intro.txt` carries the hadith this
-        // whole app exists for — "whoever enumerates them will enter paradise"
-        // — and it was three taps down behind a gear, so most readers would
-        // never have met it. Shown once, then never again. Not shown at all if
-        // the app was opened by tapping the widget or the notification: that
-        // reader asked for a specific name, and answering with something else
-        // would be rude.
-        LaunchedEffect(openedBefore, startNumber) {
-            if (openedBefore == false && startNumber !in 1..99) {
-                viewModel.markOpened()
-                navController.navigate("about")
-            }
-        }
 
         // Re-tapping the tab you are already on returns to the top of its list.
         // Scroll to name 80 and the only way back to the daily card used to be
@@ -293,7 +278,6 @@ private fun App(startNumber: Int, onStartNumberConsumed: () -> Unit) {
                 composable("settings") {
                     SettingsScreen(
                         viewModel = viewModel,
-                        onAbout = { navController.navigate("about") },
                         onBack = { navController.popBackStack() },
                     )
                 }

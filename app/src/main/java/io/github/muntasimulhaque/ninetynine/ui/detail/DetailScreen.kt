@@ -351,12 +351,6 @@ private fun NamePage(
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 Spacer(Modifier.height(30.dp))
-                Text(
-                    text = name.number.toString(),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                Spacer(Modifier.height(8.dp))
                 ArabicText(
                     text = name.arabic,
                     fontSize = ArabicSize.Page,

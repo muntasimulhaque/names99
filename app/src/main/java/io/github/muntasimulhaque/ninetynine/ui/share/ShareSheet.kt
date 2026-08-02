@@ -100,20 +100,20 @@ fun ShareSheet(name: Name, onDismiss: () -> Unit) {
                     .weight(1f, fill = false)
                     .verticalScroll(rememberScrollState()),
             ) {
-                // Everything inside this box is recorded into the graphics layer,
-                // so it can be exported as a bitmap while drawing normally on screen.
-                Box(
-                    modifier = Modifier.drawWithContent {
-                        graphicsLayer.record {
-                            this@drawWithContent.drawContent()
-                        }
-                        drawLayer(graphicsLayer)
-                    }
-                ) {
-                    // The exported image is a public artifact — render at the
-                    // design-intended scale regardless of the reader's slider.
-                    CompositionLocalProvider(LocalTextScale provides 1f) {
-                        MaterialTheme(typography = appTypography(1f)) {
+                // The exported image is a public artifact — render at the
+                // design-intended scale regardless of the reader's slider.
+                // The theme wraps the recording Box (not the other way round)
+                // so the composition settles before the draw phase records it.
+                CompositionLocalProvider(LocalTextScale provides 1f) {
+                    MaterialTheme(typography = appTypography(1f)) {
+                        Box(
+                            modifier = Modifier.drawWithContent {
+                                graphicsLayer.record {
+                                    this@drawWithContent.drawContent()
+                                }
+                                drawLayer(graphicsLayer)
+                            }
+                        ) {
                             ShareCard(name = name, modifier = Modifier.fillMaxWidth())
                         }
                     }

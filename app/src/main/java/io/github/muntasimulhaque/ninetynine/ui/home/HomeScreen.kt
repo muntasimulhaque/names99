@@ -204,7 +204,7 @@ fun HomeScreen(
         ) {
             if (query.isBlank() && dailyName != null) {
                 item {
-                    DailyHeroCard(dailyName!!, onClick = { onNameClick(dailyName!!.number) })
+                    DailyHeroCard(dailyName, onClick = { onNameClick(dailyName.number) })
                 }
             }
             if (names.isEmpty() && namesLoaded) {

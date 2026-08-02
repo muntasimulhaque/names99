@@ -1,18 +1,19 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 plugins {
     alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.serialization)
 }
 
 android {
     namespace = "io.github.muntasimulhaque.ninetynine"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "io.github.muntasimulhaque.ninetynine"
         minSdk = 24
-        targetSdk = 36
+        targetSdk = 37
         versionCode = 26
         versionName = "3.5"
     }
@@ -31,14 +32,19 @@ android {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
-    kotlinOptions {
-        jvmTarget = "17"
-    }
     buildFeatures {
         compose = true
         // The Settings screen shows the version from BuildConfig.VERSION_NAME,
         // so it can never disagree with the versionName above.
         buildConfig = true
+    }
+}
+
+// AGP 9's built-in Kotlin replaces the kotlin-android plugin;
+// compiler options move here from the old android { kotlinOptions { } }.
+kotlin {
+    compilerOptions {
+        jvmTarget.set(JvmTarget.JVM_17)
     }
 }
 

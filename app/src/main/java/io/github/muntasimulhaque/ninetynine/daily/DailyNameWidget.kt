@@ -105,7 +105,7 @@ class DailyNameWidget : GlanceAppWidget() {
                     style = TextStyle(
                         color = gold,
                         fontSize = arabicSize,
-                        fontWeight = FontWeight.Medium,
+                        fontWeight = FontWeight.Normal,
                         fontFamily = serif,
                         textAlign = TextAlign.Center
                     )

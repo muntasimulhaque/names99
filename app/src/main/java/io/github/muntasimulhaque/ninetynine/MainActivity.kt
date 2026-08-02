@@ -28,7 +28,7 @@ import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.MenuBook
-import androidx.compose.material.icons.filled.BookmarkBorder
+import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.School
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -153,7 +153,7 @@ private data class TopLevelRoute(
 private val topLevelRoutes = listOf(
     TopLevelRoute("names", R.string.nav_names, Icons.AutoMirrored.Filled.MenuBook),
     TopLevelRoute("memorize", R.string.memorize, Icons.Filled.School),
-    TopLevelRoute("bookmarks", R.string.bookmarks, Icons.Filled.BookmarkBorder),
+    TopLevelRoute("bookmarks", R.string.bookmarks, Icons.Filled.Bookmark),
 )
 
 @Composable

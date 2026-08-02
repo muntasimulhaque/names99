@@ -247,7 +247,7 @@ private fun QuizQuestionContent(
                         Spacer(Modifier.height(6.dp))
                         Text(
                             text = name.transliteration,
-                            style = MaterialTheme.typography.displayMedium,
+                            style = MaterialTheme.typography.displaySmall,
                             color = HeroText,
                             textAlign = TextAlign.Center,
                         )
@@ -418,7 +418,7 @@ private fun QuizResultContent(
             .fillMaxSize()
             .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
+        verticalArrangement = Arrangement.Top,
     ) {
         Text(
             text = stringResource(R.string.quiz_score_format, score, total),

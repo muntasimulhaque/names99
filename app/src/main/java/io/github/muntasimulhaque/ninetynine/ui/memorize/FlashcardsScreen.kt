@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -83,6 +84,7 @@ import io.github.muntasimulhaque.ninetynine.ui.theme.components.ArabicText
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.BackButton
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.HairlineProgress
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.PageMessage
+import io.github.muntasimulhaque.ninetynine.ui.theme.components.readingMeasure
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.paperTopBarColors
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.ScreenLabel
 import io.github.muntasimulhaque.ninetynine.ui.theme.rememberHaptics
@@ -273,11 +275,11 @@ fun FlashcardsScreen(
                                 .onSizeChanged { cardWidth = it.width.toFloat() },
                         )
                     }
-                    // The hint on the first card; after that, the way back from
-                    // a mis-swipe. One line either way, so the row beneath the
-                    // card never changes height.
+                    // The hint on the first few cards; after that, the way back
+                    // from a mis-swipe. One line either way, so the row beneath
+                    // the card never changes height.
                     val undoable = session.undoable
-                    if (session.index == 0 && undoable == null) {
+                    if (session.index < 3 && undoable == null) {
                         Text(
                             text = stringResource(R.string.swipe_hint),
                             style = MaterialTheme.typography.bodySmall,
@@ -508,7 +510,7 @@ private fun SwipeFlipCard(
                 Spacer(Modifier.height(12.dp))
                 Text(
                     text = name.transliteration,
-                    style = MaterialTheme.typography.displayMedium,
+                    style = MaterialTheme.typography.displaySmall,
                     color = HeroText,
                     textAlign = TextAlign.Center,
                 )
@@ -544,6 +546,7 @@ private fun SwipeFlipCard(
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurface,
                     textAlign = TextAlign.Start,
+                    modifier = Modifier.widthIn(max = readingMeasure()),
                 )
             }
         }

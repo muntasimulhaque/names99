@@ -170,7 +170,7 @@ class NotificationWorker(context: Context, params: WorkerParameters) :
         // NEW_TASK only: the activity is singleTop and consumes the extra, so
         // this lands on the name without tearing down whatever was open.
         val intent = Intent(context, MainActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
             putExtra(MainActivity.EXTRA_NAME_NUMBER, name.number)
         }
         val pending = PendingIntent.getActivity(

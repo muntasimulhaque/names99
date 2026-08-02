@@ -111,9 +111,9 @@
     <string name="i_know_it">I know it</string>
     <string name="still_learning">Still learning</string>
     <string name="tap_to_flip">Tap the card to reveal the meaning</string>
-    <string name="reshuffle">Reshuffle</string>
-    <string name="deck_done">You went through the whole deck.</string>
-    <string name="start_again">Start again</string>
+    <string name="reshuffle">New set of ten</string>
+    <string name="deck_done">You finished this set of ten. Take the next?</string>
+    <string name="start_again">Next set</string>
     <string name="include_learned">Include learned names</string>
     <string name="card_x_of_y">%1$d of %2$d</string>
     <string name="swipe_hint">Swipe right if you know it — left to keep practicing</string>

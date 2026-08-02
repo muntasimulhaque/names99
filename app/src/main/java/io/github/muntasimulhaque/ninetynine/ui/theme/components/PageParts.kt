@@ -28,7 +28,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontStyle
@@ -46,6 +48,14 @@ import io.github.muntasimulhaque.ninetynine.ui.theme.LocalTextScale
  * Settings and About cannot drift apart: a tracked gold overline, a hairline
  * rule, and a row set the way a table of contents is set.
  */
+
+/**
+ * Named page insets — three tiers, documented so screens pick deliberately.
+ * Lists are tighter (the eye scans), reading pages are roomier (the eye dwells).
+ */
+val ListInset = 20.dp
+val PageInset = 24.dp
+val ReadingInset = 28.dp
 
 /** Small caps in gold, widely tracked — the app's only kind of heading label. */
 @Composable
@@ -268,6 +278,7 @@ fun NavRow(
         modifier = modifier
             .fillMaxWidth()
             .clickable(onClick = onClick)
+            .semantics { role = Role.Button }
             .padding(vertical = if (subtitle == null) 17.dp else 20.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {

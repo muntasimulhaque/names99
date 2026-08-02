@@ -70,7 +70,9 @@ fun AboutScreen(onBack: () -> Unit) {
     val context = LocalContext.current
     val intro by produceState(initialValue = "") {
         value = withContext(Dispatchers.IO) {
-            context.assets.open("intro.txt").bufferedReader().use { it.readText() }
+            runCatching {
+                context.assets.open("intro.txt").bufferedReader().use { it.readText() }
+            }.getOrDefault("")
         }
     }
     // intro.txt may be checked out with CRLF endings; normalize before splitting.

@@ -9,6 +9,7 @@ import io.github.muntasimulhaque.ninetynine.data.NamesRepository
 import io.github.muntasimulhaque.ninetynine.data.Prefs
 import io.github.muntasimulhaque.ninetynine.data.ThemeMode
 import io.github.muntasimulhaque.ninetynine.util.DailyName
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -114,10 +115,15 @@ class NamesViewModel(application: Application) : AndroidViewModel(application) {
         prefs.setTextScale(scale)
     }
 
-    fun setDailyEnabled(enabled: Boolean) = viewModelScope.launch {
-        prefs.setDailyEnabled(enabled)
-        if (enabled) DailyScheduler.rescheduleNotification(getApplication())
-        else DailyScheduler.cancelNotification(getApplication())
+    private var dailyToggleJob: Job? = null
+
+    fun setDailyEnabled(enabled: Boolean) {
+        dailyToggleJob?.cancel()
+        dailyToggleJob = viewModelScope.launch {
+            prefs.setDailyEnabled(enabled)
+            if (enabled) DailyScheduler.rescheduleNotification(getApplication())
+            else DailyScheduler.cancelNotification(getApplication())
+        }
     }
 
     fun setDailyTime(hour: Int, minute: Int) = viewModelScope.launch {

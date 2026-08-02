@@ -28,7 +28,6 @@ import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.BookmarkBorder
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.CenterAlignedTopAppBar
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -53,6 +52,8 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontStyle
@@ -72,6 +73,7 @@ import io.github.muntasimulhaque.ninetynine.ui.theme.components.BackButton
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.LearnedButton
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.MixedText
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.PageMessage
+import io.github.muntasimulhaque.ninetynine.ui.theme.components.ReadingInset
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.readingMeasure
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.scaledGap
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.ScreenLabel
@@ -82,7 +84,6 @@ import kotlinx.coroutines.launch
 // The reading measure sits in from the page edges. The prev/next footer does
 // not — it belongs to the edges themselves, so it bleeds back out through this
 // inset (see NamePage).
-private val PageInset = 28.dp
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -209,7 +210,8 @@ fun DetailScreen(
                             R.string.detail_counter,
                             pagerState.currentPage + 1,
                             pages.size,
-                        )
+                        ),
+                        modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
                     )
                 },
                 navigationIcon = { BackButton(onBack) },
@@ -341,7 +343,7 @@ private fun NamePage(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(scrollState)
-                .padding(horizontal = PageInset),
+                .padding(horizontal = ReadingInset),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Column(
@@ -349,6 +351,12 @@ private fun NamePage(
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 Spacer(Modifier.height(30.dp))
+                Text(
+                    text = name.number.toString(),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Spacer(Modifier.height(8.dp))
                 ArabicText(
                     text = name.arabic,
                     fontSize = ArabicSize.Page,
@@ -360,7 +368,7 @@ private fun NamePage(
                 // share card and the widget hold (roughly half the Arabic size).
                 Text(
                     text = name.transliteration,
-                    style = MaterialTheme.typography.displaySmall,
+                    style = MaterialTheme.typography.displayMedium,
                     color = MaterialTheme.colorScheme.onSurface,
                     textAlign = TextAlign.Center,
                 )
@@ -413,7 +421,7 @@ private fun NamePage(
                     modifier = Modifier
                         .fillMaxWidth()
                         .layout { measurable, constraints ->
-                            val bleed = PageInset.roundToPx()
+                            val bleed = ReadingInset.roundToPx()
                             val placeable = measurable.measure(
                                 constraints.copy(
                                     minWidth = constraints.minWidth + bleed * 2,

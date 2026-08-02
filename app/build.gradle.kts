@@ -64,6 +64,5 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.androidx.work.runtime.ktx)
     implementation(libs.androidx.glance.appwidget)
-    debugImplementation(libs.androidx.ui.tooling)
     testImplementation(libs.junit)
 }

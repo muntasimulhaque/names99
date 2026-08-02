@@ -15,6 +15,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
@@ -47,7 +48,10 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -120,17 +124,20 @@ fun HomeScreen(
                 title = {
                     if (searching) {
                         val focusRequester = remember { FocusRequester() }
+                        val searchLabel = stringResource(R.string.cd_search)
                         BasicTextField(
                             value = query,
                             onValueChange = viewModel::setSearchQuery,
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .focusRequester(focusRequester),
+                                .focusRequester(focusRequester)
+                                .semantics { contentDescription = searchLabel },
                             textStyle = MaterialTheme.typography.titleMedium.copy(
                                 color = MaterialTheme.colorScheme.onSurface,
                             ),
                             cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
                             singleLine = true,
+                            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                             decorationBox = { inner ->
                                 Box(contentAlignment = Alignment.CenterStart) {
                                     if (query.isEmpty()) {
@@ -316,7 +323,7 @@ private fun DailyHeroCard(name: Name, onClick: () -> Unit) {
             // — which is the one thing the app is careful never to do.
             FitText(
                 text = name.transliteration,
-                style = MaterialTheme.typography.displayMedium.copy(
+                style = MaterialTheme.typography.displaySmall.copy(
                     textAlign = TextAlign.Center,
                 ),
                 color = HeroText,

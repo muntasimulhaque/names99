@@ -7,6 +7,9 @@
   only has to look like it. The Arabic is unvocalized on purpose — like the
   widget, this is set in the system serif, whose mark placement on اللَّه is
   wrong, which is why the app's own screens use the bundled Mushaf face.
+
+  Hero palette authority: Color.kt (HeroGold #D4B45A, HeroText #F2EDE2,
+  HeroSubtext #BFD5CB, HeroContainer #1F4E42).
 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"

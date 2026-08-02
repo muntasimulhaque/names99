@@ -96,9 +96,9 @@ fun LearnedButton(
             modifier = Modifier
                 // heightIn, not height: the Surface clips to a circle, and
                 // labelLarge's 18sp line box at the in-app 1.4x on top of a
-                // system font scale of 2.0 is 50dp — which a fixed 44dp box
+                // system font scale of 2.0 is 50dp — which a fixed 48dp box
                 // cuts through. The pill grows instead.
-                .heightIn(min = 44.dp)
+                .heightIn(min = 48.dp)
                 .padding(horizontal = 22.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Only the widget picker draws this: the emerald plate the real widget uses. -->
+<!-- Only the widget picker draws this: the emerald plate the real widget uses.
+     Hero palette authority: Color.kt (HeroContainer). -->
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
     android:shape="rectangle">
     <solid android:color="#1F4E42" />

@@ -188,7 +188,7 @@ private fun ShareCard(name: Name, modifier: Modifier = Modifier) {
                 Spacer(Modifier.height(8.dp))
                 Text(
                     text = name.transliteration,
-                    style = MaterialTheme.typography.displayMedium,
+                    style = MaterialTheme.typography.displaySmall,
                     color = HeroText,
                     textAlign = TextAlign.Center,
                 )

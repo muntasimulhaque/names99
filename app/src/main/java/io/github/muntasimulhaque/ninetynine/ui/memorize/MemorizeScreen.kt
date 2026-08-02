@@ -6,11 +6,15 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -20,11 +24,15 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.muntasimulhaque.ninetynine.R
 import io.github.muntasimulhaque.ninetynine.ui.NamesViewModel
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.HairlineProgress
+import io.github.muntasimulhaque.ninetynine.ui.theme.components.scaledGap
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.NavRow
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.PageRule
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.AboutAction
@@ -76,7 +84,9 @@ fun MemorizeScreen(
             // see, while the newer bookmarks axis had a whole tab.
             Row(
                 verticalAlignment = Alignment.Bottom,
-                modifier = Modifier.clickable(onClick = onLearned),
+                modifier = Modifier
+                    .clickable(onClick = onLearned)
+                    .semantics { role = Role.Button },
             ) {
                 Text(
                     text = learnedCount.toString(),
@@ -90,8 +100,15 @@ fun MemorizeScreen(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(bottom = 9.dp),
                 )
+                Spacer(Modifier.width(4.dp))
+                Icon(
+                    Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.secondary,
+                    modifier = Modifier.padding(bottom = 6.dp).size(20.dp),
+                )
             }
-            Spacer(Modifier.height(14.dp))
+            Spacer(Modifier.height(scaledGap(14.dp)))
             HairlineProgress(progress = learnedCount / 99f)
             Spacer(Modifier.height(10.dp))
             Text(
@@ -103,7 +120,7 @@ fun MemorizeScreen(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
 
-            Spacer(Modifier.height(36.dp))
+            Spacer(Modifier.height(scaledGap(36.dp)))
             // A small table of contents, set like a book's.
             NavRow(
                 title = stringResource(R.string.flashcards),
@@ -118,7 +135,7 @@ fun MemorizeScreen(
             )
             PageRule()
             if (quizBest >= 0) {
-                Spacer(Modifier.height(24.dp))
+                Spacer(Modifier.height(scaledGap(24.dp)))
                 Text(
                     text = stringResource(R.string.quiz_best, quizBest),
                     style = MaterialTheme.typography.bodyMedium,

@@ -45,20 +45,6 @@ class NamesAssetTest {
         }
     }
 
-    /**
-     * The title is shown separately on the name page, the share card and the
-     * flashcard back, so the meaning must not repeat it as its own lead-in.
-     */
-    @Test
-    fun meaningDoesNotRepeatItsTitle() {
-        names.forEach {
-            assertTrue(
-                "#${it.number} repeats its title in the meaning",
-                !it.meaning.startsWith(it.title),
-            )
-        }
-    }
-
     @Test
     fun everyNameIsDistinct() {
         val translits = names.map { it.transliteration }

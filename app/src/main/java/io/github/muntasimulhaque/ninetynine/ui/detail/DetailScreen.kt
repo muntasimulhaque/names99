@@ -369,7 +369,12 @@ private fun NamePage(
                 ArabicText(
                     text = name.arabic,
                     fontSize = ArabicSize.Page,
-                    color = MaterialTheme.colorScheme.primary,
+                    // The Name is set in the app's gold (the same family the
+                    // share card's Arabic wears on its emerald plate), so it
+                    // stands apart from the teal transliteration beneath it.
+                    // Theme-aware: the hardened gold on paper, the lighter gold
+                    // on the night page.
+                    color = MaterialTheme.colorScheme.secondary,
                     textAlign = TextAlign.Center,
                 )
                 // The transliteration belongs to the Name: 8dp is the share

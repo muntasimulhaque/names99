@@ -56,10 +56,11 @@ class DailyNameWidget : GlanceAppWidget() {
          * الله over the lam-heh joint — the very bug that once forced stripping
          * them app-wide. The app's bundled HAFS renders it correctly, but the
          * widget and notification draw with system fonts, so they show the
-         * plain form for this one word.
+         * plain form for this one word. The name is stored with a standing
+         * fathah (dagger alif), so strip that form too.
          */
         fun systemFontSafeArabic(text: String): String =
-            text.replace("اللَّه", "الله")
+            text.replace("اللّٰه", "الله").replace("اللَّه", "الله")
     }
 
     override val sizeMode: SizeMode = SizeMode.Responsive(setOf(COMPACT, MEDIUM, TALL, XTALL))

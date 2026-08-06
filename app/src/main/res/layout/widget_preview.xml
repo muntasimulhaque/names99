@@ -5,7 +5,7 @@
 
   A still life, not the widget itself: Glance renders the real thing, and this
   only has to look like it. The Arabic is unvocalized on purpose — like the
-  widget, this is set in the system serif, whose mark placement on اللَّه is
+  widget, this is set in the system serif, whose mark placement on اللّٰه is
   wrong, which is why the app's own screens use the bundled Mushaf face.
 
   Hero palette authority: Color.kt (HeroGold #D4B45A, HeroText #F2EDE2,

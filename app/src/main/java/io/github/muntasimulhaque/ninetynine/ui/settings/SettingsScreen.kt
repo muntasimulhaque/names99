@@ -16,6 +16,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -56,11 +57,13 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.disabled
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
@@ -76,6 +79,7 @@ import io.github.muntasimulhaque.ninetynine.data.ThemeMode
 import io.github.muntasimulhaque.ninetynine.ui.NamesViewModel
 import io.github.muntasimulhaque.ninetynine.ui.theme.Motion
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.BackButton
+import io.github.muntasimulhaque.ninetynine.ui.theme.components.ListInset
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.MixedText
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.PageRule
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.ScreenLabel
@@ -106,6 +110,11 @@ fun SettingsScreen(
     var showTimePicker by rememberSaveable { mutableStateOf(false) }
     var showResetDialog by rememberSaveable { mutableStateOf(false) }
     var showBlockedDialog by rememberSaveable { mutableStateOf(false) }
+    // Set when the reader tries to turn the reminder on and the permission is
+    // blocked: the dialog takes them to system settings, and if they grant it
+    // there, resuming this screen completes the flip they originally asked
+    // for — otherwise the switch would silently need a second toggle.
+    var pendingEnable by rememberSaveable { mutableStateOf(false) }
 
     val notificationPermission = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -113,13 +122,21 @@ fun SettingsScreen(
         // Say something on denial. Android stops showing the system dialog
         // after the second refusal, so without this the switch would simply do
         // nothing, for ever, with no way for the reader to find out why.
-        if (granted) viewModel.setDailyEnabled(true) else showBlockedDialog = true
+        if (granted) viewModel.setDailyEnabled(true) else {
+            pendingEnable = true
+            showBlockedDialog = true
+        }
     }
 
     // The permission can also be withdrawn in system settings long after it was
     // granted, which would leave this screen saying the reminder is on while
-    // nothing is ever posted.
-    LifecycleResumeEffect(dailyEnabled) {
+    // nothing is ever posted. And the reverse: granted in system settings after
+    // the blocked dialog, which should finish the enable the reader asked for.
+    LifecycleResumeEffect(dailyEnabled, pendingEnable) {
+        if (pendingEnable && notificationsAllowed(context)) {
+            pendingEnable = false
+            viewModel.setDailyEnabled(true)
+        }
         if (dailyEnabled && !notificationsAllowed(context)) viewModel.setDailyEnabled(false)
         onPauseOrDispose {}
     }
@@ -140,7 +157,7 @@ fun SettingsScreen(
                 .fillMaxSize()
                 .padding(padding)
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 20.dp),
+                .padding(horizontal = ListInset),
         ) {
             Spacer(Modifier.height(10.dp))
             SectionLabel(stringResource(R.string.theme_section))
@@ -154,7 +171,7 @@ fun SettingsScreen(
 
             SectionBreak()
             SectionLabel(stringResource(R.string.text_size))
-            Spacer(Modifier.height(22.dp))
+            Spacer(Modifier.height(16.dp))
             // The specimen itself is the preview — no box around it.
             MixedText(
                 text = stringResource(R.string.text_size_preview),
@@ -173,7 +190,9 @@ fun SettingsScreen(
             // The slider's own touch target already leaves air beneath the track.
             SectionBreak(top = 6.dp)
             SectionLabel(stringResource(R.string.daily_section))
-            Spacer(Modifier.height(4.dp))
+            // A little more air than the label-only rows: the switch row is
+            // taller and carries a control.
+            Spacer(Modifier.height(8.dp))
             // Toggling lives on the row, not the Switch: a bare Switch has no
             // accessible name of its own, because its label is a sibling.
             Row(
@@ -214,6 +233,10 @@ fun SettingsScreen(
                         // default and never re-seeds, so opening it early
                         // would silently overwrite the user's chosen time.
                         .clickable(enabled = dailyTimeLoaded) { showTimePicker = true }
+                        // The row is inert while DataStore has not delivered
+                        // the saved time; say so, or a screen reader hears a
+                        // plain row that later becomes a button.
+                        .semantics { if (!dailyTimeLoaded) disabled() }
                         .padding(vertical = 14.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
@@ -233,7 +256,7 @@ fun SettingsScreen(
 
             SectionBreak()
             SectionLabel(stringResource(R.string.memorization_section))
-            Spacer(Modifier.height(4.dp))
+            Spacer(Modifier.height(8.dp))
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -435,6 +458,11 @@ private fun HairlineSlider(
     val fraction = ((value - SCALE_MIN) / (SCALE_MAX - SCALE_MIN)).coerceIn(0f, 1f)
     val label = stringResource(R.string.text_size)
     val percent = stringResource(R.string.percent, (value * 100).roundToInt())
+    // The custom thumb below replaces Material's whole thumb slot, which is
+    // where its focus ring was drawn — so the ring has to be drawn by hand
+    // here, or keyboard users get no indication at all on the one control
+    // in the app that takes keyboard input.
+    var focused by remember { mutableStateOf(false) }
     Slider(
         value = value,
         onValueChange = onValueChange,
@@ -444,6 +472,7 @@ private fun HairlineSlider(
         // and no unit; the hairline also leaves only a 16dp focus rectangle.
         modifier = Modifier
             .heightIn(min = 48.dp)
+            .onFocusChanged { focused = it.isFocused }
             .semantics {
                 contentDescription = label
                 stateDescription = percent
@@ -453,6 +482,10 @@ private fun HairlineSlider(
                 Modifier
                     .size(14.dp)
                     .background(gold, CircleShape)
+                    .then(
+                        if (focused) Modifier.border(2.dp, MaterialTheme.colorScheme.primary, CircleShape)
+                        else Modifier
+                    )
             )
         },
         track = { _ ->

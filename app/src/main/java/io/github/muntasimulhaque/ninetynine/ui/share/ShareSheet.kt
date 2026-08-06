@@ -5,6 +5,7 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.widget.Toast
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -54,13 +55,16 @@ import io.github.muntasimulhaque.ninetynine.R
 import io.github.muntasimulhaque.ninetynine.data.Name
 import io.github.muntasimulhaque.ninetynine.ui.theme.HeroContainer
 import io.github.muntasimulhaque.ninetynine.ui.theme.HeroGold
+import io.github.muntasimulhaque.ninetynine.ui.theme.HeroPlateBorder
 import io.github.muntasimulhaque.ninetynine.ui.theme.HeroSubtext
 import io.github.muntasimulhaque.ninetynine.ui.theme.HeroText
+import io.github.muntasimulhaque.ninetynine.ui.theme.LocalDarkTheme
 import io.github.muntasimulhaque.ninetynine.ui.theme.LocalTextScale
 import io.github.muntasimulhaque.ninetynine.ui.theme.appTypography
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.ArabicSize
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.ArabicText
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.FitText
+import io.github.muntasimulhaque.ninetynine.ui.theme.components.PageInset
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -82,7 +86,7 @@ fun ShareSheet(name: Name, onDismiss: () -> Unit) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 24.dp)
+                .padding(horizontal = PageInset)
                 .padding(bottom = 32.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
@@ -157,6 +161,10 @@ private fun ShareCard(name: Name, modifier: Modifier = Modifier) {
         modifier = modifier,
         shape = MaterialTheme.shapes.large,
         colors = CardDefaults.cardColors(containerColor = HeroContainer),
+        // The plate's edge against the near-black page in dark themes (see
+        // HeroPlateBorder); light needs no border. The exported image gets
+        // the same edge, which also helps it read on a dark chat surface.
+        border = if (LocalDarkTheme.current) BorderStroke(1.dp, HeroPlateBorder) else null,
     ) {
         Box(Modifier.padding(10.dp)) {
             Column(
@@ -167,7 +175,7 @@ private fun ShareCard(name: Name, modifier: Modifier = Modifier) {
                         color = frameGold,
                         shape = RoundedCornerShape(20.dp),
                     )
-                    .padding(horizontal = 22.dp, vertical = 24.dp),
+                    .padding(horizontal = 24.dp, vertical = 24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 ArabicText(

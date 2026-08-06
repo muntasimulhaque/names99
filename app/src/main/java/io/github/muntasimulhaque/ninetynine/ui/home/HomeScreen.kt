@@ -1,6 +1,7 @@
 package io.github.muntasimulhaque.ninetynine.ui.home
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Box
@@ -66,8 +67,10 @@ import io.github.muntasimulhaque.ninetynine.data.Name
 import io.github.muntasimulhaque.ninetynine.ui.NamesViewModel
 import io.github.muntasimulhaque.ninetynine.ui.theme.HeroContainer
 import io.github.muntasimulhaque.ninetynine.ui.theme.HeroGold
+import io.github.muntasimulhaque.ninetynine.ui.theme.HeroPlateBorder
 import io.github.muntasimulhaque.ninetynine.ui.theme.HeroSubtext
 import io.github.muntasimulhaque.ninetynine.ui.theme.HeroText
+import io.github.muntasimulhaque.ninetynine.ui.theme.LocalDarkTheme
 import io.github.muntasimulhaque.ninetynine.ui.theme.Motion
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.ArabicSize
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.ArabicText
@@ -80,6 +83,7 @@ import io.github.muntasimulhaque.ninetynine.ui.theme.components.SettingsAction
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.nameRowTextInset
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.paperTopBarColors
 import io.github.muntasimulhaque.ninetynine.util.SearchFilter
+import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -96,12 +100,25 @@ fun HomeScreen(
     val query by viewModel.searchQuery.collectAsStateWithLifecycle()
 
     var searching by rememberSaveable { mutableStateOf(false) }
+    // Focus is requested the moment search mode is entered, and only then:
+    // returning from a pushed screen restores the field and the query but
+    // must not re-open the keyboard over a list the reader may consider done.
+    var searchFocusRequested by rememberSaveable { mutableStateOf(false) }
     var dailyNumber by remember { mutableIntStateOf(viewModel.dailyNameNumber()) }
 
     // The daily name rolls over at midnight; recompute whenever the app resumes.
     LifecycleResumeEffect(Unit) {
         dailyNumber = viewModel.dailyNameNumber()
         onPauseOrDispose {}
+    }
+    // ... and while the screen stays visible (a phone left unlocked on Home),
+    // every minute, so the hero card does not show yesterday's name after the
+    // widget has already turned.
+    LaunchedEffect(Unit) {
+        while (true) {
+            dailyNumber = viewModel.dailyNameNumber()
+            delay(60_000)
+        }
     }
 
     if (searching) {
@@ -157,7 +174,12 @@ fun HomeScreen(
                                 }
                             },
                         )
-                        LaunchedEffect(Unit) { focusRequester.requestFocus() }
+                        LaunchedEffect(Unit) {
+                            if (searchFocusRequested) {
+                                searchFocusRequested = false
+                                focusRequester.requestFocus()
+                            }
+                        }
                     } else {
                         HomeTitle()
                     }
@@ -186,7 +208,10 @@ fun HomeScreen(
                             }
                         }
                     } else {
-                        IconButton(onClick = { searching = true }) {
+                        IconButton(onClick = {
+                            searching = true
+                            searchFocusRequested = true
+                        }) {
                             Icon(
                                 Icons.Filled.Search,
                                 contentDescription = stringResource(R.string.cd_search),
@@ -306,6 +331,9 @@ private fun DailyHeroCard(name: Name, onClick: () -> Unit) {
             },
         shape = MaterialTheme.shapes.large,
         colors = CardDefaults.cardColors(containerColor = HeroContainer),
+        // The plate's edge against the near-black page in dark themes (see
+        // HeroPlateBorder); light needs no border.
+        border = if (LocalDarkTheme.current) BorderStroke(1.dp, HeroPlateBorder) else null,
     ) {
         Column(
             modifier = Modifier

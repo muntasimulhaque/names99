@@ -21,6 +21,15 @@ import io.github.muntasimulhaque.ninetynine.data.ThemeMode
  */
 val LocalTextScale = staticCompositionLocalOf { 1f }
 
+/**
+ * Whether the theme actually renders dark — the reader's choice, not the
+ * system's (BLACK on a light phone must still draw light-mode system bars).
+ * The fixed hero plates (hero card, quiz card, flashcard front, share card)
+ * are the same emerald in every theme, so they take a border in dark modes
+ * to keep their edge against the near-black page — see HeroPlateBorder.
+ */
+val LocalDarkTheme = staticCompositionLocalOf { false }
+
 @Composable
 fun Names99Theme(
     themeMode: ThemeMode = ThemeMode.SYSTEM,
@@ -52,7 +61,10 @@ fun Names99Theme(
         }
     }
 
-    CompositionLocalProvider(LocalTextScale provides textScale) {
+    CompositionLocalProvider(
+        LocalTextScale provides textScale,
+        LocalDarkTheme provides darkTheme,
+    ) {
         // Read the system animator scale so Motion can collapse to snap()
         // when the user has turned animations off.
         val context = LocalContext.current

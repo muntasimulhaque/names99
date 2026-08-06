@@ -24,13 +24,16 @@ private val ARABIC_RUN = Regex(
 /**
  * How much larger an inline Arabic run is set than the Latin around it.
  *
- * HAFS's body height is 0.346 em against Spectral's 0.450 x-height, so matched
- * nominal sizes leave the Arabic looking smaller than its neighbours. 0.450 /
- * 0.346 puts the two bodies level, which is the right anchor for Arabic inside
- * a run of Latin. The name page's 2.17 is a display pairing and would shout in
- * running text.
+ * HAFS's body letters are already level with Spectral's x-height at matched
+ * nominal sizes (measured: HAFS sxHeight 0.507em, reh ink 0.478em, beh ink
+ * 0.551em against Spectral's 0.450em x-height), so no uplift is needed for
+ * optical balance — 1.20 is a conventional Latin/Arabic mixing ratio that
+ * keeps the Arabic present without dominating the line. (The earlier 1.30
+ * rested on a "0.346em body height" that was itself derived from 1.30, a
+ * circular argument; 1.20 also trims the line-box inflation it caused:
+ * bodyMedium 15sp/24sp now needs 32.4sp instead of 35.1sp.)
  */
-private const val ArabicSpanScale = 1.30f
+private const val ArabicSpanScale = 1.20f
 
 /** Latin text where embedded Arabic runs are switched to the bundled Arabic typeface. */
 @Composable
@@ -58,12 +61,11 @@ fun MixedText(
                 // outline is exactly the derivative artwork the KFGQPC licence
                 // forbids.
                 //
-                // The size is raised because HAFS's body is 77% of Spectral's
-                // x-height (0.346 em against 0.450), so matched nominal sizes
-                // leave the Arabic looking smaller than the Latin beside it.
-                // 0.450/0.346 = 1.30 puts the two bodies level, which is the
-                // right anchor for Arabic set inline in a run of Latin — the
-                // name page's 2.17 is a display pairing and would shout here.
+                // The size is raised because HAFS's body letters are level
+                // with Spectral's x-height at matched nominal sizes (0.507em
+                // sxHeight vs 0.450em), and 1.20 keeps the Arabic present in
+                // a run of Latin without dominating it — the name page's
+                // 2.17 is a display pairing and would shout here.
                 addStyle(
                     SpanStyle(
                         fontFamily = ArabicFamily,

@@ -63,8 +63,8 @@ private val BaseTypography = Typography(
     displayMedium = TextStyle(
         fontFamily = SpectralFamily,
         fontWeight = FontWeight.Light,
-        fontSize = 28.sp,
-        lineHeight = 36.sp,
+        fontSize = 30.sp,
+        lineHeight = 38.sp,
     ),
     headlineLarge = TextStyle(
         fontFamily = SpectralFamily,

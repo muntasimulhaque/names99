@@ -33,8 +33,10 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.muntasimulhaque.ninetynine.R
 import io.github.muntasimulhaque.ninetynine.ui.NamesViewModel
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.HairlineProgress
+import io.github.muntasimulhaque.ninetynine.ui.theme.components.ListInset
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.scaledGap
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.NavRow
+import io.github.muntasimulhaque.ninetynine.ui.theme.components.PageMessage
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.PageRule
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.AboutAction
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.SettingsAction
@@ -51,6 +53,8 @@ fun MemorizeScreen(
     onLearned: () -> Unit,
 ) {
     val learned by viewModel.learned.collectAsStateWithLifecycle()
+    val names by viewModel.names.collectAsStateWithLifecycle()
+    val namesLoaded by viewModel.namesLoaded.collectAsStateWithLifecycle()
     val quizBest by viewModel.quizBest.collectAsStateWithLifecycle()
     val learnedCount = learned.size.coerceIn(0, 99)
 
@@ -77,9 +81,15 @@ fun MemorizeScreen(
                 .fillMaxSize()
                 .padding(padding)
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 20.dp),
+                .padding(horizontal = ListInset),
         ) {
             Spacer(Modifier.height(20.dp))
+            if (names.isEmpty() && namesLoaded) {
+                // The asset failed to read; the count below would otherwise
+                // claim a progress ("3 of 99 learned") every names surface
+                // has just said is meaningless.
+                PageMessage(stringResource(R.string.names_unavailable))
+            } else {
             // Progress as typography: a big light number, a quiet caption,
             // and a hairline of gold — no rings, no dashboards. The number is
             // also the way in: it stood for a list the app never let anyone
@@ -112,7 +122,8 @@ fun MemorizeScreen(
             }
             Spacer(Modifier.height(scaledGap(14.dp)))
             HairlineProgress(progress = learnedCount / 99f)
-            Spacer(Modifier.height(10.dp))
+            // Text-adjacent air scales with the type, like the gap above it.
+            Spacer(Modifier.height(scaledGap(10.dp)))
             Text(
                 text = if (learnedCount >= 99)
                     stringResource(R.string.all_learned_title)
@@ -121,6 +132,7 @@ fun MemorizeScreen(
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
+            }
 
             Spacer(Modifier.height(scaledGap(36.dp)))
             // A small table of contents, set like a book's.

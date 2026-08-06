@@ -9,16 +9,20 @@ val LightColors = lightColorScheme(
     onPrimary = Color(0xFFFFFFFF),
     primaryContainer = Color(0xFFDAE9E0),
     onPrimaryContainer = Color(0xFF0E2E24),
-    // Deep enough to clear WCAG AA on paper (4.61:1) — this gold carries the
-    // epithets and every tracked section label, not just ornament.
-    secondary = Color(0xFF8C6A1B),
+    // Deep enough to clear WCAG AA on paper with margin (5.14:1) — this gold
+    // carries the epithets and every tracked section label, not just ornament.
+    // (#8C6A1B was 4.61:1, only 0.11 of headroom for the app's tightest
+    // normal-text pair; #856216 is imperceptibly deeper.)
+    secondary = Color(0xFF856216),
     onSecondary = Color(0xFFFFFFFF),
     secondaryContainer = Color(0xFFF3E7C3),
     onSecondaryContainer = Color(0xFF3D2F05),
     // Tertiary is the gold again. Material components that reach for it — the
     // time picker's AM/PM selector is the only one here — would otherwise draw
     // baseline lilac-pink in the middle of an emerald and gold palette.
-    tertiary = Color(0xFF8C6A1B),
+    // Kept literally identical to secondary (the hardened #856216), so the
+    // two slots can never drift apart.
+    tertiary = Color(0xFF856216),
     onTertiary = Color(0xFFFFFFFF),
     tertiaryContainer = Color(0xFFF3E7C3),
     onTertiaryContainer = Color(0xFF3D2F05),
@@ -74,7 +78,7 @@ val DarkColors = darkColorScheme(
     outline = Color(0xFF837B69),
     outlineVariant = Color(0xFF3D392F),
     surfaceContainerLowest = Color(0xFF0E0D0A),
-    surfaceContainerLow = Color(0xFF1B1913),
+    surfaceContainerLow = Color(0xFF1D1B15),
     surfaceContainer = Color(0xFF1F1D17),
     surfaceContainerHigh = Color(0xFF2A2721),
     surfaceContainerHighest = Color(0xFF353127),
@@ -100,3 +104,19 @@ val HeroContainer = Color(0xFF1F4E42)
 val HeroGold = Color(0xFFD4B45A)
 val HeroText = Color(0xFFF2EDE2)
 val HeroSubtext = Color(0xFFBFD5CB)
+
+/**
+ * The hero plates' edge in dark themes: HeroContainer lifted ~22% toward
+ * white. Against the dark page (#14120D) it reads 3.66:1, on black 4.10:1,
+ * against a dark sheet 3.5:1 — WCAG 1.4.11's 3:1 for the meaningful
+ * boundary of an interactive card, which the bare emerald (1.86–2.23:1)
+ * fails. Light mode needs no border at all (8.67:1).
+ */
+val HeroPlateBorder = Color(0xFF50756C)
+
+/**
+ * The share card's gold hairline, pre-blended: HeroGold at 40% over
+ * HeroContainer. The widget's frame is drawn over whatever wallpaper sits
+ * behind it, so the ring must not depend on the wallpaper's colour.
+ */
+val HeroFrame = Color(0xFF67774C)

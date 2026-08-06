@@ -49,6 +49,7 @@ import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -57,7 +58,9 @@ import io.github.muntasimulhaque.ninetynine.data.Name
 import io.github.muntasimulhaque.ninetynine.ui.NamesViewModel
 import io.github.muntasimulhaque.ninetynine.ui.theme.HeroContainer
 import io.github.muntasimulhaque.ninetynine.ui.theme.HeroGold
+import io.github.muntasimulhaque.ninetynine.ui.theme.HeroPlateBorder
 import io.github.muntasimulhaque.ninetynine.ui.theme.HeroText
+import io.github.muntasimulhaque.ninetynine.ui.theme.LocalDarkTheme
 import io.github.muntasimulhaque.ninetynine.ui.theme.Motion
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.ArabicSize
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.ArabicText
@@ -68,20 +71,23 @@ import io.github.muntasimulhaque.ninetynine.ui.theme.components.NavRow
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.PageRule
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.SectionLabel
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.PageMessage
+import io.github.muntasimulhaque.ninetynine.ui.theme.components.PageInset
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.paperTopBarColors
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.ScreenLabel
 import io.github.muntasimulhaque.ninetynine.ui.theme.rememberHaptics
 import io.github.muntasimulhaque.ninetynine.util.QuizBuilder
 import io.github.muntasimulhaque.ninetynine.util.QuizQuestion
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
 /** Session state for one quiz round; survives rotation with the ViewModel. */
-class QuizViewModel : ViewModel() {
+class QuizViewModel(private val savedState: SavedStateHandle) : ViewModel() {
 
-    var questions by mutableStateOf<List<QuizQuestion>>(emptyList()); private set
-    var index by mutableIntStateOf(0); private set
-    var score by mutableIntStateOf(0); private set
-    var selected by mutableIntStateOf(-1); private set
-    var finished by mutableStateOf(false); private set
+    var questions by mutableStateOf<List<QuizQuestion>>(restoredQuestions()); private set
+    var index by mutableIntStateOf(savedState.get<Int>(KEY_INDEX) ?: 0); private set
+    var score by mutableIntStateOf(savedState.get<Int>(KEY_SCORE) ?: 0); private set
+    var selected by mutableIntStateOf(savedState.get<Int>(KEY_SELECTED) ?: -1); private set
+    var finished by mutableStateOf(savedState.get<Boolean>(KEY_FINISHED) ?: false); private set
 
     /**
      * The names answered wrongly, in the order they came up.
@@ -90,11 +96,32 @@ class QuizViewModel : ViewModel() {
      * way to find out which four — the information existed a second earlier and
      * was thrown away. A book of exercises has an answers page.
      */
-    var missed by mutableStateOf<List<Int>>(emptyList()); private set
+    var missed by mutableStateOf<List<Int>>(savedState.get<IntArray>(KEY_MISSED)?.toList() ?: emptyList()); private set
+
+    /**
+     * The round lives in the SavedStateHandle, not just memory: a process
+     * death mid-quiz restores the exact question, score and missed list, the
+     * same way the name pager restores its page. The keys are dropped in
+     * [onCleared], so leaving the screen starts the next sitting fresh.
+     */
+    private fun restoredQuestions(): List<QuizQuestion> =
+        savedState.get<String>(KEY_QUESTIONS)?.let {
+            runCatching { json.decodeFromString<List<QuizQuestion>>(it) }.getOrNull()
+        } ?: emptyList()
+
+    private fun saveSession() {
+        savedState[KEY_QUESTIONS] = json.encodeToString(questions)
+        savedState[KEY_INDEX] = index
+        savedState[KEY_SCORE] = score
+        savedState[KEY_SELECTED] = selected
+        savedState[KEY_FINISHED] = finished
+        savedState[KEY_MISSED] = missed.toIntArray()
+    }
 
     fun ensureQuiz(names: List<Name>, learned: Set<Int>) {
         if (questions.isEmpty() && names.isNotEmpty()) {
             questions = QuizBuilder.build(names, preferred = learned)
+            saveSession()
         }
     }
 
@@ -104,6 +131,7 @@ class QuizViewModel : ViewModel() {
         selected = optionIndex
         val correct = optionIndex == questions[index].answerIndex
         if (correct) score++ else missed = missed + questions[index].number
+        saveSession()
         return correct
     }
 
@@ -114,6 +142,7 @@ class QuizViewModel : ViewModel() {
         } else {
             finished = true
         }
+        saveSession()
     }
 
     fun restart(names: List<Name>, learned: Set<Int>) {
@@ -123,6 +152,26 @@ class QuizViewModel : ViewModel() {
         selected = -1
         finished = false
         missed = emptyList()
+        saveSession()
+    }
+
+    override fun onCleared() {
+        savedState.remove<String>(KEY_QUESTIONS)
+        savedState.remove<Int>(KEY_INDEX)
+        savedState.remove<Int>(KEY_SCORE)
+        savedState.remove<Int>(KEY_SELECTED)
+        savedState.remove<Boolean>(KEY_FINISHED)
+        savedState.remove<IntArray>(KEY_MISSED)
+    }
+
+    private companion object {
+        const val KEY_QUESTIONS = "quiz.questions"
+        const val KEY_INDEX = "quiz.index"
+        const val KEY_SCORE = "quiz.score"
+        const val KEY_SELECTED = "quiz.selected"
+        const val KEY_FINISHED = "quiz.finished"
+        const val KEY_MISSED = "quiz.missed"
+        val json = Json
     }
 }
 
@@ -175,7 +224,7 @@ fun QuizScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(horizontal = 24.dp),
+                .padding(horizontal = PageInset),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             when {
@@ -235,11 +284,14 @@ private fun QuizQuestionContent(
                     modifier = Modifier.fillMaxWidth(),
                     shape = MaterialTheme.shapes.large,
                     colors = CardDefaults.cardColors(containerColor = HeroContainer),
+                    // The plate's edge against the near-black page in dark
+                    // themes (see HeroPlateBorder); light needs no border.
+                    border = if (LocalDarkTheme.current) BorderStroke(1.dp, HeroPlateBorder) else null,
                 ) {
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(vertical = 28.dp, horizontal = 20.dp),
+                            .padding(24.dp),
                         horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
                         ArabicText(
@@ -291,21 +343,25 @@ private fun QuizQuestionContent(
                 // silent. Being told you are wrong and never told the answer
                 // defeats the point of a quiz. An empty, zero-height live
                 // region carries it without putting anything on screen.
-                val verdict = when {
-                    quiz.selected == -1 -> ""
-                    quiz.selected == question.answerIndex ->
+                // Composed only once an answer exists: an assertive region
+                // that enters composition empty makes some TalkBack versions
+                // announce (or clear) it before the real verdict arrives.
+                if (quiz.selected != -1) {
+                    val verdict = if (quiz.selected == question.answerIndex) {
                         stringResource(R.string.quiz_answer_correct)
-                    else -> stringResource(
-                        R.string.quiz_answer_wrong,
-                        question.options[question.answerIndex],
+                    } else {
+                        stringResource(
+                            R.string.quiz_answer_wrong,
+                            question.options[question.answerIndex],
+                        )
+                    }
+                    Box(
+                        Modifier.semantics {
+                            liveRegion = LiveRegionMode.Assertive
+                            contentDescription = verdict
+                        }
                     )
                 }
-                Box(
-                    Modifier.semantics {
-                        liveRegion = LiveRegionMode.Assertive
-                        contentDescription = verdict
-                    }
-                )
                 Spacer(Modifier.weight(1f))
                 Spacer(Modifier.height(14.dp))
                 Button(

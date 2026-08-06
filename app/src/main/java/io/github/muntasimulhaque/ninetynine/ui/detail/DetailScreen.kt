@@ -51,11 +51,14 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.muntasimulhaque.ninetynine.R
@@ -77,6 +80,7 @@ import io.github.muntasimulhaque.ninetynine.ui.theme.components.scaledGap
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.ScreenLabel
 import io.github.muntasimulhaque.ninetynine.ui.theme.rememberHaptics
 import kotlin.math.absoluteValue
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 // The reading measure sits in from the page edges. The prev/next footer does
@@ -333,12 +337,19 @@ private fun NamePage(
     modifier: Modifier = Modifier,
 ) {
     val scope = rememberCoroutineScope()
+    val motionScale = LocalMotionScale.current
 
     // Single scrollable page: the controls scroll with the content, but a
     // weighted spacer pushes them to just above the system bar whenever the
     // content is shorter than the screen.
     BoxWithConstraints(modifier.fillMaxSize()) {
         val minPageHeight = maxHeight
+        // The two chevron labels share the footer row with their icons. Each
+        // text is capped at half the row minus the chrome (two icons, two
+        // internal gaps, two button paddings) so that two long transliterations
+        // can never overlap at any font scale, and ellipsizes instead of
+        // wrapping mid-word.
+        val chevronTextMax = ((maxWidth - ReadingInset * 2 - 88.dp) / 2f).coerceAtLeast(48.dp)
         val scrollState = rememberScrollState()
         Column(
             modifier = Modifier
@@ -358,7 +369,13 @@ private fun NamePage(
                     color = MaterialTheme.colorScheme.primary,
                     textAlign = TextAlign.Center,
                 )
-                Spacer(Modifier.height(14.dp))
+                // The transliteration belongs to the Name: 8dp is the share
+                // card's pairing (50sp Arabic), one step from the hero's 6dp
+                // (48sp) — this 52sp page sits in the 8dp family. The Arabic
+                // line box at 1.60 leading no longer adds ~5sp of empty
+                // descent air on top of the spacer, so the pair reads as one
+                // unit while the meaning below keeps its clear step.
+                Spacer(Modifier.height(scaledGap(8.dp)))
                 // A clear step below the Arabic, set in the same displaySmall
                 // slot the share card, hero and flashcard faces use — the Name
                 // leads its transliteration at the same ratio everywhere. FitText
@@ -384,7 +401,10 @@ private fun NamePage(
                     modifier = Modifier.widthIn(max = readingMeasure()),
                 )
                 if (name.note != null) {
-                    Spacer(Modifier.height(scaledGap(26.dp)))
+                    // One step down from the meaning's 20: the note is an
+                    // annex of the meaning, not its sibling (at 26 the two
+                    // perceived gaps were statistically identical).
+                    Spacer(Modifier.height(scaledGap(24.dp)))
                     Column(
                         modifier = Modifier.widthIn(max = readingMeasure()),
                         horizontalAlignment = Alignment.Start,
@@ -424,14 +444,29 @@ private fun NamePage(
                                 )
                             )
                             layout(constraints.maxWidth, placeable.height) {
-                                placeable.place(-bleed, 0)
+                                // Mirrors with the layout direction; in RTL the
+                                // start side is physically right.
+                                placeable.place(
+                                    if (layoutDirection == LayoutDirection.Rtl) bleed else -bleed,
+                                    0,
+                                )
                             }
                         },
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     if (previousLabel != null) {
-                        TextButton(onClick = { scope.launch { pagerState.animateScrollToPage(page - 1) } }) {
+                        // The chevrons carry the direction visually; the name
+                        // alone would leave a screen-reader user unable to tell
+                        // previous from next. (Computed here: a semantics block
+                        // is not a composable context.)
+                        val previousCd = stringResource(R.string.previous_name, previousLabel)
+                        TextButton(
+                            onClick = { goToPage(scope, pagerState, page - 1, motionScale) },
+                            modifier = Modifier.semantics {
+                                contentDescription = previousCd
+                            },
+                        ) {
                             Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, contentDescription = null)
                             // Roman, not italic. Italic means epithet, gloss or
                             // quote everywhere else in the app — the page above
@@ -440,14 +475,32 @@ private fun NamePage(
                             // rescues these from TextButton's labelLarge, which
                             // made the app's main keep-reading affordance the
                             // smallest Latin on the page.
-                            Text(previousLabel, style = MaterialTheme.typography.titleSmall)
+                            Text(
+                                previousLabel,
+                                style = MaterialTheme.typography.titleSmall,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier.widthIn(max = chevronTextMax),
+                            )
                         }
                     } else {
                         Spacer(Modifier.widthIn(min = 48.dp))
                     }
                     if (nextLabel != null) {
-                        TextButton(onClick = { scope.launch { pagerState.animateScrollToPage(page + 1) } }) {
-                            Text(nextLabel, style = MaterialTheme.typography.titleSmall)
+                        val nextCd = stringResource(R.string.next_name, nextLabel)
+                        TextButton(
+                            onClick = { goToPage(scope, pagerState, page + 1, motionScale) },
+                            modifier = Modifier.semantics {
+                                contentDescription = nextCd
+                            },
+                        ) {
+                            Text(
+                                nextLabel,
+                                style = MaterialTheme.typography.titleSmall,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier.widthIn(max = chevronTextMax),
+                            )
                             Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null)
                         }
                     } else {
@@ -479,5 +532,23 @@ private fun NamePage(
                     )
                 ),
         )
+    }
+}
+
+/**
+ * Moves the pager one page — snapped instantly when the user has disabled
+ * animations (animator scale 0), the same respect `Motion.*` gives every
+ * other animation in the app. The pager's own animate call has no spec
+ * parameter, so the choice has to be made here.
+ */
+private fun goToPage(
+    scope: CoroutineScope,
+    pagerState: PagerState,
+    target: Int,
+    motionScale: Float,
+) {
+    scope.launch {
+        if (motionScale == 0f) pagerState.scrollToPage(target)
+        else pagerState.animateScrollToPage(target)
     }
 }

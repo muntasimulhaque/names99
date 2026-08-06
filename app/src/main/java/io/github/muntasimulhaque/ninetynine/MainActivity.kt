@@ -334,6 +334,7 @@ private fun QuietBottomBar(
     listStateFor: (String) -> LazyListState?,
 ) {
     val scope = rememberCoroutineScope()
+    val motionScale = LocalMotionScale.current
     Surface(color = MaterialTheme.colorScheme.surface) {
         Column {
             // `outline`, not `outlineVariant`. The bar's surface is 1.06:1
@@ -375,10 +376,15 @@ private fun QuietBottomBar(
                                     // list instead of navigating nowhere.
                                     // restoreState would otherwise restore the
                                     // scroll position, so re-tapping did
-                                    // literally nothing.
+                                    // literally nothing. Snapped instantly at
+                                    // animator scale 0, like every Motion.*
+                                    // animation in the app.
                                     val here = listStateFor(item.route)
                                     if (selected && here != null) {
-                                        scope.launch { here.animateScrollToItem(0) }
+                                        scope.launch {
+                                            if (motionScale == 0f) here.scrollToItem(0)
+                                            else here.animateScrollToItem(0)
+                                        }
                                         return@selectable
                                     }
                                     navController.navigate(item.route) {

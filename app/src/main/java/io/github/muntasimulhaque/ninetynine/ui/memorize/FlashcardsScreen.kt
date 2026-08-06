@@ -64,6 +64,7 @@ import androidx.compose.ui.state.ToggleableState
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -72,8 +73,10 @@ import io.github.muntasimulhaque.ninetynine.data.Name
 import io.github.muntasimulhaque.ninetynine.ui.NamesViewModel
 import io.github.muntasimulhaque.ninetynine.ui.theme.HeroContainer
 import io.github.muntasimulhaque.ninetynine.ui.theme.HeroGold
+import io.github.muntasimulhaque.ninetynine.ui.theme.HeroPlateBorder
 import io.github.muntasimulhaque.ninetynine.ui.theme.HeroSubtext
 import io.github.muntasimulhaque.ninetynine.ui.theme.HeroText
+import io.github.muntasimulhaque.ninetynine.ui.theme.LocalDarkTheme
 import io.github.muntasimulhaque.ninetynine.ui.theme.Motion
 import io.github.muntasimulhaque.ninetynine.ui.theme.LocalMotionScale
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.ArabicSize
@@ -82,6 +85,7 @@ import io.github.muntasimulhaque.ninetynine.ui.theme.components.BackButton
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.FitText
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.HairlineProgress
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.PageMessage
+import io.github.muntasimulhaque.ninetynine.ui.theme.components.PageInset
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.readingMeasure
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.paperTopBarColors
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.ScreenLabel
@@ -90,13 +94,45 @@ import io.github.muntasimulhaque.ninetynine.util.DeckBuilder
 import kotlinx.coroutines.launch
 
 /** Session state for one flashcard run; survives rotation with the ViewModel. */
-class FlashcardsViewModel : ViewModel() {
+class FlashcardsViewModel(private val savedState: SavedStateHandle) : ViewModel() {
 
-    var deck by mutableStateOf<List<Int>>(emptyList()); private set
-    var index by mutableIntStateOf(0); private set
-    var flipped by mutableStateOf(false); private set
-    var done by mutableStateOf(false); private set
-    private var lastInclude: Boolean? = null
+    var deck by mutableStateOf<List<Int>>(savedState.get<IntArray>(KEY_DECK)?.toList() ?: emptyList()); private set
+    var index by mutableIntStateOf(savedState.get<Int>(KEY_INDEX) ?: 0); private set
+    var flipped by mutableStateOf(savedState.get<Boolean>(KEY_FLIPPED) ?: false); private set
+    var done by mutableStateOf(savedState.get<Boolean>(KEY_DONE) ?: false); private set
+    private var lastInclude: Boolean? = savedState.get<Boolean>(KEY_LAST_INCLUDE)
+
+    /**
+     * The name the last card committed, so a mis-swipe can be taken back.
+     *
+     * A right-swipe writes a learned tick and moves on, and there was no way
+     * back a card — the exact mirror of the guard that stops a left-swipe
+     * silently *removing* one. Cleared as soon as the next card is committed,
+     * so undo only ever reaches one step.
+     */
+    var undoable by mutableStateOf<Pair<Int, Boolean>?>(restoredUndo()); private set
+
+    /**
+     * The run lives in the SavedStateHandle, not just memory: a process death
+     * mid-deck restores the exact card, flip state and undo, the same way the
+     * name pager restores its page. The keys are dropped in [onCleared], so
+     * leaving the screen starts the next sitting fresh.
+     */
+    private fun restoredUndo(): Pair<Int, Boolean>? {
+        val number = savedState.get<Int>(KEY_UNDO_NUMBER) ?: return null
+        return number to (savedState.get<Boolean>(KEY_UNDO_MARKED) ?: true)
+    }
+
+    private fun saveSession() {
+        savedState[KEY_DECK] = deck.toIntArray()
+        savedState[KEY_INDEX] = index
+        savedState[KEY_FLIPPED] = flipped
+        savedState[KEY_DONE] = done
+        savedState[KEY_LAST_INCLUDE] = lastInclude
+        val undo = undoable
+        savedState[KEY_UNDO_NUMBER] = undo?.first
+        savedState[KEY_UNDO_MARKED] = undo?.second
+    }
 
     fun ensureDeck(names: List<Name>, learned: Set<Int>, includeLearned: Boolean) {
         if (names.isEmpty()) return
@@ -110,29 +146,23 @@ class FlashcardsViewModel : ViewModel() {
         // longer exists, so undoing it would silently un-learn a card that is
         // not even in this set.
         undoable = null
+        saveSession()
     }
 
     fun flip() {
         flipped = !flipped
+        saveSession()
     }
 
     fun advance() {
         flipped = false
         if (index < deck.lastIndex) index++ else done = true
+        saveSession()
     }
-
-    /**
-     * The name the last card committed, so a mis-swipe can be taken back.
-     *
-     * A right-swipe writes a learned tick and moves on, and there was no way
-     * back a card — the exact mirror of the guard that stops a left-swipe
-     * silently *removing* one. Cleared as soon as the next card is committed,
-     * so undo only ever reaches one step.
-     */
-    var undoable by mutableStateOf<Pair<Int, Boolean>?>(null); private set
 
     fun recordCommit(number: Int, markedLearned: Boolean) {
         undoable = number to markedLearned
+        saveSession()
     }
 
     fun undo(): Pair<Int, Boolean>? {
@@ -141,6 +171,7 @@ class FlashcardsViewModel : ViewModel() {
         flipped = false
         done = false
         if (index > 0) index--
+        saveSession()
         return last
     }
 
@@ -148,6 +179,26 @@ class FlashcardsViewModel : ViewModel() {
         deck = emptyList()
         lastInclude = null
         ensureDeck(names, learned, includeLearned)
+    }
+
+    override fun onCleared() {
+        savedState.remove<IntArray>(KEY_DECK)
+        savedState.remove<Int>(KEY_INDEX)
+        savedState.remove<Boolean>(KEY_FLIPPED)
+        savedState.remove<Boolean>(KEY_DONE)
+        savedState.remove<Boolean>(KEY_LAST_INCLUDE)
+        savedState.remove<Int>(KEY_UNDO_NUMBER)
+        savedState.remove<Boolean>(KEY_UNDO_MARKED)
+    }
+
+    private companion object {
+        const val KEY_DECK = "deck.cards"
+        const val KEY_INDEX = "deck.index"
+        const val KEY_FLIPPED = "deck.flipped"
+        const val KEY_DONE = "deck.done"
+        const val KEY_LAST_INCLUDE = "deck.lastInclude"
+        const val KEY_UNDO_NUMBER = "deck.undoNumber"
+        const val KEY_UNDO_MARKED = "deck.undoMarked"
     }
 }
 
@@ -207,7 +258,7 @@ fun FlashcardsScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(horizontal = 24.dp),
+                .padding(horizontal = PageInset),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             when {
@@ -286,30 +337,41 @@ fun FlashcardsScreen(
                     }
                     // The hint on the first few cards; after that, the way back
                     // from a mis-swipe. One line either way, so the row beneath
-                    // the card never changes height.
-                    val undoable = session.undoable
-                    if (session.index < 3 && undoable == null) {
-                        Text(
-                            text = stringResource(R.string.swipe_hint),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            textAlign = TextAlign.Center,
-                        )
-                    } else if (undoable != null) {
-                        TextButton(
-                            onClick = {
-                                session.undo()?.let { (number, wasMarked) ->
-                                    if (wasMarked) viewModel.setLearned(number, false)
-                                }
-                            },
-                        ) {
+                    // the card never changes height: the hint and the empty
+                    // placeholder are short Texts while the undo control is a
+                    // TextButton with a 48dp minimum touch target, so without
+                    // the fixed-height box the card would shrink ~30dp the
+                    // moment the undo appeared.
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(min = 48.dp),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        val undoable = session.undoable
+                        if (session.index < 3 && undoable == null) {
                             Text(
-                                text = stringResource(R.string.undo_card),
+                                text = stringResource(R.string.swipe_hint),
                                 style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                textAlign = TextAlign.Center,
                             )
+                        } else if (undoable != null) {
+                            TextButton(
+                                onClick = {
+                                    session.undo()?.let { (number, wasMarked) ->
+                                        if (wasMarked) viewModel.setLearned(number, false)
+                                    }
+                                },
+                            ) {
+                                Text(
+                                    text = stringResource(R.string.undo_card),
+                                    style = MaterialTheme.typography.bodySmall,
+                                )
+                            }
+                        } else {
+                            Text("", style = MaterialTheme.typography.bodySmall)
                         }
-                    } else {
-                        Text("", style = MaterialTheme.typography.bodySmall)
                     }
                     Spacer(Modifier.height(12.dp))
                     Row(
@@ -494,7 +556,10 @@ private fun SwipeFlipCard(
             containerColor = if (rotation <= 90f) HeroContainer
             else MaterialTheme.colorScheme.surface
         ),
-        border = if (rotation <= 90f) null
+        border = if (rotation <= 90f)
+        // The front is a hero plate: give it an edge against the near-black
+        // page in dark themes (see HeroPlateBorder); light needs none.
+        (if (LocalDarkTheme.current) BorderStroke(1.dp, HeroPlateBorder) else null)
         // `outline`: this border is the flipped card's entire boundary, and its
         // fill is only 1.06:1 against the page. At outlineVariant's 1.42:1 the
         // card lost its edge completely on flip — it went from a clearly
@@ -502,10 +567,15 @@ private fun SwipeFlipCard(
         else BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
     ) {
         if (rotation <= 90f) {
-            // Front: the name itself, set like the share card.
+            // Front: the name itself, set like the share card. Scrollable like
+            // the back: in landscape, or at a large system font, the card's
+            // height can drop below what the name needs, and the Card clips to
+            // its rounded shape — the one place a supported configuration
+            // could otherwise lose the Name entirely.
             Column(
                 modifier = Modifier
                     .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
                     .padding(24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center,
@@ -516,7 +586,7 @@ private fun SwipeFlipCard(
                     color = HeroGold,
                     textAlign = TextAlign.Center,
                 )
-                Spacer(Modifier.height(12.dp))
+                Spacer(Modifier.height(8.dp))
                 FitText(
                     text = name.transliteration,
                     style = MaterialTheme.typography.displaySmall,

@@ -1,6 +1,7 @@
 package io.github.muntasimulhaque.ninetynine.ui.memorize
 
 import io.github.muntasimulhaque.ninetynine.data.Name
+import androidx.lifecycle.SavedStateHandle
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -12,7 +13,7 @@ class QuizViewModelTest {
         Name(n, "arabic$n", "Name-$n", "Title $n", "Meaning $n")
     }
 
-    private fun vm() = QuizViewModel()
+    private fun vm() = QuizViewModel(SavedStateHandle())
 
     @Test
     fun ensureQuizBuildsTenQuestions() {

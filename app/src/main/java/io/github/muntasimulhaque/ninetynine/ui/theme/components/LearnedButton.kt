@@ -67,7 +67,7 @@ fun LearnedButton(
         label = "learnedContent",
     )
     val border by animateColorAsState(
-        targetValue = if (learned) colors.primaryContainer else colors.outline,
+        targetValue = if (learned) colors.primary else colors.outline,
         animationSpec = Motion.tween(Motion.QUICK),
         label = "learnedBorder",
     )

@@ -31,6 +31,7 @@ import androidx.glance.text.TextStyle
 import androidx.glance.unit.ColorProvider
 import io.github.muntasimulhaque.ninetynine.MainActivity
 import io.github.muntasimulhaque.ninetynine.data.NamesRepository
+import io.github.muntasimulhaque.ninetynine.ui.theme.HeroFrame
 import io.github.muntasimulhaque.ninetynine.util.DailyName
 
 class DailyNameWidget : GlanceAppWidget() {
@@ -40,7 +41,13 @@ class DailyNameWidget : GlanceAppWidget() {
         // The longest title (#39, 71 chars) wraps to three lines and ellipsizes
         // at the minimum 110dp width — the Arabic + transliteration above carry
         // the day's name, and the title's full sense is one tap away.
-        private val COMPACT = DpSize(110.dp, 40.dp) // Arabic only
+        //
+        // COMPACT is 48dp, not 40: the names are fully vocalized (fatha ×109,
+        // kasra ×67, shadda ×53, sukun ×86 in names.json), and a 22sp Noto
+        // Naskh line box is taller than a 24dp content area, so the marks
+        // clipped — worse at a system font scale above 1.0. At 18sp the marks
+        // fit; minResizeHeight follows (daily_name_widget_info.xml).
+        private val COMPACT = DpSize(110.dp, 48.dp) // Arabic only
         private val MEDIUM = DpSize(110.dp, 90.dp) // + transliteration
         private val TALL = DpSize(110.dp, 140.dp) // + title (wrapping)
         private val XTALL = DpSize(110.dp, 180.dp) // everything, larger
@@ -77,67 +84,90 @@ class DailyNameWidget : GlanceAppWidget() {
             val gold = ColorProvider(Color(0xFFD4B45A))
             val textColor = ColorProvider(Color(0xFFF2EDE2))
             val subtextColor = ColorProvider(Color(0xFFBFD5CB))
+            // The share card's gold hairline pre-blended over the emerald, so
+            // the widget's frame never depends on the wallpaper behind it —
+            // the bare emerald plate is only ~2.1:1 against a near-black
+            // wallpaper, and the frame gives it an edge on both.
+            val frame = ColorProvider(HeroFrame)
 
             val arabicSize = when {
                 roomy -> 38.sp
-                showTitle -> 32.sp
+                // TALL and MEDIUM share one "small display" size (the app's
+                // list rows are set at the same 30sp); only XTALL steps up.
+                showTitle -> 30.sp
                 showTransliteration -> 30.sp
-                else -> 22.sp
+                else -> 18.sp
             }
 
+            // The plate is a two-column sandwich: a 1dp gold ring (HeroFrame)
+            // around the emerald, echoing the share card's inner frame.
             Column(
                 modifier = GlanceModifier
                     .fillMaxSize()
-                    .background(background)
+                    .background(frame)
                     .cornerRadius(20.dp)
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
-                    .clickable(
-                        actionStartActivity<MainActivity>(
-                            actionParametersOf(
-                                ActionParameters.Key<Int>(MainActivity.EXTRA_NAME_NUMBER) to name.number
-                            )
-                        )
-                    ),
+                    .padding(1.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text(
-                    text = systemFontSafeArabic(name.arabic),
-                    maxLines = 1,
-                    style = TextStyle(
-                        color = gold,
-                        fontSize = arabicSize,
-                        fontWeight = FontWeight.Normal,
-                        fontFamily = serif,
-                        textAlign = TextAlign.Center
-                    )
-                )
-                if (showTransliteration) {
+                Column(
+                    modifier = GlanceModifier
+                        .fillMaxSize()
+                        .background(background)
+                        .cornerRadius(19.dp)
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                        .clickable(
+                            actionStartActivity<MainActivity>(
+                                actionParametersOf(
+                                    ActionParameters.Key<Int>(MainActivity.EXTRA_NAME_NUMBER) to name.number
+                                )
+                            )
+                        ),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
                     Text(
-                        text = name.transliteration,
+                        text = systemFontSafeArabic(name.arabic),
                         maxLines = 1,
                         style = TextStyle(
-                            color = textColor,
-                            fontSize = if (roomy) 18.sp else 16.sp,
+                            color = gold,
+                            fontSize = arabicSize,
+                            fontWeight = FontWeight.Normal,
                             fontFamily = serif,
                             textAlign = TextAlign.Center
-                        ),
-                        modifier = GlanceModifier.padding(top = 4.dp)
+                        )
                     )
-                }
-                if (showTitle) {
-                    Text(
-                        text = name.title,
-                        maxLines = 3,
-                        style = TextStyle(
-                            color = subtextColor,
-                            fontSize = if (roomy) 14.sp else 12.sp,
-                            fontStyle = FontStyle.Italic,
-                            fontFamily = serif,
-                            textAlign = TextAlign.Center
-                        ),
-                        modifier = GlanceModifier.padding(top = 4.dp)
-                    )
+                    if (showTransliteration) {
+                        Text(
+                            text = name.transliteration,
+                            maxLines = 1,
+                            style = TextStyle(
+                                color = textColor,
+                                fontSize = if (roomy) 18.sp else 16.sp,
+                                fontFamily = serif,
+                                textAlign = TextAlign.Center
+                            ),
+                            // The hero card pairs Arabic and transliteration
+                            // at 6dp when there is room; 4dp when not.
+                            modifier = GlanceModifier.padding(top = if (roomy) 6.dp else 4.dp)
+                        )
+                    }
+                    if (showTitle) {
+                        Text(
+                            text = name.title,
+                            // Two lines fit the TALL bucket with a 30sp Arabic;
+                            // only the tallest bucket may wrap to three.
+                            maxLines = if (roomy) 3 else 2,
+                            style = TextStyle(
+                                color = subtextColor,
+                                fontSize = if (roomy) 14.sp else 12.sp,
+                                fontStyle = FontStyle.Italic,
+                                fontFamily = serif,
+                                textAlign = TextAlign.Center
+                            ),
+                            modifier = GlanceModifier.padding(top = 4.dp)
+                        )
+                    }
                 }
             }
         }

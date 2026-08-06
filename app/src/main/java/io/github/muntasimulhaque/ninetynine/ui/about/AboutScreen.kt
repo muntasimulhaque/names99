@@ -48,6 +48,7 @@ import io.github.muntasimulhaque.ninetynine.ui.theme.components.BackButton
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.MixedText
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.NavRow
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.PageRule
+import io.github.muntasimulhaque.ninetynine.ui.theme.components.ReadingInset
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.readingMeasure
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.scaledGap
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.paperTopBarColors
@@ -108,7 +109,7 @@ fun AboutScreen(onBack: () -> Unit) {
                 .fillMaxSize()
                 .padding(padding)
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 24.dp)
+                .padding(horizontal = ReadingInset)
                 .graphicsLayer { alpha = enterAlpha },
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
@@ -123,33 +124,46 @@ fun AboutScreen(onBack: () -> Unit) {
                     color = MaterialTheme.colorScheme.primary,
                     textAlign = TextAlign.Center,
                 )
-                Spacer(Modifier.height(36.dp))
+                Spacer(Modifier.height(32.dp))
 
-                paragraphs.forEachIndexed { index, para ->
-                    when {
-                        para.startsWith("##") -> ChapterHeading(para.trimStart('#').trim())
-                        para.startsWith(">") -> Quote(para.removePrefix(">").trim())
-                        else -> Text(
-                            text = para,
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.onBackground,
-                            textAlign = TextAlign.Start,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                // A line that introduces a quote stays close to it.
-                                .padding(
-                                    bottom = if (paragraphs.getOrNull(index + 1)
-                                            ?.startsWith(">") == true
-                                    ) scaledGap(12.dp) else scaledGap(20.dp)
-                                ),
-                        )
+                if (paragraphs.isEmpty()) {
+                    // The asset failed to read; say so instead of jumping
+                    // silently to the colophon.
+                    Text(
+                        text = stringResource(R.string.about_intro_unavailable),
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontStyle = FontStyle.Italic,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                } else {
+                    paragraphs.forEachIndexed { index, para ->
+                        when {
+                            para.startsWith("##") -> ChapterHeading(para.trimStart('#').trim())
+                            para.startsWith(">") -> Quote(para.removePrefix(">").trim())
+                            else -> Text(
+                                text = para,
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = MaterialTheme.colorScheme.onBackground,
+                                textAlign = TextAlign.Start,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    // A line that introduces a quote stays close to it.
+                                    .padding(
+                                        bottom = if (paragraphs.getOrNull(index + 1)
+                                                ?.startsWith(">") == true
+                                        ) scaledGap(12.dp) else scaledGap(20.dp)
+                                    ),
+                            )
+                        }
                     }
                 }
 
                 // The closing prayer, set apart as an envoi.
                 Spacer(Modifier.height(16.dp))
                 PageRule(Modifier.fillMaxWidth())
-                Spacer(Modifier.height(34.dp))
+                Spacer(Modifier.height(32.dp))
                 Text(
                     text = stringResource(R.string.about_dua),
                     style = MaterialTheme.typography.titleLarge,
@@ -158,7 +172,7 @@ fun AboutScreen(onBack: () -> Unit) {
                     textAlign = TextAlign.Center,
                     modifier = Modifier.fillMaxWidth(),
                 )
-                Spacer(Modifier.height(44.dp))
+                Spacer(Modifier.height(40.dp))
 
                 Colophon(context)
                 Spacer(Modifier.height(40.dp))
@@ -172,7 +186,7 @@ fun AboutScreen(onBack: () -> Unit) {
 private fun ChapterHeading(text: String) {
     Spacer(Modifier.height(14.dp))
     PageRule(Modifier.fillMaxWidth())
-    Spacer(Modifier.height(30.dp))
+    Spacer(Modifier.height(32.dp))
     MixedText(
         text = text,
         style = MaterialTheme.typography.headlineLarge,
@@ -182,7 +196,7 @@ private fun ChapterHeading(text: String) {
             .fillMaxWidth()
             .semantics { heading() },
     )
-    Spacer(Modifier.height(26.dp))
+    Spacer(Modifier.height(24.dp))
 }
 
 /**
@@ -199,7 +213,7 @@ private fun Quote(raw: String) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(bottom = 22.dp)
+            .padding(bottom = 24.dp)
             .drawBehind {
                 // The rule marks the reading edge: `start`, mirroring with
                 // the layout direction exactly like the text inset below it.

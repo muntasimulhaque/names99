@@ -55,7 +55,7 @@ object ArabicSize {
     val Panel = 48.sp
 
     /** Pairs `titleMedium` in the names list, restoring a display-like ratio. */
-    val Row = 26.sp
+    val Row = 30.sp
 
     /** Pairs `titleLarge` — the basmala and other set-apart lines. */
     val Line = 30.sp
@@ -71,6 +71,14 @@ fun ArabicText(
     modifier: Modifier = Modifier,
     color: Color = Color.Unspecified,
     textAlign: TextAlign? = null,
+    // Single-line displays need less leading than multi-line passages. 1.60
+    // keeps ~6sp of headroom above the tallest shadda+fatha stack at 52sp
+    // while reclaiming the empty descent air (HAFS declares a 0.586em
+    // descent zone, but naskh letters barely use it) — the Name page's
+    // perceived gap between Arabic and transliteration shrinks by ~5sp
+    // without touching the spacer. Every current call site renders one
+    // line; pass 1.85f if a multi-line passage is ever added.
+    lineHeightFactor: Float = 1.60f,
 ) {
     val shaped = remember(text) { text.forArabicFont() }
     val size = fontSize * LocalTextScale.current
@@ -85,10 +93,14 @@ fun ArabicText(
         // a fake-bold smear on a face whose licence forbids modification.
         fontWeight = FontWeight.Normal,
         textAlign = textAlign,
-        // 1.85, not 1.7. HAFS declares ascender 1.172 + descender 0.586 =
-        // 1.758 em of its own clearance, so 1.7 sat 3.3% BELOW what the font
-        // asks for and shaved the line box exactly where the shadda-and-fatha
-        // stacks live. Measured from the file's hhea table, not guessed.
-        lineHeight = size * 1.85f,
+        // 1.60, not 1.7 or 1.85. HAFS declares ascender 1.172 + descender
+        // 0.586 = 1.758 em of its own clearance, so anything below 1.7
+        // shaves the line box exactly where the shadda-and-fatha stacks
+        // live. Measured from the file's hhea table, not guessed: at 1.60
+        // the ascent zone (1.067em) still clears the worst stack — lam ink
+        // 0.806em plus ~0.14em of marks — with ~6sp to spare, and the
+        // saving is all in the empty descent zone below, which is what made
+        // the Arabic read as separated from its transliteration.
+        lineHeight = size * lineHeightFactor,
     )
 }

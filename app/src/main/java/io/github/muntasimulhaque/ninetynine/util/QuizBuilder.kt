@@ -2,7 +2,9 @@ package io.github.muntasimulhaque.ninetynine.util
 
 import io.github.muntasimulhaque.ninetynine.data.Name
 import kotlin.random.Random
+import kotlinx.serialization.Serializable
 
+@Serializable
 data class QuizQuestion(
     val number: Int,
     val options: List<String>,

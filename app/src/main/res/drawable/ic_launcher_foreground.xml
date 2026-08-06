@@ -8,8 +8,14 @@
          is involved and no font licence applies. The initial alif is laid
          horizontally over the word, the standard squaring liberty of the
          script; lam and lam are the verticals, the final heh is the closed
-         box, and the baseline joins heh to both lams. -->
+         box, and the baseline joins heh to both lams.
+
+         Scaled 1.06 about the centre and lifted 2 units (47.97 wide, bounds
+         30.0..78.0 — still inside the 21..87 adaptive safe zone): at 42% of
+         the canvas the glyph read small on a launcher grid, and its ink
+         mass sat 1.4% below the optical centre (the heavy lam columns and
+         heh box outweigh the thin top alif band). -->
     <path
         android:fillColor="#D4B45A"
-        android:pathData="M31.373,31.373h45.255v6.465h-45.255zM31.373,44.303h19.395v6.465h-19.395zM57.232,44.303h6.465v32.325h-6.465zM70.162,44.303h6.465v32.325h-6.465zM31.373,50.768h6.465v25.86h-6.465zM44.303,50.768h6.465v25.86h-6.465zM37.838,70.162h6.465v6.465h-6.465zM50.768,70.162h6.465v6.465h-6.465zM63.697,70.162h6.465v6.465h-6.465z" />
+        android:pathData="M30.015,28.015h47.970v6.853h-47.970zM30.015,41.721h20.559v6.853h-20.559zM57.426,41.721h6.853v34.265h-6.853zM71.132,41.721h6.853v34.265h-6.853zM30.015,48.574h6.853v27.412h-6.853zM43.721,48.574h6.853v27.412h-6.853zM36.868,69.132h6.853v6.853h-6.853zM50.574,69.132h6.853v6.853h-6.853zM64.279,69.132h6.853v6.853h-6.853z" />
 </vector>

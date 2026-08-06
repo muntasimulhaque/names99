@@ -15,9 +15,12 @@ permissions rather than one. `POST_NOTIFICATIONS` is the app's own, and it is
 only used if you turn the daily name on. The other four — `WAKE_LOCK`,
 `ACCESS_NETWORK_STATE`, `RECEIVE_BOOT_COMPLETED` and `FOREGROUND_SERVICE` —
 come from Android's own WorkManager library, which is what schedules the daily
-reminder and survives a reboot. The app sets no network conditions on any of
-its scheduled work, and none of these permissions can move data off your device
-without INTERNET, which the app does not have.
+reminder and survives a reboot. A sixth, signature-level permission named
+`DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION`, is added automatically by AndroidX;
+it is granted only to the app itself and never appears in Settings. The app
+sets no network conditions on any of its scheduled work, and none of these
+permissions can move data off your device without INTERNET, which the app does
+not have.
 
 **On your device.** Your learned-names progress, your bookmarked names, theme,
 text size, notification time, best quiz score and practice settings are kept in

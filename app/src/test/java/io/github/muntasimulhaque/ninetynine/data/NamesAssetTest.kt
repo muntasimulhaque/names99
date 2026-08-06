@@ -87,6 +87,23 @@ class NamesAssetTest {
         assertEquals("characters with no glyph in the bundled font: $missing", emptyList<String>(), missing)
     }
 
+    /**
+     * The app no longer renders the short meaning (title) on the surfaces
+     * that show the full meaning — the detail page, the share card and the
+     * flashcard back all rely on `meaning` itself opening with the title
+     * clause. A future edit that drops the clause silently removes the
+     * epithet from all three surfaces with a green build.
+     */
+    @Test
+    fun everyMeaningStartsWithItsTitle() {
+        names.forEach {
+            assertTrue(
+                "#${it.number} meaning does not open with its title",
+                it.meaning.startsWith(it.title),
+            )
+        }
+    }
+
     /** Characters a TrueType font can draw, read from its format-4 cmap. */
     private fun cmapCoverage(file: File): Set<Char> = RandomAccessFile(file, "r").use { f ->
         val bytes = ByteArray(f.length().toInt()).also { f.readFully(it) }

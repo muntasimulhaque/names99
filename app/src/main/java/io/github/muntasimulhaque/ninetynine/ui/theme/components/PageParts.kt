@@ -74,11 +74,15 @@ fun SectionLabel(text: String, modifier: Modifier = Modifier) {
  */
 @Composable
 fun ScreenLabel(text: String, modifier: Modifier = Modifier) {
-    Text(
+    // FitText, not Text: the counters ("QUESTION 1 OF 10", "3 OF 99") sit in
+    // the fixed 64dp app bar, and at a combined 2.8x scale they wrapped to
+    // two lines and clipped. Shrinking beats wrapping for a running register.
+    FitText(
         text = text.uppercase(),
         style = MaterialTheme.typography.labelMedium,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
         modifier = modifier.semantics { heading() },
+        minScale = 0.4f,
     )
 }
 

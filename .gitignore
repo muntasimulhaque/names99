@@ -2,6 +2,7 @@
 .gradle/
 .kotlin/
 .claude/
+.hermes/
 local.properties
 .idea/
 .DS_Store

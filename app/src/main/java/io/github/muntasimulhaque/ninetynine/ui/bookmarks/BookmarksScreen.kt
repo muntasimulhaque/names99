@@ -17,6 +17,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.muntasimulhaque.ninetynine.R
@@ -50,6 +52,7 @@ fun BookmarksScreen(
     val namesLoaded by viewModel.namesLoaded.collectAsStateWithLifecycle()
     val learned by viewModel.learned.collectAsStateWithLifecycle()
     val bookmarked by viewModel.bookmarked.collectAsStateWithLifecycle()
+    val bookmarkedLoaded by viewModel.bookmarkedLoaded.collectAsStateWithLifecycle()
 
     // Book order, not the order they were kept in: this is a shelf, not a feed.
     // `names` is already 1..99, so filtering preserves it for nothing.
@@ -63,6 +66,7 @@ fun BookmarksScreen(
                     Text(
                         text = stringResource(R.string.bookmarks),
                         style = MaterialTheme.typography.headlineSmall,
+                        modifier = Modifier.semantics { heading() },
                     )
                 },
                 actions = {
@@ -82,7 +86,7 @@ fun BookmarksScreen(
             ),
             modifier = Modifier.fillMaxSize(),
         ) {
-            if (kept.isEmpty()) {
+            if (kept.isEmpty() && bookmarkedLoaded && namesLoaded) {
                 // Which emptiness this is matters. Saying "nothing kept yet"
                 // when the asset failed to read tells the reader their kept
                 // names are gone, which is false and alarming — the names

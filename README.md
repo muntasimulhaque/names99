@@ -19,7 +19,7 @@ Based on the lecture of Sheikh Ibn Uthaymeen (Rahimahullah), as presented in *"T
 - **Memorize** — flashcards with a flip animation and an "I know it / Still learning" loop, a ten-question quiz with a remembered best score, and a quiet progress count (no streaks, no gamification).
 - **Daily** — a "Name of the Day" that rotates deterministically through all 99, shown on the home screen, as an optional notification at a time you choose, and as a resizable home-screen widget in the app's emerald-and-gold livery.
 - **Considered** — warm paper light theme, dark, and true-black AMOLED; adjustable text size; quiet haptics; bundled KFGQPC Uthmanic Script HAFS (Arabic) and Spectral (Latin) typefaces; predictive back; edge-to-edge.
-- **Pure** — no ads, no analytics, no tracking, and **no INTERNET permission**, so the app cannot open a network connection at all. The only permission it declares for itself is notifications, and only if you turn the daily name on; the other four in the manifest come from Android's WorkManager, which schedules the daily reminder. See [PRIVACY.md](PRIVACY.md).
+- **Pure** — no ads, no analytics, no tracking, and **no INTERNET permission**, so the app cannot open a network connection at all. The only permission it declares for itself is notifications, and only if you turn the daily name on; the remaining manifest permissions come from Android's WorkManager library, which schedules the daily reminder. See [PRIVACY.md](PRIVACY.md).
 
 ## Found a mistake in the content?
 
@@ -35,7 +35,7 @@ to you, it is worth saying which convention you are going by.
 
 ## Building
 
-1. Open the project in Android Studio (Meerkat or newer), or run `./gradlew assembleDebug` — the wrapper is committed, so nothing needs installing first.
+1. Open the project in a recent Android Studio (AGP 9 requires the 2025.2 line or newer), or run `./gradlew assembleDebug` — the wrapper is committed, so nothing needs installing first.
 2. Run on a device or emulator (minimum Android 7.0, API 24).
 3. For a release build: **Build → Generate Signed App Bundle**.
 

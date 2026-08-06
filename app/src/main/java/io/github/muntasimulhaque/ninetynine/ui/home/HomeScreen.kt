@@ -42,20 +42,22 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -124,6 +126,7 @@ fun HomeScreen(
                 title = {
                     if (searching) {
                         val focusRequester = remember { FocusRequester() }
+                        val focusManager = LocalFocusManager.current
                         val searchLabel = stringResource(R.string.cd_search)
                         BasicTextField(
                             value = query,
@@ -138,6 +141,9 @@ fun HomeScreen(
                             cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
                             singleLine = true,
                             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                            // Filtering is live, so the action key's only job
+                            // is to dismiss the keyboard — it must not be dead.
+                            keyboardActions = KeyboardActions(onSearch = { focusManager.clearFocus() }),
                             decorationBox = { inner ->
                                 Box(contentAlignment = Alignment.CenterStart) {
                                     if (query.isEmpty()) {
@@ -175,7 +181,7 @@ fun HomeScreen(
                             IconButton(onClick = { viewModel.setSearchQuery("") }) {
                                 Icon(
                                     Icons.Filled.Close,
-                                    contentDescription = stringResource(R.string.cd_close_search),
+                                    contentDescription = stringResource(R.string.cd_clear_search),
                                 )
                             }
                         }
@@ -272,6 +278,9 @@ private fun HomeTitle() {
         style = base.copy(fontSize = base.fontSize * RunningHeadScale),
         color = MaterialTheme.colorScheme.onSurface,
         minScale = 0.25f,
+        // The tab screens' titles are headings, so heading navigation covers
+        // the whole top level — the running head included.
+        modifier = Modifier.semantics { heading() },
     )
 }
 
@@ -340,7 +349,7 @@ private fun DailyHeroCard(name: Name, onClick: () -> Unit) {
                 fontStyle = FontStyle.Italic,
                 color = HeroSubtext,
                 textAlign = TextAlign.Center,
-                maxLines = 2,
+                maxLines = 3,
                 overflow = TextOverflow.Ellipsis,
             )
         }

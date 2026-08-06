@@ -1,12 +1,17 @@
 package io.github.muntasimulhaque.ninetynine.util
 
 import io.github.muntasimulhaque.ninetynine.data.Name
+import kotlinx.serialization.json.Json
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.io.File
 import kotlin.random.Random
 
 class QuizBuilderTest {
+
+    private val json = Json { ignoreUnknownKeys = true }
 
     private fun fakeNames(): List<Name> = (1..99).map {
         Name(
@@ -92,9 +97,29 @@ class QuizBuilderTest {
         }
     }
 
-    /** The same content-word reduction QuizBuilder uses, restated for the test. */
-    private fun words(title: String): Set<String> =
-        title.lowercase().split(' ')
-            .filter { it.isNotBlank() && it !in setOf("the", "and", "or", "of", "to", "in", "on", "for", "with", "from", "by", "a", "an", "his", "their", "who", "that", "is", "are", "one", "ones") }
-            .toSet()
+    /** The same content-word reduction QuizBuilder uses. */
+    private fun words(title: String): Set<String> = QuizBuilder.contentWords(title)
+
+    /**
+     * The property test above runs on fake names; the real asset is where the
+     * landmines live — a title made entirely of stop words ("The One", #99)
+     * used to collapse to an empty set and let subsuming distractors through.
+     */
+    @Test
+    fun realAssetNeverOffersSubsumingDistractors() {
+        val names: List<Name> = json.decodeFromString(File("src/main/assets/names.json").readText())
+        repeat(50) { seed ->
+            QuizBuilder.build(names, random = Random(seed)).forEach { question ->
+                val answer = question.options[question.answerIndex]
+                val answerWords = words(answer)
+                question.options.filter { it != answer }.forEach { option ->
+                    val other = words(option)
+                    assertFalse(
+                        "seed $seed #${question.number}: \"$option\" subsumes \"$answer\"",
+                        answerWords.containsAll(other) || other.containsAll(answerWords),
+                    )
+                }
+            }
+        }
+    }
 }

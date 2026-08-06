@@ -46,6 +46,7 @@ fun LearnedScreen(
     val names by viewModel.names.collectAsStateWithLifecycle()
     val namesLoaded by viewModel.namesLoaded.collectAsStateWithLifecycle()
     val learned by viewModel.learned.collectAsStateWithLifecycle()
+    val learnedLoaded by viewModel.learnedLoaded.collectAsStateWithLifecycle()
 
     // Book order, like every other list in the app.
     val known = remember(names, learned) { names.filter { it.number in learned } }
@@ -67,7 +68,7 @@ fun LearnedScreen(
             ),
             modifier = Modifier.fillMaxSize(),
         ) {
-            if (known.isEmpty()) {
+            if (known.isEmpty() && learnedLoaded && namesLoaded) {
                 item {
                     PageMessage(
                         stringResource(

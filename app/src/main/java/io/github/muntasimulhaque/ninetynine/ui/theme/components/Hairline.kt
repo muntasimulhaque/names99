@@ -1,7 +1,6 @@
 package io.github.muntasimulhaque.ninetynine.ui.theme.components
 
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -29,7 +28,7 @@ fun HairlineProgress(
 ) {
     val fraction by animateFloatAsState(
         targetValue = progress.coerceIn(0f, 1f),
-        animationSpec = tween(durationMillis = Motion.CALM, easing = Motion.Settle),
+        animationSpec = Motion.tween(Motion.CALM, easing = Motion.Settle),
         label = "hairlineProgress",
     )
     Box(
@@ -48,7 +47,12 @@ fun HairlineProgress(
                 .fillMaxWidth(fraction)
                 .fillMaxHeight()
                 .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.secondary),
+                // Not `secondary`: the gold fill at 1.30:1 (light) / 2.26:1
+                // (dark) against the track fails WCAG 1.4.11. The scheme's own
+                // onSecondaryContainer is a deep bronze in light (3.38:1 vs
+                // outline) and a pale gold in dark (3.42:1) — same family,
+                // readable boundary, no new colours.
+                .background(MaterialTheme.colorScheme.onSecondaryContainer),
         )
     }
 }

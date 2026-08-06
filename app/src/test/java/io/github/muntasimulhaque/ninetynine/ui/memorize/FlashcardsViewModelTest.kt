@@ -150,4 +150,17 @@ class FlashcardsViewModelTest {
         assertEquals(3, vm.deck.size)
         assertFalse(vm.done)
     }
+
+    @Test
+    fun restartClearsUndoFromThePreviousSitting() {
+        val vm = vm()
+        vm.ensureDeck(names, learned = emptySet(), includeLearned = false)
+        vm.recordCommit(vm.deck[0], markedLearned = true)
+        vm.advance()
+        vm.restart(names, learned = emptySet(), includeLearned = false)
+        // Undo after a restart must be a no-op: the card it would un-learn
+        // belongs to the previous sitting and is not in the new deck.
+        assertNull(vm.undoable)
+        assertNull(vm.undo())
+    }
 }

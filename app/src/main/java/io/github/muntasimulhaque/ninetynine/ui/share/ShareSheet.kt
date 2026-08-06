@@ -49,7 +49,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.core.content.FileProvider
 import io.github.muntasimulhaque.ninetynine.R
 import io.github.muntasimulhaque.ninetynine.data.Name
@@ -185,11 +184,11 @@ private fun ShareCard(name: Name, modifier: Modifier = Modifier) {
                     textAlign = TextAlign.Center,
                 )
                 Spacer(Modifier.height(8.dp))
-                Text(
+                FitText(
                     text = name.transliteration,
                     style = MaterialTheme.typography.displaySmall,
                     color = HeroText,
-                    textAlign = TextAlign.Center,
+                    minScale = 0.45f,
                 )
                 Spacer(Modifier.height(14.dp))
                 Text(
@@ -232,7 +231,10 @@ private fun ShareCard(name: Name, modifier: Modifier = Modifier) {
                     // the screen width less 147dp of chrome — 48 sheet, 20 box,
                     // 44 inner padding, 26 seal, 9 gap — giving 213dp on a
                     // 360dp phone (0.81) and 173dp on a 320dp one (0.66). A
-                    // floor of 0.5 clears the last of those with room to spare.
+                    // floor of 0.45 clears the last of those with room to
+                    // spare, and the system-font-scale-2.0 case as well (it
+                    // needs 0.47 on a Pixel 4, and the floor is in sp, so the
+                    // system scale multiplies the rendered width).
                     //
                     // It is the longest this wordmark has been, because the
                     // listing took the book's full title in v3.3. Shrinking a
@@ -242,7 +244,7 @@ private fun ShareCard(name: Name, modifier: Modifier = Modifier) {
                         text = stringResource(R.string.store_title).uppercase(),
                         style = MaterialTheme.typography.labelMedium,
                         color = HeroSubtext,
-                        minScale = 0.5f,
+                        minScale = 0.45f,
                     )
                 }
             }

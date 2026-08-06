@@ -2,7 +2,6 @@ package io.github.muntasimulhaque.ninetynine.ui.memorize
 
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -64,7 +63,6 @@ import androidx.compose.ui.semantics.toggleableState
 import androidx.compose.ui.state.ToggleableState
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -81,6 +79,7 @@ import io.github.muntasimulhaque.ninetynine.ui.theme.LocalMotionScale
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.ArabicSize
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.ArabicText
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.BackButton
+import io.github.muntasimulhaque.ninetynine.ui.theme.components.FitText
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.HairlineProgress
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.PageMessage
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.readingMeasure
@@ -107,6 +106,10 @@ class FlashcardsViewModel : ViewModel() {
         index = 0
         flipped = false
         done = false
+        // A rebuilt deck is a new sitting: the previous deck's last commit no
+        // longer exists, so undoing it would silently un-learn a card that is
+        // not even in this set.
+        undoable = null
     }
 
     fun flip() {
@@ -213,6 +216,10 @@ fun FlashcardsScreen(
                 // are reachable without passing it.
                 names.isEmpty() ->
                     if (namesLoaded) PageMessage(stringResource(R.string.names_unavailable))
+                // Until DataStore delivers, an empty deck is "not built yet",
+                // not "everything is learned": the all-learned state is
+                // alarming, and wrong for a brand-new reader.
+                !learnedLoaded -> Unit
                 session.deck.isEmpty() -> AllLearnedContent(
                     onReviewLearned = { viewModel.setIncludeLearned(true) },
                     onBack = onBack,
@@ -230,13 +237,16 @@ fun FlashcardsScreen(
                     // per card so each one starts centered.
                     val offsetX = remember(session.deck, session.index) { Animatable(0f) }
                     var cardWidth by remember { mutableFloatStateOf(0f) }
+                    val motionScale = LocalMotionScale.current
 
                     fun commit(know: Boolean) {
                         if (offsetX.isRunning && offsetX.targetValue != 0f) return
                         scope.launch {
                             haptics.confirm()
                             val target = (if (know) 1.3f else -1.3f) * cardWidth
-                            offsetX.animateTo(target, tween(240))
+                            // Motion.spec, not tween: with "Remove animations"
+                            // the card must not still fly off-screen.
+                            offsetX.animateTo(target, Motion.spec(motionScale, 240))
                             // A review pass only ever adds. "Still learning" must
                             // not quietly delete a tick the reader already earned.
                             val marked = know && name.number !in learned
@@ -507,11 +517,11 @@ private fun SwipeFlipCard(
                     textAlign = TextAlign.Center,
                 )
                 Spacer(Modifier.height(12.dp))
-                Text(
+                FitText(
                     text = name.transliteration,
                     style = MaterialTheme.typography.displaySmall,
                     color = HeroText,
-                    textAlign = TextAlign.Center,
+                    minScale = 0.45f,
                 )
                 Spacer(Modifier.height(24.dp))
                 Text(

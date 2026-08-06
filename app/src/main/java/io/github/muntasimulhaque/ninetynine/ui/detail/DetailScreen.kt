@@ -2,7 +2,6 @@ package io.github.muntasimulhaque.ninetynine.ui.detail
 
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -58,7 +57,6 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.muntasimulhaque.ninetynine.R
 import io.github.muntasimulhaque.ninetynine.data.Name
@@ -69,6 +67,7 @@ import io.github.muntasimulhaque.ninetynine.ui.theme.LocalMotionScale
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.ArabicSize
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.ArabicText
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.BackButton
+import io.github.muntasimulhaque.ninetynine.ui.theme.components.FitText
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.LearnedButton
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.MixedText
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.PageMessage
@@ -288,6 +287,9 @@ private fun BookmarkAction(bookmarked: Boolean, number: Int, onToggle: () -> Uni
     val scale = remember { Animatable(1f) }
     val seededFor = remember { mutableStateOf<Int?>(null) }
     val motionScale = LocalMotionScale.current
+    // `bookmarked` is THIS page's membership, so the keys are (page, its
+    // state): a DataStore write for a previous page (after a swipe) cannot
+    // change the current page's key, and only a toggle on this page pops.
     LaunchedEffect(number, bookmarked) {
         if (seededFor.value != number) {
             seededFor.value = number
@@ -359,11 +361,14 @@ private fun NamePage(
                 Spacer(Modifier.height(14.dp))
                 // Kept a clear step below the Arabic — the same proportion the
                 // share card and the widget hold (roughly half the Arabic size).
-                Text(
+                // FitText keeps the proper noun whole: a Name split across
+                // lines reads as two words, and this page must survive a large
+                // system font the same way the hero card does.
+                FitText(
                     text = name.transliteration,
                     style = MaterialTheme.typography.displayMedium,
                     color = MaterialTheme.colorScheme.onSurface,
-                    textAlign = TextAlign.Center,
+                    minScale = 0.45f,
                 )
                 Spacer(Modifier.height(scaledGap(20.dp)))
                 Text(

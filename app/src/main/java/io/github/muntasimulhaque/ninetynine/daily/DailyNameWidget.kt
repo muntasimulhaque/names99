@@ -36,8 +36,10 @@ import io.github.muntasimulhaque.ninetynine.util.DailyName
 class DailyNameWidget : GlanceAppWidget() {
 
     companion object {
-        // Responsive height buckets: show only as many lines as fit completely,
-        // sized so even the longest title (#39, 71 chars) never truncates.
+        // Responsive height buckets: show only as many lines as fit completely.
+        // The longest title (#39, 71 chars) wraps to three lines and ellipsizes
+        // at the minimum 110dp width — the Arabic + transliteration above carry
+        // the day's name, and the title's full sense is one tap away.
         private val COMPACT = DpSize(110.dp, 40.dp) // Arabic only
         private val MEDIUM = DpSize(110.dp, 90.dp) // + transliteration
         private val TALL = DpSize(110.dp, 140.dp) // + title (wrapping)

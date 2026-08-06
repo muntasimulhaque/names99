@@ -11,7 +11,6 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -101,6 +100,7 @@ fun SettingsScreen(
     val textScale by viewModel.textScale.collectAsStateWithLifecycle()
     val dailyEnabled by viewModel.dailyEnabled.collectAsStateWithLifecycle()
     val dailyTime by viewModel.dailyTime.collectAsStateWithLifecycle()
+    val dailyTimeLoaded by viewModel.dailyTimeLoaded.collectAsStateWithLifecycle()
 
     var sliderValue by remember(textScale) { mutableFloatStateOf(textScale) }
     var showTimePicker by rememberSaveable { mutableStateOf(false) }
@@ -209,7 +209,11 @@ fun SettingsScreen(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable { showTimePicker = true }
+                        // Not openable until DataStore delivers the real time:
+                        // the picker's remembered state seeds from the 8:00
+                        // default and never re-seeds, so opening it early
+                        // would silently overwrite the user's chosen time.
+                        .clickable(enabled = dailyTimeLoaded) { showTimePicker = true }
                         .padding(vertical = 14.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {

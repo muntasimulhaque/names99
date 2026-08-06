@@ -21,11 +21,20 @@ object QuizBuilder {
 
     private val WORD_NOISE = Regex("[^a-z ]")
 
-    private fun contentWords(title: String): Set<String> =
-        WORD_NOISE.replace(title.lowercase(), " ")
+    internal fun contentWords(title: String): Set<String> {
+        val words = WORD_NOISE.replace(title.lowercase(), " ")
             .split(' ')
             .filter { it.isNotBlank() && it !in STOP_WORDS }
             .toSet()
+        // A title made entirely of stop words ("The One") yields an empty set,
+        // and an empty answer set makes EVERY other title look ambiguous —
+        // {}.containsAll(other) is always true — so the fallback would offer
+        // subsuming distractors ("The One Who Guides His Servants…" against
+        // "The One"). Fall back to the whole title as a single token: "the
+        // one" is contained by no other title's word set, so the ambiguity
+        // filter keeps doing its job.
+        return if (words.isEmpty()) setOf(title.lowercase().trim()) else words
+    }
 
     /**
      * True when one title says everything the other says and no less — "The

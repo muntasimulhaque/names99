@@ -2,7 +2,6 @@ package io.github.muntasimulhaque.ninetynine.ui.memorize
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.scaleIn
 import androidx.compose.foundation.BorderStroke
@@ -50,7 +49,6 @@ import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -64,6 +62,7 @@ import io.github.muntasimulhaque.ninetynine.ui.theme.Motion
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.ArabicSize
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.ArabicText
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.BackButton
+import io.github.muntasimulhaque.ninetynine.ui.theme.components.FitText
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.HairlineProgress
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.NavRow
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.PageRule
@@ -180,6 +179,11 @@ fun QuizScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             when {
+                // Until DataStore delivers, an empty question list is "not
+                // built yet", not a load failure: the names-unavailable
+                // message is alarming, and it told a first-day reader to
+                // reinstall for no reason.
+                !learnedLoaded -> Unit
                 quiz.questions.isEmpty() ->
                     if (namesLoaded) PageMessage(stringResource(R.string.names_unavailable))
                 quiz.finished -> QuizResultContent(
@@ -245,11 +249,11 @@ private fun QuizQuestionContent(
                             textAlign = TextAlign.Center,
                         )
                         Spacer(Modifier.height(6.dp))
-                        Text(
+                        FitText(
                             text = name.transliteration,
                             style = MaterialTheme.typography.displaySmall,
                             color = HeroText,
-                            textAlign = TextAlign.Center,
+                            minScale = 0.45f,
                         )
                     }
                 }
@@ -268,6 +272,11 @@ private fun QuizQuestionContent(
                             val correct = quiz.select(optionIndex)
                             if (wasUnanswered) {
                                 if (correct) haptics.confirm() else haptics.reject()
+                            } else {
+                                // Already answered: the option deliberately
+                                // stays enabled for accessibility, so a sighted
+                                // tap on another option must not be dead air.
+                                haptics.tick()
                             }
                         },
                     )

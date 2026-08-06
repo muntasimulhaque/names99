@@ -14,6 +14,7 @@ import androidx.glance.appwidget.updateAll
 import androidx.work.CoroutineWorker
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequestBuilder
+import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import io.github.muntasimulhaque.ninetynine.MainActivity
@@ -21,7 +22,9 @@ import io.github.muntasimulhaque.ninetynine.R
 import io.github.muntasimulhaque.ninetynine.data.NamesRepository
 import io.github.muntasimulhaque.ninetynine.data.Prefs
 import io.github.muntasimulhaque.ninetynine.util.DailyName
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.withContext
 import java.util.Calendar
 import java.util.concurrent.TimeUnit
 
@@ -127,6 +130,31 @@ object DailyScheduler {
             .build()
         WorkManager.getInstance(context).enqueueUniquePeriodicWork(NOTIFY_WORK, policy, request)
     }
+
+    /**
+     * Re-anchors both schedules unless their unique work is mid-run.
+     *
+     * Opening the app in the seconds a worker is executing must not cancel it
+     * (CANCEL_AND_REENQUEUE/REPLACE cancel a running worker, and the
+     * replacement's initial delay is ~24h out) — the same failure the
+     * Application.onCreate re-anchor had, with a seconds-wide window instead
+     * of an unconditional one.
+     */
+    suspend fun reanchorSchedules(context: Context) {
+        if (!isRunning(context, WIDGET_WORK)) ensureScheduled(context, reanchor = true)
+        if (!isRunning(context, NOTIFY_WORK)) ensureNotificationScheduled(context, reanchor = true)
+    }
+
+    /** True when the given unique work is executing right now. */
+    suspend fun isRunning(context: Context, uniqueName: String): Boolean =
+        withContext(Dispatchers.IO) {
+            runCatching {
+                WorkManager.getInstance(context.applicationContext)
+                    .getWorkInfosForUniqueWork(uniqueName)
+                    .get()
+            }.getOrDefault(emptyList())
+                .any { it.state == WorkInfo.State.RUNNING }
+        }
 
     /** Minutes from now until the next occurrence of hour:minute (local time). */
     private fun minutesUntil(hour: Int, minute: Int): Long {

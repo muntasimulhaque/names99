@@ -46,7 +46,7 @@ object SearchFilter {
             it.transliteration.contains(q, ignoreCase = true) ||
                 it.title.contains(q, ignoreCase = true) ||
                 it.meaning.contains(q, ignoreCase = true) ||
-                (lq.isNotEmpty() && lq in latinKey(it.transliteration)) ||
+                (lq.length >= 3 && lq in latinKey(it.transliteration)) ||
                 it.arabic.contains(q) ||
                 (aq.isNotEmpty() && aq in arabicKey(it.arabic)) ||
                 it.number == number

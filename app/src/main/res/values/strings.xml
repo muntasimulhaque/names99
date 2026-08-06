@@ -46,9 +46,10 @@
     <string name="back_to_memorize">Back to Memorize</string>
 
     <!-- Home -->
-    <string name="search_hint">Search name or meaning…</string>
+    <string name="search_hint">Search name, meaning, or number…</string>
     <string name="cd_search">Search</string>
     <string name="cd_close_search">Close search</string>
+    <string name="cd_clear_search">Clear search</string>
 
     <!-- Detail -->
     <!--
@@ -58,6 +59,7 @@
     -->
     <string name="detail_counter">%1$d of %2$d</string>
     <string name="learned">Learned</string>
+    <string name="not_learned">Not learned</string>
     <string name="mark_learned">Mark as learned</string>
     <string name="note_label">Note</string>
 
@@ -164,7 +166,7 @@
 
     <!-- About -->
     <string name="about_dua">May Allah make us among those who learn, memorize, understand, and act upon His beautiful names, and enter us into His paradise.</string>
-    <string name="about_attribution">Based on the lecture of Sheikh Ibn Uthaymeen (Rahimahullah), as presented in “The Ninety Nine Names of Allah: A Memorisation Tool with Transliteration and Meanings”.</string>
+    <string name="about_attribution">Based on the lecture of Sheikh Ibn Uthaymeen (\u2066(Rahimahullah)\u2069), as presented in “The Ninety Nine Names of Allah: A Memorisation Tool with Transliteration and Meanings”.</string>
     <string name="about_source_label">Source</string>
     <string name="about_typefaces_label">Typefaces</string>
     <string name="about_contact_label">Contact</string>

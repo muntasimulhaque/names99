@@ -7,7 +7,6 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
@@ -92,12 +91,15 @@ class MainActivity : ComponentActivity() {
         // person actually opens the app, so it cannot cancel a worker that
         // WorkManager just started the process to run. Doze deferrals still get
         // corrected — every launch pins both schedules back to their times.
-        DailyScheduler.ensureScheduled(this, reanchor = true)
-        lifecycleScope.launch {
-            DailyScheduler.ensureNotificationScheduled(this@MainActivity, reanchor = true)
-        }
+        // The running-check keeps even the seconds-wide window from cancelling
+        // a worker that is mid-run at the instant the app opens.
+        lifecycleScope.launch { DailyScheduler.reanchorSchedules(this@MainActivity) }
 
-        startNumber = consumeNameNumber(intent)
+        // Process death replays the ORIGINAL launch intent (the removal below
+        // never propagates to the system's ActivityRecord), so a restored
+        // activity would force-navigate to the deep-linked name again. The
+        // extra was already consumed and navigated before the death.
+        if (savedInstanceState == null) startNumber = consumeNameNumber(intent)
         setContent { App(startNumber, onStartNumberConsumed = { startNumber = -1 }) }
     }
 
@@ -203,7 +205,7 @@ private fun App(startNumber: Int, onStartNumberConsumed: () -> Unit) {
                         slideOutVertically(Motion.spec(motionScale, Motion.GENTLE, easing = Motion.Settle)) { it / 24 }
                 },
             ) {
-                composable("names", enterTransition = tabFade, exitTransition = tabFadeOut) {
+                composable("names", enterTransition = tabFade(motionScale), exitTransition = tabFadeOut(motionScale)) {
                     HomeScreen(
                         viewModel = viewModel,
                         onNameClick = { number -> navController.navigate("detail/$number") },
@@ -234,7 +236,7 @@ private fun App(startNumber: Int, onStartNumberConsumed: () -> Unit) {
                         onBack = { navController.popBackStack() },
                     )
                 }
-                composable("memorize", enterTransition = tabFade, exitTransition = tabFadeOut) {
+                composable("memorize", enterTransition = tabFade(motionScale), exitTransition = tabFadeOut(motionScale)) {
                     MemorizeScreen(
                         viewModel = viewModel,
                         onFlashcards = { navController.navigate("flashcards") },
@@ -244,7 +246,7 @@ private fun App(startNumber: Int, onStartNumberConsumed: () -> Unit) {
                         onAbout = { navController.navigate("about") },
                     )
                 }
-                composable("bookmarks", enterTransition = tabFade, exitTransition = tabFadeOut) {
+                composable("bookmarks", enterTransition = tabFade(motionScale), exitTransition = tabFadeOut(motionScale)) {
                     BookmarksScreen(
                         viewModel = viewModel,
                         // Paged within the kept names, not across all 99: the
@@ -309,16 +311,16 @@ private fun App(startNumber: Int, onStartNumberConsumed: () -> Unit) {
 }
 
 /** Tab switches crossfade — only pushed detail screens use the rising motion. */
-private val tabFade:
+private fun tabFade(motionScale: Float):
     (androidx.compose.animation.AnimatedContentTransitionScope<androidx.navigation.NavBackStackEntry>.() ->
     androidx.compose.animation.EnterTransition?) = {
-    fadeIn(androidx.compose.animation.core.tween(Motion.GENTLE))
+    fadeIn(Motion.spec(motionScale, Motion.GENTLE))
 }
 
-private val tabFadeOut:
+private fun tabFadeOut(motionScale: Float):
     (androidx.compose.animation.AnimatedContentTransitionScope<androidx.navigation.NavBackStackEntry>.() ->
     androidx.compose.animation.ExitTransition?) = {
-    fadeOut(androidx.compose.animation.core.tween(Motion.QUICK))
+    fadeOut(Motion.spec(motionScale, Motion.QUICK))
 }
 
 /**

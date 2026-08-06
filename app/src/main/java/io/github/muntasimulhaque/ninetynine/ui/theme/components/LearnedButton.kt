@@ -3,7 +3,6 @@ package io.github.muntasimulhaque.ninetynine.ui.theme.components
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -31,6 +30,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.unit.dp
 import io.github.muntasimulhaque.ninetynine.R
 import io.github.muntasimulhaque.ninetynine.ui.theme.Motion
@@ -49,6 +50,11 @@ fun LearnedButton(
 ) {
     val haptics = rememberHaptics()
     val colors = MaterialTheme.colorScheme
+
+    // Same treatment as BookmarkAction: the label swaps on a merged node,
+    // whose content change TalkBack does not speak. The state rides on the
+    // button's semantics, which is the node TalkBack focuses.
+    val state = stringResource(if (learned) R.string.learned else R.string.not_learned)
 
     val container by animateColorAsState(
         targetValue = if (learned) colors.primaryContainer else colors.surface,
@@ -84,10 +90,12 @@ fun LearnedButton(
             haptics.confirm()
             onToggle()
         },
-        modifier = modifier.graphicsLayer {
-            scaleX = scale.value
-            scaleY = scale.value
-        },
+        modifier = modifier
+            .semantics { stateDescription = state }
+            .graphicsLayer {
+                scaleX = scale.value
+                scaleY = scale.value
+            },
         shape = CircleShape,
         color = container,
         border = BorderStroke(1.dp, border),

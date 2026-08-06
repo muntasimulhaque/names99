@@ -32,6 +32,11 @@ jobs:
       - name: Run unit tests
         run: gradle testDebugUnitTest
 
+      # Compose lint catches what tests cannot: unused resources, missing
+      # semantics, hardcoded text. Fails the build on new issues.
+      - name: Lint
+        run: gradle lintDebug
+
       - name: Build debug APK
         run: gradle assembleDebug
 

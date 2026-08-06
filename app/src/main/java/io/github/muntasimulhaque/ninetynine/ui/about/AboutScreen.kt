@@ -5,7 +5,6 @@ import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -34,10 +33,12 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import io.github.muntasimulhaque.ninetynine.BuildConfig
 import io.github.muntasimulhaque.ninetynine.R
 import io.github.muntasimulhaque.ninetynine.ui.theme.Motion
@@ -177,7 +178,9 @@ private fun ChapterHeading(text: String) {
         style = MaterialTheme.typography.headlineLarge,
         color = MaterialTheme.colorScheme.primary,
         textAlign = TextAlign.Center,
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .semantics { heading() },
     )
     Spacer(Modifier.height(26.dp))
 }
@@ -198,10 +201,15 @@ private fun Quote(raw: String) {
             .fillMaxWidth()
             .padding(bottom = 22.dp)
             .drawBehind {
+                // The rule marks the reading edge: `start`, mirroring with
+                // the layout direction exactly like the text inset below it.
+                // Drawn at physical x=0 it would sit on the wrong edge in
+                // every RTL locale.
+                val x = if (layoutDirection == LayoutDirection.Rtl) size.width else 0f
                 drawLine(
                     color = rule,
-                    start = Offset(0f, 0f),
-                    end = Offset(0f, size.height),
+                    start = Offset(x, 0f),
+                    end = Offset(x, size.height),
                     strokeWidth = 1.dp.toPx(),
                 )
             }

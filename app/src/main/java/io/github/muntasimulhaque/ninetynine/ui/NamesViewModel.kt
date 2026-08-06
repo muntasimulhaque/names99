@@ -84,7 +84,18 @@ class NamesViewModel(application: Application) : AndroidViewModel(application) {
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     val dailyTime: StateFlow<Pair<Int, Int>> = prefs.dailyTime
+        .onEach { _dailyTimeLoaded.value = true }
         .stateIn(viewModelScope, SharingStarted.Eagerly, 8 to 0)
+
+    private val _dailyTimeLoaded = MutableStateFlow(false)
+
+    /**
+     * False only while DataStore is still delivering the first value. The
+     * time row's remembered picker state seeds from the default (8:00) and
+     * never re-seeds, so opening the picker before the real time arrives
+     * would overwrite it with the default.
+     */
+    val dailyTimeLoaded: StateFlow<Boolean> = _dailyTimeLoaded.asStateFlow()
 
     val searchQuery = MutableStateFlow("")
 

@@ -25,11 +25,10 @@ object DeckBuilder {
         learned: Set<Int>,
         includeLearned: Boolean,
         random: Random = Random,
-        session: Int = SESSION,
     ): List<Int> {
         val (known, unknown) = all.partition { it.number in learned }
         val ordered = unknown.shuffled(random).map { it.number } +
             if (includeLearned) known.shuffled(random).map { it.number } else emptyList()
-        return ordered.take(session)
+        return ordered.take(SESSION)
     }
 }

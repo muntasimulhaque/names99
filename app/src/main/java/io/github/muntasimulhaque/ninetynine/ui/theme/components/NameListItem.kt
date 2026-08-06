@@ -1,5 +1,8 @@
 package io.github.muntasimulhaque.ninetynine.ui.theme.components
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -26,9 +29,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import io.github.muntasimulhaque.ninetynine.R
 import io.github.muntasimulhaque.ninetynine.data.Name
+import io.github.muntasimulhaque.ninetynine.ui.theme.Motion
 
 /**
  * The list's inset from both page edges. The folio numbers are the leftmost
@@ -123,7 +126,17 @@ fun NameListItem(
                     overflow = TextOverflow.Ellipsis,
                 )
             }
-            if (learned) {
+            // A fixed-width slot, tick or not: a row whose trailing column
+            // widened by 14dp when toggled made the text reflow mid-tap. The
+            // tick fades instead of popping the row's layout.
+            AnimatedVisibility(
+                visible = learned,
+                modifier = Modifier
+                    .width(28.dp)
+                    .align(Alignment.CenterVertically),
+                enter = fadeIn(Motion.tween(Motion.QUICK)),
+                exit = fadeOut(Motion.tween(Motion.QUICK)),
+            ) {
                 Icon(
                     imageVector = Icons.Filled.CheckCircle,
                     // Named, so a screen reader announces the state the gold
@@ -132,9 +145,6 @@ fun NameListItem(
                     tint = MaterialTheme.colorScheme.secondary,
                     modifier = Modifier.size(18.dp),
                 )
-                Spacer(Modifier.width(10.dp))
-            } else {
-                Spacer(Modifier.width(14.dp))
             }
             ArabicText(
                 text = name.arabic,

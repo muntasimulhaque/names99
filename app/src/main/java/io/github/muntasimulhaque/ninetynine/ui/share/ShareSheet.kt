@@ -47,7 +47,6 @@ import androidx.compose.ui.graphics.layer.drawLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -190,13 +189,6 @@ private fun ShareCard(name: Name, modifier: Modifier = Modifier) {
                     text = name.transliteration,
                     style = MaterialTheme.typography.displaySmall,
                     color = HeroText,
-                    textAlign = TextAlign.Center,
-                )
-                Text(
-                    text = name.title,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontStyle = FontStyle.Italic,
-                    color = HeroSubtext,
                     textAlign = TextAlign.Center,
                 )
                 Spacer(Modifier.height(14.dp))

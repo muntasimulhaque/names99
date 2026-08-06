@@ -76,7 +76,7 @@
       nothing to announce unless it is told what the face now shows.
     -->
     <string name="cd_card_front">%1$s. Tap to reveal the meaning.</string>
-    <string name="cd_card_back">%1$s. %2$s. %3$s</string>
+    <string name="cd_card_back">%1$s. %2$s</string>
     <!-- Read out after an answer, so the correct one is not left to the colour alone. -->
     <string name="names_to_revisit">Names to revisit</string>
     <string name="quiz_answer_correct">Correct.</string>

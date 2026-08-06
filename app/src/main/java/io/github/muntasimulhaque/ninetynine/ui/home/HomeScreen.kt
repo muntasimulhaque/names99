@@ -330,8 +330,7 @@ private fun DailyHeroCard(name: Name, onClick: () -> Unit) {
                 minScale = 0.45f,
             )
             Spacer(Modifier.height(2.dp))
-            // Two lines, and the same slot the share card uses for the same
-            // string. On one line this cut the meaning of the day in half —
+            // Two lines. On one line this cut the meaning of the day in half —
             // several of the 99 epithets do not fit a phone at default size,
             // so roughly one morning in eight the app opened on "The Perfect
             // Lord And Master Upon Whom Th…". The card has the height to spare.

@@ -62,7 +62,6 @@ import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.toggleableState
 import androidx.compose.ui.state.ToggleableState
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -439,7 +438,7 @@ private fun SwipeFlipCard(
     // nothing, then press "I know it" and cannot tell what happened or which
     // name is now in front of you.
     val faceLabel = if (flipped) {
-        stringResource(R.string.cd_card_back, name.transliteration, name.title, name.meaning)
+        stringResource(R.string.cd_card_back, name.transliteration, name.meaning)
     } else {
         stringResource(R.string.cd_card_front, name.transliteration)
     }
@@ -523,7 +522,7 @@ private fun SwipeFlipCard(
                 )
             }
         } else {
-            // Back: title + meaning (counter-rotated so it reads correctly).
+            // Back: the meaning alone (counter-rotated so it reads correctly).
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -533,14 +532,6 @@ private fun SwipeFlipCard(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center,
             ) {
-                Text(
-                    text = name.title,
-                    style = MaterialTheme.typography.titleLarge,
-                    fontStyle = FontStyle.Italic,
-                    color = MaterialTheme.colorScheme.secondary,
-                    textAlign = TextAlign.Center,
-                )
-                Spacer(Modifier.height(14.dp))
                 Text(
                     text = name.meaning,
                     style = MaterialTheme.typography.bodyLarge,

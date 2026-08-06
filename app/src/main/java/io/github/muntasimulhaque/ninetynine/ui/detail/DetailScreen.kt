@@ -56,7 +56,6 @@ import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -366,15 +365,7 @@ private fun NamePage(
                     color = MaterialTheme.colorScheme.onSurface,
                     textAlign = TextAlign.Center,
                 )
-                Spacer(Modifier.height(8.dp))
-                Text(
-                    text = name.title,
-                    style = MaterialTheme.typography.titleLarge,
-                    fontStyle = FontStyle.Italic,
-                    color = MaterialTheme.colorScheme.secondary,
-                    textAlign = TextAlign.Center,
-                )
-                Spacer(Modifier.height(scaledGap(28.dp)))
+                Spacer(Modifier.height(scaledGap(20.dp)))
                 Text(
                     text = name.meaning,
                     style = MaterialTheme.typography.bodyLarge,

@@ -106,17 +106,15 @@ val HeroText = Color(0xFFF2EDE2)
 val HeroSubtext = Color(0xFFBFD5CB)
 
 /**
- * The hero plates' edge in dark themes: HeroContainer lifted ~22% toward
- * white. Against the dark page (#14120D) it reads 3.66:1, on black 4.10:1,
- * against a dark sheet 3.5:1 — WCAG 1.4.11's 3:1 for the meaningful
- * boundary of an interactive card, which the bare emerald (1.86–2.23:1)
- * fails. Light mode needs no border at all (8.67:1).
+ * The English transliteration's teal, set apart from the full meaning that
+ * follows it. The two once shared one ink and differed only in size; colour
+ * now carries the distinction the way the widget's subtext does.
+ *
+ * Theme-aware, because the details page swings between light paper and
+ * near-black: the light teal clears WCAG AA on the page (5.78:1 on the
+ * background), the dark teal on the night page (10.65:1 on #14120D). Both
+ * echo the pale mint of the fixed emerald plates (HeroSubtext) without
+ * reading as the app's primary emerald, which stays reserved for the Arabic.
  */
-val HeroPlateBorder = Color(0xFF50756C)
-
-/**
- * The share card's gold hairline, pre-blended: HeroGold at 40% over
- * HeroContainer. The widget's frame is drawn over whatever wallpaper sits
- * behind it, so the ring must not depend on the wallpaper's colour.
- */
-val HeroFrame = Color(0xFF67774C)
+val TransliterationTealLight = Color(0xFF1F6B63)
+val TransliterationTealDark = Color(0xFF8FD0C0)

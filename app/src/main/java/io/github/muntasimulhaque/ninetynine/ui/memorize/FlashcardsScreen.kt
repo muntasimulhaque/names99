@@ -73,10 +73,8 @@ import io.github.muntasimulhaque.ninetynine.data.Name
 import io.github.muntasimulhaque.ninetynine.ui.NamesViewModel
 import io.github.muntasimulhaque.ninetynine.ui.theme.HeroContainer
 import io.github.muntasimulhaque.ninetynine.ui.theme.HeroGold
-import io.github.muntasimulhaque.ninetynine.ui.theme.HeroPlateBorder
 import io.github.muntasimulhaque.ninetynine.ui.theme.HeroSubtext
 import io.github.muntasimulhaque.ninetynine.ui.theme.HeroText
-import io.github.muntasimulhaque.ninetynine.ui.theme.LocalDarkTheme
 import io.github.muntasimulhaque.ninetynine.ui.theme.Motion
 import io.github.muntasimulhaque.ninetynine.ui.theme.LocalMotionScale
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.ArabicSize
@@ -556,10 +554,7 @@ private fun SwipeFlipCard(
             containerColor = if (rotation <= 90f) HeroContainer
             else MaterialTheme.colorScheme.surface
         ),
-        border = if (rotation <= 90f)
-        // The front is a hero plate: give it an edge against the near-black
-        // page in dark themes (see HeroPlateBorder); light needs none.
-        (if (LocalDarkTheme.current) BorderStroke(1.dp, HeroPlateBorder) else null)
+        border = if (rotation <= 90f) null
         // `outline`: this border is the flipped card's entire boundary, and its
         // fill is only 1.06:1 against the page. At outlineVariant's 1.42:1 the
         // card lost its edge completely on flip — it went from a clearly

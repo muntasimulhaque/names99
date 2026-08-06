@@ -58,9 +58,7 @@ import io.github.muntasimulhaque.ninetynine.data.Name
 import io.github.muntasimulhaque.ninetynine.ui.NamesViewModel
 import io.github.muntasimulhaque.ninetynine.ui.theme.HeroContainer
 import io.github.muntasimulhaque.ninetynine.ui.theme.HeroGold
-import io.github.muntasimulhaque.ninetynine.ui.theme.HeroPlateBorder
 import io.github.muntasimulhaque.ninetynine.ui.theme.HeroText
-import io.github.muntasimulhaque.ninetynine.ui.theme.LocalDarkTheme
 import io.github.muntasimulhaque.ninetynine.ui.theme.Motion
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.ArabicSize
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.ArabicText
@@ -284,9 +282,6 @@ private fun QuizQuestionContent(
                     modifier = Modifier.fillMaxWidth(),
                     shape = MaterialTheme.shapes.large,
                     colors = CardDefaults.cardColors(containerColor = HeroContainer),
-                    // The plate's edge against the near-black page in dark
-                    // themes (see HeroPlateBorder); light needs no border.
-                    border = if (LocalDarkTheme.current) BorderStroke(1.dp, HeroPlateBorder) else null,
                 ) {
                     Column(
                         modifier = Modifier

@@ -65,8 +65,11 @@ import io.github.muntasimulhaque.ninetynine.R
 import io.github.muntasimulhaque.ninetynine.data.Name
 import io.github.muntasimulhaque.ninetynine.ui.NamesViewModel
 import io.github.muntasimulhaque.ninetynine.ui.share.ShareSheet
-import io.github.muntasimulhaque.ninetynine.ui.theme.Motion
+import io.github.muntasimulhaque.ninetynine.ui.theme.LocalDarkTheme
 import io.github.muntasimulhaque.ninetynine.ui.theme.LocalMotionScale
+import io.github.muntasimulhaque.ninetynine.ui.theme.Motion
+import io.github.muntasimulhaque.ninetynine.ui.theme.TransliterationTealDark
+import io.github.muntasimulhaque.ninetynine.ui.theme.TransliterationTealLight
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.ArabicSize
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.ArabicText
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.BackButton
@@ -387,7 +390,12 @@ private fun NamePage(
                     style = MaterialTheme.typography.displaySmall.copy(
                         textAlign = TextAlign.Center,
                     ),
-                    color = MaterialTheme.colorScheme.onSurface,
+                    // The transliteration is set apart from the meaning by its
+                    // teal as well as its size — the meaning below stays in the
+                    // page's ink. Theme-aware: dark ink on light paper, pale
+                    // mint on the night page.
+                    color = if (LocalDarkTheme.current) TransliterationTealDark
+                    else TransliterationTealLight,
                     minScale = 0.45f,
                 )
                 Spacer(Modifier.height(scaledGap(20.dp)))

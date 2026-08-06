@@ -5,7 +5,6 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.widget.Toast
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -55,10 +54,8 @@ import io.github.muntasimulhaque.ninetynine.R
 import io.github.muntasimulhaque.ninetynine.data.Name
 import io.github.muntasimulhaque.ninetynine.ui.theme.HeroContainer
 import io.github.muntasimulhaque.ninetynine.ui.theme.HeroGold
-import io.github.muntasimulhaque.ninetynine.ui.theme.HeroPlateBorder
 import io.github.muntasimulhaque.ninetynine.ui.theme.HeroSubtext
 import io.github.muntasimulhaque.ninetynine.ui.theme.HeroText
-import io.github.muntasimulhaque.ninetynine.ui.theme.LocalDarkTheme
 import io.github.muntasimulhaque.ninetynine.ui.theme.LocalTextScale
 import io.github.muntasimulhaque.ninetynine.ui.theme.appTypography
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.ArabicSize
@@ -161,10 +158,6 @@ private fun ShareCard(name: Name, modifier: Modifier = Modifier) {
         modifier = modifier,
         shape = MaterialTheme.shapes.large,
         colors = CardDefaults.cardColors(containerColor = HeroContainer),
-        // The plate's edge against the near-black page in dark themes (see
-        // HeroPlateBorder); light needs no border. The exported image gets
-        // the same edge, which also helps it read on a dark chat surface.
-        border = if (LocalDarkTheme.current) BorderStroke(1.dp, HeroPlateBorder) else null,
     ) {
         Box(Modifier.padding(10.dp)) {
             Column(
@@ -195,7 +188,9 @@ private fun ShareCard(name: Name, modifier: Modifier = Modifier) {
                 FitText(
                     text = name.transliteration,
                     style = MaterialTheme.typography.displaySmall,
-                    color = HeroText,
+                    // The transliteration's teal sets it apart from the meaning
+                    // beneath it, which stays in the card's light ink.
+                    color = HeroSubtext,
                     minScale = 0.45f,
                 )
                 Spacer(Modifier.height(14.dp))

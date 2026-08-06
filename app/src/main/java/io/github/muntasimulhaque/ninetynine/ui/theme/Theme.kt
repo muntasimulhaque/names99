@@ -25,8 +25,8 @@ val LocalTextScale = staticCompositionLocalOf { 1f }
  * Whether the theme actually renders dark — the reader's choice, not the
  * system's (BLACK on a light phone must still draw light-mode system bars).
  * The fixed hero plates (hero card, quiz card, flashcard front, share card)
- * are the same emerald in every theme, so they take a border in dark modes
- * to keep their edge against the near-black page — see HeroPlateBorder.
+ * draw the same emerald in every theme, with no border — a deliberate
+ * symmetry across the app's plates.
  */
 val LocalDarkTheme = staticCompositionLocalOf { false }
 

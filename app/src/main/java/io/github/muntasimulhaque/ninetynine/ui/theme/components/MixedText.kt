@@ -27,7 +27,7 @@ private val ARABIC_RUN = Regex(
  * HAFS's body height is 0.346 em against Spectral's 0.450 x-height, so matched
  * nominal sizes leave the Arabic looking smaller than its neighbours. 0.450 /
  * 0.346 puts the two bodies level, which is the right anchor for Arabic inside
- * a run of Latin. The name page's 1.86 is a display pairing and would shout in
+ * a run of Latin. The name page's 2.17 is a display pairing and would shout in
  * running text.
  */
 private const val ArabicSpanScale = 1.30f
@@ -63,7 +63,7 @@ fun MixedText(
                 // leave the Arabic looking smaller than the Latin beside it.
                 // 0.450/0.346 = 1.30 puts the two bodies level, which is the
                 // right anchor for Arabic set inline in a run of Latin — the
-                // name page's 1.86 is a display pairing and would shout here.
+                // name page's 2.17 is a display pairing and would shout here.
                 addStyle(
                     SpanStyle(
                         fontFamily = ArabicFamily,

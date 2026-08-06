@@ -359,23 +359,28 @@ private fun NamePage(
                     textAlign = TextAlign.Center,
                 )
                 Spacer(Modifier.height(14.dp))
-                // Kept a clear step below the Arabic — the same proportion the
-                // share card and the widget hold (roughly half the Arabic size).
-                // FitText keeps the proper noun whole: a Name split across
-                // lines reads as two words, and this page must survive a large
-                // system font the same way the hero card does.
+                // A clear step below the Arabic, set in the same displaySmall
+                // slot the share card, hero and flashcard faces use — the Name
+                // leads its transliteration at the same ratio everywhere. FitText
+                // keeps the proper noun whole: a Name split across lines reads
+                // as two words, and this page must survive a large system font
+                // the same way the hero card does.
                 FitText(
                     text = name.transliteration,
-                    style = MaterialTheme.typography.displayMedium,
+                    style = MaterialTheme.typography.displaySmall.copy(
+                        textAlign = TextAlign.Center,
+                    ),
                     color = MaterialTheme.colorScheme.onSurface,
                     minScale = 0.45f,
                 )
                 Spacer(Modifier.height(scaledGap(20.dp)))
+                // Centred like the share card — the reading line, set the same
+                // way on every surface that carries the full meaning.
                 Text(
                     text = name.meaning,
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurface,
-                    textAlign = TextAlign.Start,
+                    textAlign = TextAlign.Center,
                     modifier = Modifier.widthIn(max = readingMeasure()),
                 )
                 if (name.note != null) {

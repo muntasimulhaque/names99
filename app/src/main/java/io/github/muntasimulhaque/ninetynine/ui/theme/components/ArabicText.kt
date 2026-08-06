@@ -39,13 +39,13 @@ fun String.forArabicFont(): String = replace("\u0622", "\u0627\u0653")
  * read as a caption above it. On the front page of a book of the Names, the
  * Name should win.
  *
- * The name page's 52:28 is the reference the rest are tuned to. It is not
+ * The name page's 52:24 is the reference the rest are tuned to. It is not
  * arbitrary: HAFS's body height is 0.346 em against Spectral's 0.450 x-height,
- * so at 1.86 the Arabic body lands between the Latin's x-height and its cap,
- * and the Arabic dominates without stranding the Latin.
+ * so at 2.17 the Arabic body sits above the Latin's cap height — the Name
+ * dominates its transliteration without stranding the Latin.
  */
 object ArabicSize {
-    /** Pairs `displaySmall` on the name page — the reference pairing, 1.86x. */
+    /** Pairs `displaySmall` on the name page — the reference pairing, 2.17x. */
     val Page = 52.sp
 
     /** Pairs `displaySmall` on the share card. */

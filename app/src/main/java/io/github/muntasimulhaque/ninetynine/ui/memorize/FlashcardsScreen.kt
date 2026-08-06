@@ -542,11 +542,13 @@ private fun SwipeFlipCard(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center,
             ) {
+                // Centred like the share card — the reading line, set the same
+                // way on every surface that carries the full meaning.
                 Text(
                     text = name.meaning,
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurface,
-                    textAlign = TextAlign.Start,
+                    textAlign = TextAlign.Center,
                     modifier = Modifier.widthIn(max = readingMeasure()),
                 )
             }

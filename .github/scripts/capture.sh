@@ -24,27 +24,33 @@ tap_text() {
 }
 
 # 1) Home, light
+adb shell am force-stop $PKG
 adb shell am start -W -n $PKG/.MainActivity
 sleep 5
 adb exec-out screencap -p > /tmp/shot-home.png
 
-# 2) Name page (deep-link to the first name)
+# 2) Name page. Force-stop first so a FRESH process reads the deep-link extra
+# and navigates; re-starting the already-foreground singleTop activity routes
+# through onNewIntent, which does not reliably land before the capture.
+adb shell am force-stop $PKG
 adb shell am start -W -n $PKG/.MainActivity --ei nameNumber 1
-sleep 4
+sleep 5
 adb exec-out screencap -p > /tmp/shot-name.png
 
 # 3) Home, dark
 adb shell cmd uimode night yes
+adb shell am force-stop $PKG
 adb shell am start -W -n $PKG/.MainActivity
 sleep 5
 adb exec-out screencap -p > /tmp/shot-home-dark.png
 
 # 4) Quiz: Memorize tab -> Quiz (back to light)
 adb shell cmd uimode night no
+adb shell am force-stop $PKG
 adb shell am start -W -n $PKG/.MainActivity
-sleep 4
+sleep 5
 tap_text "Memorize"
 sleep 3
 tap_text "Quiz"
-sleep 4
+sleep 5
 adb exec-out screencap -p > /tmp/shot-quiz.png

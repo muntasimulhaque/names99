@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -60,18 +61,18 @@ fun HairlineProgress(
 }
 
 /**
- * A hairline at the bottom edge that fills as the reader scrolls, and is only
- * there while more content lies below.
+ * A thin vertical bar on the right edge that fills downward as the reader
+ * scrolls, and is only there while more content lies below.
  *
- * Where [HairlineProgress] measures progress toward a goal, this measures
- * position within one scrollable surface: the unfilled track is literally
- * "there is still more to read below", the gold fill is how far you have come,
- * and when the end is reached the whole line fades away. It carries no presence
- * when the content fits — `canScrollForward` is false, so the line stays at
- * alpha 0 inside its 2dp slot.
+ * Vertical scrolling is signalled by a vertical indicator on the right — the
+ * affordance everybody already knows. The unfilled part of the track is "there
+ * is still more to read below", the gold fill is how far you have come, and
+ * when the end is reached the bar fades away. It carries no presence when the
+ * content fits — `canScrollForward` is false, so it stays at alpha 0 inside its
+ * 2dp slot and never covers a word.
  */
 @Composable
-fun ScrollProgressHairline(
+fun ScrollProgressBar(
     scrollState: ScrollState,
     modifier: Modifier = Modifier,
 ) {
@@ -83,22 +84,22 @@ fun ScrollProgressHairline(
     val visible by animateFloatAsState(
         targetValue = if (scrollState.canScrollForward) 1f else 0f,
         animationSpec = Motion.tween(Motion.QUICK),
-        label = "scrollCue",
+        label = "scrollBar",
     )
     Box(
         modifier = modifier
-            .fillMaxWidth()
-            .height(2.dp)
+            .fillMaxHeight()
+            .width(2.dp)
             .graphicsLayer { alpha = visible }
             .clip(CircleShape)
             // The same track/fill pair as HairlineProgress, so the cue reads
-            // as one more hairline in the app's own voice.
+            // as one more of the app's own hairlines.
             .background(MaterialTheme.colorScheme.outline),
     ) {
         Box(
             modifier = Modifier
-                .fillMaxWidth(fraction)
-                .fillMaxHeight()
+                .fillMaxHeight(fraction)
+                .fillMaxWidth()
                 .clip(CircleShape)
                 .background(MaterialTheme.colorScheme.onSecondaryContainer),
         )

@@ -79,7 +79,7 @@ import io.github.muntasimulhaque.ninetynine.ui.theme.components.ReadingInset
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.readingMeasure
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.scaledGap
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.ScreenLabel
-import io.github.muntasimulhaque.ninetynine.ui.theme.components.ScrollProgressHairline
+import io.github.muntasimulhaque.ninetynine.ui.theme.components.ScrollProgressBar
 import io.github.muntasimulhaque.ninetynine.ui.theme.rememberHaptics
 import kotlin.math.absoluteValue
 import kotlinx.coroutines.CoroutineScope
@@ -523,14 +523,15 @@ private fun NamePage(
             }
         }
 
-        // A hairline at the page's foot that fills as the reader scrolls, and
-        // is only there while more of the meaning lies below — a clearer nudge
-        // than the old fold-fade, which hid the last line and was easy to miss.
-        ScrollProgressHairline(
+        // A thin bar on the page's right edge that fills as the reader scrolls,
+        // and is only there while more of the meaning lies below — a clearer
+        // nudge than the old fold-fade, which hid the last line and was easy
+        // to miss.
+        ScrollProgressBar(
             scrollState = scrollState,
             modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .padding(horizontal = ReadingInset, vertical = 10.dp),
+                .align(Alignment.TopEnd)
+                .padding(top = 16.dp, bottom = 16.dp, end = 8.dp),
         )
     }
 }

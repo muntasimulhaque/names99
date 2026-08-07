@@ -41,21 +41,34 @@ object DailyScheduler {
     const val CHANNEL_ID = "daily_name"
     private const val OLD_CHANNEL_ID = "name_of_the_day"
 
+    /**
+     * Every scheduling call here is wrapped in `runCatching`. These run at app
+     * start from coroutines that have no exception handler — `lifecycleScope`
+     * in MainActivity, the `applicationScope` in NamesApp — and from the UI.
+     * WorkManager and DataStore are both initialised lazily on a cold start, so
+     * a scheduling call can hit a transient not-yet-ready race; a throw from
+     * one of these would kill the process on a launch the reader just opened.
+     * A failed schedule is a degraded feature (the widget or notification skips
+     * a refresh), which is preferable to a crash, and the next launch or worker
+     * run retries it. Same philosophy as Prefs: a hiccup is not worth the app.
+     */
     /** Creates the notification channel once at app start so users can find it in system settings. */
     fun createNotificationChannel(context: Context) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            manager.deleteNotificationChannel(OLD_CHANNEL_ID)
-            manager.createNotificationChannel(
-                NotificationChannel(
-                    CHANNEL_ID,
-                    context.getString(R.string.daily_notification_channel),
-                    // A daily invitation to reflect, not an alert: it waits in
-                    // the shade rather than making a sound. Anyone who wants
-                    // one can raise the channel in system settings.
-                    NotificationManager.IMPORTANCE_LOW,
+            runCatching {
+                val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+                manager.deleteNotificationChannel(OLD_CHANNEL_ID)
+                manager.createNotificationChannel(
+                    NotificationChannel(
+                        CHANNEL_ID,
+                        context.getString(R.string.daily_notification_channel),
+                        // A daily invitation to reflect, not an alert: it waits in
+                        // the shade rather than making a sound. Anyone who wants
+                        // one can raise the channel in system settings.
+                        NotificationManager.IMPORTANCE_LOW,
+                    )
                 )
-            )
+            }
         }
     }
 
@@ -72,15 +85,17 @@ object DailyScheduler {
      * home screen and rarely open the app at all.
      */
     fun ensureScheduled(context: Context, reanchor: Boolean) {
-        val widgetRequest = PeriodicWorkRequestBuilder<WidgetUpdateWorker>(1, TimeUnit.DAYS)
-            .setInitialDelay(minutesUntil(0, 5), TimeUnit.MINUTES)
-            .build()
-        WorkManager.getInstance(context).enqueueUniquePeriodicWork(
-            WIDGET_WORK,
-            if (reanchor) ExistingPeriodicWorkPolicy.CANCEL_AND_REENQUEUE
-            else ExistingPeriodicWorkPolicy.KEEP,
-            widgetRequest,
-        )
+        runCatching {
+            val widgetRequest = PeriodicWorkRequestBuilder<WidgetUpdateWorker>(1, TimeUnit.DAYS)
+                .setInitialDelay(minutesUntil(0, 5), TimeUnit.MINUTES)
+                .build()
+            WorkManager.getInstance(context).enqueueUniquePeriodicWork(
+                WIDGET_WORK,
+                if (reanchor) ExistingPeriodicWorkPolicy.CANCEL_AND_REENQUEUE
+                else ExistingPeriodicWorkPolicy.KEEP,
+                widgetRequest,
+            )
+        }
     }
 
     /**
@@ -93,30 +108,36 @@ object DailyScheduler {
      * fixes a timezone or DST change at the same time.
      */
     suspend fun ensureNotificationScheduled(context: Context, reanchor: Boolean) {
-        val prefs = Prefs(context.applicationContext)
-        if (!prefs.dailyEnabled.first()) return
-        val (hour, minute) = prefs.dailyTime.first()
-        enqueueNotification(
-            context,
-            hour,
-            minute,
-            if (reanchor) ExistingPeriodicWorkPolicy.REPLACE else ExistingPeriodicWorkPolicy.KEEP,
-        )
+        runCatching {
+            val prefs = Prefs(context.applicationContext)
+            if (!prefs.dailyEnabled.first()) return@runCatching
+            val (hour, minute) = prefs.dailyTime.first()
+            enqueueNotification(
+                context,
+                hour,
+                minute,
+                if (reanchor) ExistingPeriodicWorkPolicy.REPLACE else ExistingPeriodicWorkPolicy.KEEP,
+            )
+        }
     }
 
     /** Applies the user's current enabled/time settings, replacing any previous schedule. */
     suspend fun rescheduleNotification(context: Context) {
-        val prefs = Prefs(context.applicationContext)
-        if (!prefs.dailyEnabled.first()) {
-            cancelNotification(context)
-            return
+        runCatching {
+            val prefs = Prefs(context.applicationContext)
+            if (!prefs.dailyEnabled.first()) {
+                cancelNotification(context)
+                return@runCatching
+            }
+            val (hour, minute) = prefs.dailyTime.first()
+            enqueueNotification(context, hour, minute, ExistingPeriodicWorkPolicy.REPLACE)
         }
-        val (hour, minute) = prefs.dailyTime.first()
-        enqueueNotification(context, hour, minute, ExistingPeriodicWorkPolicy.REPLACE)
     }
 
     fun cancelNotification(context: Context) {
-        WorkManager.getInstance(context).cancelUniqueWork(NOTIFY_WORK)
+        runCatching {
+            WorkManager.getInstance(context).cancelUniqueWork(NOTIFY_WORK)
+        }
     }
 
     private fun enqueueNotification(
@@ -125,10 +146,12 @@ object DailyScheduler {
         minute: Int,
         policy: ExistingPeriodicWorkPolicy,
     ) {
-        val request = PeriodicWorkRequestBuilder<NotificationWorker>(1, TimeUnit.DAYS)
-            .setInitialDelay(minutesUntil(hour, minute), TimeUnit.MINUTES)
-            .build()
-        WorkManager.getInstance(context).enqueueUniquePeriodicWork(NOTIFY_WORK, policy, request)
+        runCatching {
+            val request = PeriodicWorkRequestBuilder<NotificationWorker>(1, TimeUnit.DAYS)
+                .setInitialDelay(minutesUntil(hour, minute), TimeUnit.MINUTES)
+                .build()
+            WorkManager.getInstance(context).enqueueUniquePeriodicWork(NOTIFY_WORK, policy, request)
+        }
     }
 
     /**
@@ -141,8 +164,10 @@ object DailyScheduler {
      * of an unconditional one.
      */
     suspend fun reanchorSchedules(context: Context) {
-        if (!isRunning(context, WIDGET_WORK)) ensureScheduled(context, reanchor = true)
-        if (!isRunning(context, NOTIFY_WORK)) ensureNotificationScheduled(context, reanchor = true)
+        runCatching {
+            if (!isRunning(context, WIDGET_WORK)) ensureScheduled(context, reanchor = true)
+            if (!isRunning(context, NOTIFY_WORK)) ensureNotificationScheduled(context, reanchor = true)
+        }
     }
 
     /** True when the given unique work is executing right now. */
@@ -192,8 +217,8 @@ class NotificationWorker(context: Context, params: WorkerParameters) :
         ) return Result.success()
 
         val names = NamesRepository.load(context)
-        val name = names.firstOrNull { it.number == DailyName.numberFor(System.currentTimeMillis()) }
-            ?: return Result.success()
+                val name = names.firstOrNull { it.number == DailyName.numberFor(System.currentTimeMillis()) }
+                    ?: return Result.success()
 
         // NEW_TASK only: the activity is singleTop and consumes the extra, so
         // this lands on the name without tearing down whatever was open.

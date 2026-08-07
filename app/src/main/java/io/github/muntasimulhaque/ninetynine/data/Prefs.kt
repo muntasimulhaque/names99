@@ -33,12 +33,12 @@ class Prefs(private val context: Context) {
     /**
      * Every read goes through here.
      *
-     * DataStore's `data` flow throws [IOException] when the file cannot be
-     * read. These flows are collected in `stateIn(viewModelScope, …)`, which
-     * has no exception handler, so an uncaught throw reaches the thread's
-     * default handler and kills the process — on launch, every launch, with
-     * no way out but clearing app data. That would destroy the one thing this
-     * app stores: which of the 99 names the reader has learned.
+     * DataStore's `data` flow throws when the file cannot be read. These flows
+     * are collected in `stateIn(viewModelScope, …)`, which has no exception
+     * handler, so an uncaught throw reaches the thread's default handler and
+     * kills the process — on launch, every launch, with no way out but clearing
+     * app data. That would destroy the one thing this app stores: which of the
+     * 99 names the reader has learned.
      *
      * `retryWhen`, not `catch`: `catch` emits and then *completes* the flow, so
      * a single transient read failure would end every derived flow for the rest
@@ -46,16 +46,19 @@ class Prefs(private val context: Context) {
      * read "0 learned" and Bookmarks "nothing kept" — a lie about intact data,
      * until the app was restarted. This emits the same fallback and then lets
      * DataStore try again.
+     *
+     * It retries on *any* exception, not just IOException. DataStore's real
+     * failure mode is IOException (corruption is already handled by the file's
+     * corruptionHandler), but a cold start can surface a transient race while
+     * the store initialises; letting a non-IO exception escape would crash the
+     * process on a launch. A fallback value for one read is harmless — the next
+     * retry delivers the stored truth.
      */
     private val data: Flow<Preferences> = context.dataStore.data
-        .retryWhen { cause, _ ->
-            if (cause is IOException) {
-                emit(emptyPreferences())
-                delay(250)
-                true
-            } else {
-                false
-            }
+        .retryWhen { _, _ ->
+            emit(emptyPreferences())
+            delay(250)
+            true
         }
 
     private object Keys {

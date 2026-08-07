@@ -87,7 +87,7 @@ import io.github.muntasimulhaque.ninetynine.ui.theme.components.PageInset
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.readingMeasure
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.paperTopBarColors
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.ScreenLabel
-import io.github.muntasimulhaque.ninetynine.ui.theme.components.ScrollProgressHairline
+import io.github.muntasimulhaque.ninetynine.ui.theme.components.ScrollProgressBar
 import io.github.muntasimulhaque.ninetynine.ui.theme.rememberHaptics
 import io.github.muntasimulhaque.ninetynine.util.DeckBuilder
 import kotlinx.coroutines.launch
@@ -599,13 +599,13 @@ private fun SwipeFlipCard(
                         textAlign = TextAlign.Center,
                     )
                 }
-                // Same foot cue as the back: only appears when the name
+                // Same right-edge cue as the back: only appears when the name
                 // overflows the card and needs scrolling.
-                ScrollProgressHairline(
+                ScrollProgressBar(
                     scrollState = frontScroll,
                     modifier = Modifier
-                        .align(Alignment.BottomCenter)
-                        .padding(horizontal = 24.dp, vertical = 10.dp),
+                        .align(Alignment.TopEnd)
+                        .padding(top = 20.dp, bottom = 20.dp, end = 10.dp),
                 )
             }
         } else {
@@ -634,13 +634,13 @@ private fun SwipeFlipCard(
                         modifier = Modifier.widthIn(max = readingMeasure()),
                     )
                 }
-                // A hairline at the card's foot that fills as the meaning
-                // scrolls, and is only there while more of it lies below.
-                ScrollProgressHairline(
+                // A thin bar on the card's right edge that fills as the
+                // meaning scrolls, and is only there while more lies below.
+                ScrollProgressBar(
                     scrollState = backScroll,
                     modifier = Modifier
-                        .align(Alignment.BottomCenter)
-                        .padding(horizontal = 24.dp, vertical = 10.dp),
+                        .align(Alignment.TopEnd)
+                        .padding(top = 20.dp, bottom = 20.dp, end = 10.dp),
                 )
             }
         }

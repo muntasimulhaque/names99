@@ -1,18 +1,41 @@
 #!/usr/bin/env bash
 # Captures the Play listing screenshots from a booted emulator.
-# Runs inside the reactivecircus/android-emulator-runner step (adb is on PATH,
-# emulator is booted, cwd is the repo root). PNGs are written to /tmp/shot-*.png
-# and picked up by the workflow's upload-artifact step.
+# Runs inside the reactivecircus/android-emulator-runner step (adb on PATH,
+# emulator booted, cwd = repo root). Writes /tmp/shot-*.png for upload-artifact.
 #
 # Kept as one committed script (not inline in the workflow) because that action
-# executes its `script:` input line-by-line, so shell variables and functions
-# would not survive between lines.
+# executes its `script:` input line-by-line, so functions/variables would not
+# survive between lines.
 set -e
 
 PKG=io.github.muntasimulhaque.ninetynine
 APK=app/build/outputs/apk/debug/app-debug.apk
 
 adb install -r "$APK"
+
+# Start the app fresh: force-stop (so the deep-link extra is read by a new
+# process and the singleTop onNewIntent path is avoided), give the process a
+# moment to die, launch, then wait for the splash to clear before returning.
+start_app() {
+  adb shell am force-stop $PKG
+  sleep 2
+  adb shell am start -W -n $PKG/.MainActivity "$@"
+  sleep 10
+}
+
+# Capture a frame, retrying until it is not a blank solid colour. A blank
+# splash/loading PNG compresses to ~15 KB; once content is drawn the file grows,
+# so a size floor is a cheap "did the UI render yet" signal.
+capture() {
+  local out="$1"
+  for _ in 1 2 3 4; do
+    adb exec-out screencap -p > "$out"
+    local sz
+    sz=$(wc -c < "$out")
+    if [ "$sz" -gt 16000 ]; then return 0; fi
+    sleep 6
+  done
+}
 
 # Tap the first UI element whose text contains "$1" (resolution-independent).
 tap_text() {
@@ -24,33 +47,23 @@ tap_text() {
 }
 
 # 1) Home, light
-adb shell am force-stop $PKG
-adb shell am start -W -n $PKG/.MainActivity
-sleep 5
-adb exec-out screencap -p > /tmp/shot-home.png
+start_app
+capture /tmp/shot-home.png
 
-# 2) Name page. Force-stop first so a FRESH process reads the deep-link extra
-# and navigates; re-starting the already-foreground singleTop activity routes
-# through onNewIntent, which does not reliably land before the capture.
-adb shell am force-stop $PKG
-adb shell am start -W -n $PKG/.MainActivity --ei nameNumber 1
-sleep 5
-adb exec-out screencap -p > /tmp/shot-name.png
+# 2) Name page (deep-link to the first name)
+start_app --ei nameNumber 1
+capture /tmp/shot-name.png
 
 # 3) Home, dark
 adb shell cmd uimode night yes
-adb shell am force-stop $PKG
-adb shell am start -W -n $PKG/.MainActivity
-sleep 5
-adb exec-out screencap -p > /tmp/shot-home-dark.png
+start_app
+capture /tmp/shot-home-dark.png
 
 # 4) Quiz: Memorize tab -> Quiz (back to light)
 adb shell cmd uimode night no
-adb shell am force-stop $PKG
-adb shell am start -W -n $PKG/.MainActivity
-sleep 5
+start_app
 tap_text "Memorize"
 sleep 3
 tap_text "Quiz"
 sleep 5
-adb exec-out screencap -p > /tmp/shot-quiz.png
+capture /tmp/shot-quiz.png

@@ -2,7 +2,6 @@ package io.github.muntasimulhaque.ninetynine.ui.detail
 
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -47,7 +46,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.res.stringResource
@@ -81,6 +79,7 @@ import io.github.muntasimulhaque.ninetynine.ui.theme.components.ReadingInset
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.readingMeasure
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.scaledGap
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.ScreenLabel
+import io.github.muntasimulhaque.ninetynine.ui.theme.components.ScrollProgressHairline
 import io.github.muntasimulhaque.ninetynine.ui.theme.rememberHaptics
 import kotlin.math.absoluteValue
 import kotlinx.coroutines.CoroutineScope
@@ -524,26 +523,14 @@ private fun NamePage(
             }
         }
 
-        // The page melts into the paper at the fold while more remains below —
-        // a quiet invitation to keep reading. Gone once the end is reached.
-        val fadeAlpha by animateFloatAsState(
-            targetValue = if (scrollState.canScrollForward) 1f else 0f,
-            animationSpec = Motion.tween(Motion.QUICK),
-            label = "edgeFade",
-        )
-        val paper = MaterialTheme.colorScheme.background
-        Box(
+        // A hairline at the page's foot that fills as the reader scrolls, and
+        // is only there while more of the meaning lies below — a clearer nudge
+        // than the old fold-fade, which hid the last line and was easy to miss.
+        ScrollProgressHairline(
+            scrollState = scrollState,
             modifier = Modifier
                 .align(Alignment.BottomCenter)
-                .fillMaxWidth()
-                .height(64.dp)
-                .graphicsLayer { alpha = fadeAlpha }
-                .background(
-                    Brush.verticalGradient(
-                        0f to paper.copy(alpha = 0f),
-                        1f to paper,
-                    )
-                ),
+                .padding(horizontal = ReadingInset, vertical = 10.dp),
         )
     }
 }

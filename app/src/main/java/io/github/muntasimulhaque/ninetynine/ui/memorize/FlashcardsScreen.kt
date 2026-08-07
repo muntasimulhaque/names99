@@ -87,6 +87,7 @@ import io.github.muntasimulhaque.ninetynine.ui.theme.components.PageInset
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.readingMeasure
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.paperTopBarColors
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.ScreenLabel
+import io.github.muntasimulhaque.ninetynine.ui.theme.components.ScrollProgressHairline
 import io.github.muntasimulhaque.ninetynine.ui.theme.rememberHaptics
 import io.github.muntasimulhaque.ninetynine.util.DeckBuilder
 import kotlinx.coroutines.launch
@@ -567,54 +568,79 @@ private fun SwipeFlipCard(
             // height can drop below what the name needs, and the Card clips to
             // its rounded shape — the one place a supported configuration
             // could otherwise lose the Name entirely.
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .verticalScroll(rememberScrollState())
-                    .padding(24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center,
-            ) {
-                ArabicText(
-                    text = name.arabic,
-                    fontSize = ArabicSize.Panel,
-                    color = HeroGold,
-                    textAlign = TextAlign.Center,
-                )
-                Spacer(Modifier.height(8.dp))
-                FitText(
-                    text = name.transliteration,
-                    style = MaterialTheme.typography.displaySmall,
-                    color = HeroText,
-                    minScale = 0.45f,
-                )
-                Spacer(Modifier.height(24.dp))
-                Text(
-                    text = stringResource(R.string.tap_to_flip),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = HeroSubtext,
-                    textAlign = TextAlign.Center,
+            val frontScroll = rememberScrollState()
+            Box(modifier = Modifier.fillMaxSize()) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .verticalScroll(frontScroll)
+                        .padding(24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center,
+                ) {
+                    ArabicText(
+                        text = name.arabic,
+                        fontSize = ArabicSize.Panel,
+                        color = HeroGold,
+                        textAlign = TextAlign.Center,
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    FitText(
+                        text = name.transliteration,
+                        style = MaterialTheme.typography.displaySmall,
+                        color = HeroText,
+                        minScale = 0.45f,
+                    )
+                    Spacer(Modifier.height(24.dp))
+                    Text(
+                        text = stringResource(R.string.tap_to_flip),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = HeroSubtext,
+                        textAlign = TextAlign.Center,
+                    )
+                }
+                // Same foot cue as the back: only appears when the name
+                // overflows the card and needs scrolling.
+                ScrollProgressHairline(
+                    scrollState = frontScroll,
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(horizontal = 24.dp, vertical = 10.dp),
                 )
             }
         } else {
             // Back: the meaning alone (counter-rotated so it reads correctly).
-            Column(
+            val backScroll = rememberScrollState()
+            Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .graphicsLayer { rotationY = 180f }
-                    .verticalScroll(rememberScrollState())
-                    .padding(24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center,
+                    .graphicsLayer { rotationY = 180f },
             ) {
-                // Centred like the share card — the reading line, set the same
-                // way on every surface that carries the full meaning.
-                Text(
-                    text = name.meaning,
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.widthIn(max = readingMeasure()),
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .verticalScroll(backScroll)
+                        .padding(24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center,
+                ) {
+                    // Centred like the share card — the reading line, set the
+                    // same way on every surface that carries the full meaning.
+                    Text(
+                        text = name.meaning,
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.widthIn(max = readingMeasure()),
+                    )
+                }
+                // A hairline at the card's foot that fills as the meaning
+                // scrolls, and is only there while more of it lies below.
+                ScrollProgressHairline(
+                    scrollState = backScroll,
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(horizontal = 24.dp, vertical = 10.dp),
                 )
             }
         }

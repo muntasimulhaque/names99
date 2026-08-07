@@ -13,13 +13,12 @@ APK=app/build/outputs/apk/debug/app-debug.apk
 
 adb install -r "$APK"
 
-# Start the app fresh: force-stop (so the deep-link extra is read by a new
-# process and the singleTop onNewIntent path is avoided), give the process a
-# moment to die, launch, then wait for the splash to clear before returning.
+# Start the app fresh, give the process a moment to die, launch, then wait for
+# the splash to clear before returning.
 start_app() {
   adb shell am force-stop $PKG
   sleep 2
-  adb shell am start -W -n $PKG/.MainActivity "$@"
+  adb shell am start -W -n $PKG/.MainActivity
   sleep 10
 }
 
@@ -50,18 +49,26 @@ tap_text() {
 start_app
 capture /tmp/shot-home.png
 
-# 2) Name page (deep-link to the first name)
-start_app --ei nameNumber 1
+# 2) Name page: tap a name in the warm home list (more reliable than a
+# cold-start deep link, which on the emulator landed on a blank sheet).
+tap_text "Al-Ahad"
+sleep 5
 capture /tmp/shot-name.png
 
-# 3) Home, dark
+# back to home
+adb shell input keyevent KEYCODE_BACK
+sleep 3
+
+# 3) Home, dark: flip the night mode in place; the activity recomposes to dark.
 adb shell cmd uimode night yes
-start_app
+sleep 6
 capture /tmp/shot-home-dark.png
 
-# 4) Quiz: Memorize tab -> Quiz (back to light)
+# back to light for the quiz
 adb shell cmd uimode night no
-start_app
+sleep 3
+
+# 4) Quiz: Memorize tab -> Quiz
 tap_text "Memorize"
 sleep 3
 tap_text "Quiz"

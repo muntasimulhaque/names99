@@ -1,8 +1,10 @@
 name: Capture Play screenshots
 
-# Builds the debug APK once per device, boots a phone, 7-inch and 10-inch
-# emulator, opens the real app, and captures the four screens that feed the Play
-# listing (home light, name, home dark, quiz). Run on demand (workflow_dispatch).
+# Renders the four listing screens (home light, name page, home dark, quiz)
+# directly via an instrumentation screenshot test — no adb navigation of the
+# running app — so it works reliably on the slow CI tablet emulators. Runs on a
+# phone, 7-inch and 10-inch emulator and uploads the PNGs as artifacts.
+#
 # Artifacts: screenshots-<device>/<device>-home.png, -name.png, -home-dark.png, -quiz.png
 
 on:
@@ -36,12 +38,6 @@ jobs:
         with:
           gradle-version: "9.5.0"
 
-      - name: Build debug APK
-        run: gradle assembleDebug
-
-      - name: Install Pillow (blank-frame detection)
-        run: python3 -m pip install --quiet Pillow
-
       - name: Capture screenshots (${{ matrix.device }})
         uses: reactivecircus/android-emulator-runner@v2
         with:
@@ -51,10 +47,13 @@ jobs:
           profile: ${{ matrix.profile }}
           disable-animations: true
           script: |
-            bash .github/scripts/capture.sh ${{ matrix.device }}
+            ./gradlew connectedDebugAndroidTest --console=plain
+            mkdir -p /tmp/screenshots
+            for f in home home-dark name quiz; do adb exec-out run-as io.github.muntasimulhaque.ninetynine cat /data/data/io.github.muntasimulhaque.ninetynine/files/screenshots/$f.png > /tmp/screenshots/${{ matrix.device }}-$f.png || true; done
+            ls -la /tmp/screenshots || true
 
       - name: Upload ${{ matrix.device }} screenshots
         uses: actions/upload-artifact@v4
         with:
           name: screenshots-${{ matrix.device }}
-          path: /tmp/${{ matrix.device }}-*.png
+          path: /tmp/screenshots/*.png

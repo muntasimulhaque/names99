@@ -1,0 +1,91 @@
+package io.github.muntasimulhaque.ninetynine
+
+import android.app.Application
+import android.graphics.Bitmap
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.asAndroidBitmap
+import androidx.compose.ui.test.captureToImage
+import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onRoot
+import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.platform.app.InstrumentationRegistry
+import io.github.muntasimulhaque.ninetynine.data.ThemeMode
+import io.github.muntasimulhaque.ninetynine.ui.NamesViewModel
+import io.github.muntasimulhaque.ninetynine.ui.detail.DetailScreen
+import io.github.muntasimulhaque.ninetynine.ui.home.HomeScreen
+import io.github.muntasimulhaque.ninetynine.ui.memorize.QuizScreen
+import io.github.muntasimulhaque.ninetynine.ui.theme.Names99Theme
+import org.junit.Rule
+import org.junit.Test
+import org.junit.runner.RunWith
+import java.io.File
+
+/**
+ * Renders the four Play-listing screens directly (no app session, no adb taps)
+ * at whatever resolution the device reports, and saves a PNG per scene to the
+ * app's internal files dir. The CI workflow runs this on a phone, 7-inch and
+ * 10-inch emulator and pulls the PNGs off via `run-as`.
+ *
+ * This mirrors the other app's screenshot pipeline: mount a screen with a real
+ * ViewModel, wait for the names to load, capture the idle frame. Deterministic
+ * and far lighter than driving the running app, so the slow CI tablet emulators
+ * don't ANR.
+ */
+@RunWith(AndroidJUnit4::class)
+class ScreenshotTest {
+
+    @get:Rule
+    val composeRule = createComposeRule()
+
+    private fun app(): Application =
+        InstrumentationRegistry.getInstrumentation().targetContext.applicationContext as Application
+
+    private fun saveScreenshot(name: String) {
+        composeRule.waitForIdle()
+        val dir = File(app().filesDir, "screenshots").apply { mkdirs() }
+        val bitmap = composeRule.onRoot(true).captureToImage().asAndroidBitmap()
+        File(dir, "$name.png").outputStream().use { fos ->
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, fos)
+        }
+    }
+
+    private fun waitForNames(vm: NamesViewModel) {
+        composeRule.waitUntil(timeoutMillis = 20_000) { vm.names.value.isNotEmpty() }
+    }
+
+    @Test
+    fun homeLight() = render("home", ThemeMode.LIGHT) {
+        HomeScreen(it, {}, {}, {}, rememberLazyListState())
+    }
+
+    @Test
+    fun homeDark() = render("home-dark", ThemeMode.DARK) {
+        HomeScreen(it, {}, {}, {}, rememberLazyListState())
+    }
+
+    @Test
+    fun namePage() = render("name", ThemeMode.LIGHT) {
+        DetailScreen(it, startNumber = 1, bookmarksOnly = false, onBack = {})
+    }
+
+    @Test
+    fun quiz() = render("quiz", ThemeMode.LIGHT) {
+        QuizScreen(it, onNameClick = {}, onBack = {})
+    }
+
+    private fun render(
+        name: String,
+        themeMode: ThemeMode,
+        screen: @Composable (NamesViewModel) -> Unit,
+    ) {
+        val viewModel = NamesViewModel(app())
+        composeRule.setContent {
+            Names99Theme(themeMode = themeMode, textScale = 1f) {
+                screen(viewModel)
+            }
+        }
+        waitForNames(viewModel)
+        saveScreenshot(name)
+    }
+}

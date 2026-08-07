@@ -4,11 +4,21 @@ A free, open-source, native Android app for reading and memorizing Al-Asma ul-Hu
 
 Based on the lecture of Sheikh Ibn Uthaymeen (Rahimahullah), as presented in *"The Ninety Nine Names of Allah: A Memorisation Tool with Transliteration and Meanings"*. Content curated at [muntasimulhaque.bearblog.dev/99-names](https://muntasimulhaque.bearblog.dev/99-names/).
 
+<p align="center">
+  <a href="https://play.google.com/store/apps/details?id=io.github.muntasimulhaque.ninetynine">
+    <img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" alt="Get it on Google Play" height="70">
+  </a>
+</p>
+
 <p>
-  <img src="docs/screenshot-home.png" width="205" alt="The list of names, with the name of the day at the top">
-  <img src="docs/screenshot-name.png" width="205" alt="A single name: Arabic, transliteration, meaning and a scholarly note">
-  <img src="docs/screenshot-quiz.png" width="205" alt="The ten-question quiz">
-  <img src="docs/screenshot-home-dark.png" width="205" alt="The same list in the dark theme">
+  <img src="docs/screenshots/home.png" width="205" alt="The home screen with the name of the day at the top">
+  <img src="docs/screenshots/detail.png" width="205" alt="A single name: Arabic, transliteration, meaning and a scholarly note">
+  <img src="docs/screenshots/quiz.png" width="205" alt="The ten-question quiz">
+  <img src="docs/screenshots/flashcards.png" width="205" alt="Flashcards with a flip animation">
+  <img src="docs/screenshots/bookmarks.png" width="205" alt="Bookmarked names">
+  <img src="docs/screenshots/memorize.png" width="205" alt="Memorization progress">
+  <img src="docs/screenshots/share.png" width="205" alt="Share a name as a rendered card">
+  <img src="docs/screenshots/settings.png" width="205" alt="Settings">
 </p>
 
 ## Features

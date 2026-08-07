@@ -16,3 +16,4 @@ captures/
 *.jks
 *.keystore
 output-metadata.json
+gradle/gradle-daemon-jvm.properties

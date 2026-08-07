@@ -6,6 +6,14 @@ so do not add a word or a stray space.
 
 ---
 
+## App identity
+
+- **Application ID (package name):** `io.github.muntasimulhaque.ninetynine`
+- **Privacy policy URL:** `https://muntasimulhaque.github.io/ninetynine/privacy-policy.html`
+- **Version (this release):** versionName `0.1`, versionCode `1`
+
+---
+
 ## App name (Play listing title)
 
 ```

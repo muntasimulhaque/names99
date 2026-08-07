@@ -113,8 +113,13 @@ class SquircleShape(
         // straight edges already reached — no diagonal jump where they meet.
         for (i in 0..SAMPLES_PER_CORNER) {
             val theta = i.toFloat() / SAMPLES_PER_CORNER * halfPi
-            val xs = r * cos(theta).pow(quad)
-            val ys = r * sin(theta).pow(quad)
+            // Clamp to [0,1]: at the seam theta = π/2 the float32 π/2 rounds a
+            // hair above the true value, so cos() is a tiny negative and a
+            // fractional power of a negative base is NaN — which would poison
+            // the whole path and blank the clipped surface. Mathematically
+            // cos/sin are in [0,1] here; the clamp only kills the rounding.
+            val xs = r * cos(theta).coerceIn(0f, 1f).pow(quad)
+            val ys = r * sin(theta).coerceIn(0f, 1f).pow(quad)
             path.lineTo(r - xs, r - ys)
         }
     }
@@ -125,8 +130,8 @@ class SquircleShape(
         // Apex at (w, 0), travelling from the top seam to the right seam.
         for (i in 0..SAMPLES_PER_CORNER) {
             val theta = (1f - i.toFloat() / SAMPLES_PER_CORNER) * halfPi
-            val xs = r * cos(theta).pow(quad)
-            val ys = r * sin(theta).pow(quad)
+            val xs = r * cos(theta).coerceIn(0f, 1f).pow(quad)
+            val ys = r * sin(theta).coerceIn(0f, 1f).pow(quad)
             path.lineTo(w - r + xs, r - ys)
         }
     }
@@ -137,8 +142,8 @@ class SquircleShape(
         // Apex at (w, h), from the right seam to the bottom seam.
         for (i in 0..SAMPLES_PER_CORNER) {
             val theta = i.toFloat() / SAMPLES_PER_CORNER * halfPi
-            val xs = r * cos(theta).pow(quad)
-            val ys = r * sin(theta).pow(quad)
+            val xs = r * cos(theta).coerceIn(0f, 1f).pow(quad)
+            val ys = r * sin(theta).coerceIn(0f, 1f).pow(quad)
             path.lineTo(w - r + xs, h - r + ys)
         }
     }
@@ -149,8 +154,8 @@ class SquircleShape(
         // Apex at (0, h), from the bottom seam to the left seam.
         for (i in 0..SAMPLES_PER_CORNER) {
             val theta = (1f - i.toFloat() / SAMPLES_PER_CORNER) * halfPi
-            val xs = r * cos(theta).pow(quad)
-            val ys = r * sin(theta).pow(quad)
+            val xs = r * cos(theta).coerceIn(0f, 1f).pow(quad)
+            val ys = r * sin(theta).coerceIn(0f, 1f).pow(quad)
             path.lineTo(r - xs, h - r + ys)
         }
     }

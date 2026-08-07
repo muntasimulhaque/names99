@@ -18,7 +18,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.Button
@@ -57,6 +56,7 @@ import io.github.muntasimulhaque.ninetynine.ui.theme.HeroGold
 import io.github.muntasimulhaque.ninetynine.ui.theme.HeroSubtext
 import io.github.muntasimulhaque.ninetynine.ui.theme.HeroText
 import io.github.muntasimulhaque.ninetynine.ui.theme.LocalTextScale
+import io.github.muntasimulhaque.ninetynine.ui.theme.SquircleShape
 import io.github.muntasimulhaque.ninetynine.ui.theme.appTypography
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.ArabicSize
 import io.github.muntasimulhaque.ninetynine.ui.theme.components.ArabicText
@@ -166,7 +166,10 @@ private fun ShareCard(name: Name, modifier: Modifier = Modifier) {
                     .border(
                         width = 1.dp,
                         color = frameGold,
-                        shape = RoundedCornerShape(20.dp),
+                        // Concentric with the card's 28dp squircle corner at a
+                        // 10dp inset, so the frame reads as one line sitting
+                        // inside the plate rather than a corner of its own.
+                        shape = SquircleShape(18.dp),
                     )
                     .padding(horizontal = 24.dp, vertical = 24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,

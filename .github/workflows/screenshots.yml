@@ -47,7 +47,7 @@ jobs:
           profile: ${{ matrix.profile }}
           disable-animations: true
           script: |
-            ./gradlew connectedDebugAndroidTest --console=plain
+            gradle connectedDebugAndroidTest --console=plain
             mkdir -p /tmp/screenshots
             for f in home home-dark name quiz; do adb exec-out run-as io.github.muntasimulhaque.ninetynine cat /data/data/io.github.muntasimulhaque.ninetynine/files/screenshots/$f.png > /tmp/screenshots/${{ matrix.device }}-$f.png || true; done
             ls -la /tmp/screenshots || true

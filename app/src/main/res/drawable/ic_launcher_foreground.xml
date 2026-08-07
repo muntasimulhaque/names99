@@ -10,12 +10,12 @@
          script; lam and lam are the verticals, the final heh is the closed
          box, and the baseline joins heh to both lams.
 
-         Scaled 1.06 about the centre and lifted 2 units (47.97 wide, bounds
-         30.0..78.0 — still inside the 21..87 adaptive safe zone): at 42% of
-         the canvas the glyph read small on a launcher grid, and its ink
-         mass sat 1.4% below the optical centre (the heavy lam columns and
-         heh box outweigh the thin top alif band). -->
+         Scaled 0.9167 about the centre (43.97 wide, bounds 32.01..75.99 —
+         still inside the 21..87 adaptive safe zone): at 40.7% of the canvas
+         the mark gains breathing room on the launcher grid while its ink
+         mass stays centred (centroid 53.6,53.6 — within a dp of optical
+         centre). The earlier 48-unit mark read as crowding the plate. -->
     <path
         android:fillColor="#D4B45A"
-        android:pathData="M30.015,28.015h47.970v6.853h-47.970zM30.015,41.721h20.559v6.853h-20.559zM57.426,41.721h6.853v34.265h-6.853zM71.132,41.721h6.853v34.265h-6.853zM30.015,48.574h6.853v27.412h-6.853zM43.721,48.574h6.853v27.412h-6.853zM36.868,69.132h6.853v6.853h-6.853zM50.574,69.132h6.853v6.853h-6.853zM64.279,69.132h6.853v6.853h-6.853z" />
+        android:pathData="M32.014,30.180h43.972v6.282h-43.972zM32.014,42.744h18.846v6.282h-18.846zM57.141,42.744h6.282v31.410h-6.282zM69.704,42.744h6.282v31.410h-6.282zM32.014,49.026h6.282v25.128h-6.282zM44.578,49.026h6.282v25.128h-6.282zM38.296,67.871h6.282v6.282h-6.282zM50.859,67.871h6.282v6.282h-6.282zM63.422,67.871h6.282v6.282h-6.282z" />
 </vector>

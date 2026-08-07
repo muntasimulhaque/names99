@@ -1,9 +1,22 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import java.util.Properties
 
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.serialization)
+}
+
+// The upload keystore's path and credentials live in keystore.properties in the
+// shared Google Play Signing Key folder (outside any repo), so no credential
+// ever enters the repository. When the file is absent — CI, a fresh clone —
+// the release build degrades to unsigned rather than failing.
+val keystoreFile = file(
+    "D:/GDrive/BSCPLC/DM (Development)/Personal Docs/Pers/Google Play Signing Key/keystore.properties"
+)
+val releaseKeystore = Properties()
+if (keystoreFile.exists()) {
+    releaseKeystore.load(keystoreFile.inputStream())
 }
 
 android {
@@ -18,6 +31,17 @@ android {
         versionName = "0.1"
     }
 
+    signingConfigs {
+        if (keystoreFile.exists()) {
+            create("release") {
+                storeFile = file(releaseKeystore.getProperty("storeFile"))
+                storePassword = releaseKeystore.getProperty("storePassword")
+                keyAlias = releaseKeystore.getProperty("keyAlias")
+                keyPassword = releaseKeystore.getProperty("keyPassword")
+            }
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = true
@@ -26,6 +50,8 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            signingConfig =
+                if (keystoreFile.exists()) signingConfigs.getByName("release") else null
         }
     }
     compileOptions {
